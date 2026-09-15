@@ -317,13 +317,21 @@ async function loadReaderData(
   id: string,
   signal: AbortSignal,
 ): Promise<ReaderData> {
-  const guideline = await getPublicGuideline(id, signal);
+  // Metadata, publication identity, and Markdown are independent. Starting them
+  // together removes two avoidable network round trips on a cold reader load.
+  const manifestRequest = attempt(getPublicGuidelineManifest(id, signal));
+  const markdownRequest = attempt(getPublicGuidelineMarkdown(id, signal));
+  const [guideline, manifestResult] = await Promise.all([
+    getPublicGuideline(id, signal),
+    manifestRequest,
+  ]);
   let manifest: PublicGuidelineManifest | undefined;
   let partial: boolean;
-  try {
-    manifest = await getPublicGuidelineManifest(id, signal);
+  if (manifestResult.ok) {
+    manifest = manifestResult.value;
     partial = manifest.extraction_quality === "partially_reviewed";
-  } catch (error) {
+  } else {
+    const error = manifestResult.error;
     if (signal.aborted) throw error;
     if (error instanceof PublicApiError && error.kind === "rate-limited")
       throw error;
@@ -342,6 +350,8 @@ async function loadReaderData(
     const requests: Array<Promise<unknown>> = [getPublicGuidelineContent(id, manifest, signal)];
     if (manifest.has_figures)
       requests.push(listPublicGuidelineFigures(id, signal));
+    const identityCheckIndex = requests.length;
+    requests.push(getPublicGuidelineManifest(id, signal, true));
     const results = await Promise.allSettled(requests);
     const contentResult = results[0];
     if (contentResult.status === "fulfilled") {
@@ -361,15 +371,19 @@ async function loadReaderData(
         ).items;
       else partial = true;
     }
-    const currentManifest = await getPublicGuidelineManifest(id, signal);
+    const identityResult = results[identityCheckIndex];
+    if (identityResult.status === "rejected") throw identityResult.reason;
+    const currentManifest = identityResult.value as PublicGuidelineManifest;
     if (publicationIdentity(currentManifest) !== publicationIdentity(manifest)) {
       throw new PublicApiError("invalid-response");
     }
   }
   let markdown: PublicMarkdown | undefined;
-  try {
-    markdown = await getPublicGuidelineMarkdown(id, signal);
-  } catch (error) {
+  const markdownResult = await markdownRequest;
+  if (markdownResult.ok) {
+    markdown = markdownResult.value;
+  } else {
+    const error = markdownResult.error;
     if (signal.aborted) throw error;
     if (error instanceof PublicApiError && error.kind === "rate-limited")
       throw error;
@@ -387,6 +401,18 @@ async function loadReaderData(
     markdown,
     partial,
   };
+}
+
+type Attempt<T> =
+  | { ok: true; value: T }
+  | { ok: false; error: unknown };
+
+async function attempt<T>(request: Promise<T>): Promise<Attempt<T>> {
+  try {
+    return { ok: true, value: await request };
+  } catch (error) {
+    return { ok: false, error };
+  }
 }
 
 function GuidelineHero({

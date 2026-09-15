@@ -298,7 +298,7 @@ export class PublicApiError extends Error {
 }
 
 const requestTimeoutMs = 12_000;
-const markdownCache = new Map<string, PublicMarkdown>();
+const markdownCache = new Map<string, ConditionalCacheEntry<PublicMarkdown>>();
 const listCache = new Map<string, CacheEntry<PublicGuidelinePage>>();
 const detailCache = new Map<string, CacheEntry<PublicGuideline>>();
 const structuredCache = new Map<string, ConditionalCacheEntry<unknown>>();
@@ -308,13 +308,19 @@ const maxCachedDocuments = 8;
 const maxCachedLists = 16;
 const maxCachedDetails = 40;
 const listTtlMs = 60_000;
-const detailTtlMs = 5 * 60_000;
+// Current-publication pointers can change when content is withdrawn or superseded,
+// so keep their freshness window deliberately short. Projection payloads include
+// the publication identity in their cache key and are immutable for that identity.
+const publicationPointerTtlMs = 30_000;
+const immutableProjectionTtlMs = 10 * 60_000;
+const detailTtlMs = publicationPointerTtlMs;
 
 type CacheEntry<T> = { value: T; expiresAt: number };
 type ConditionalCacheEntry<T> = {
   value: T;
   etag?: string;
   lastModified?: string;
+  validatedAt: number;
 };
 
 function publicUrl(path: string, query?: URLSearchParams) {
@@ -385,15 +391,24 @@ async function requestConditionalJson<T>(
   validate: (value: unknown) => value is T,
   signal?: AbortSignal,
   cacheKey = url,
+  freshnessMs = 0,
 ): Promise<T> {
   const cached = structuredCache.get(cacheKey) as ConditionalCacheEntry<T> | undefined;
+  if (cached && Date.now() - cached.validatedAt < freshnessMs) {
+    rememberConditional(cacheKey, cached);
+    return cached.value;
+  }
   const headers: Record<string, string> = { Accept: "application/json" };
   if (cached?.etag) headers["If-None-Match"] = cached.etag;
   if (!cached?.etag && cached?.lastModified) {
     headers["If-Modified-Since"] = cached.lastModified;
   }
   const response = await request(url, { headers }, signal);
-  if (response.status === 304 && cached) return cached.value;
+  if (response.status === 304 && cached) {
+    const refreshed = { ...cached, validatedAt: Date.now() };
+    rememberConditional(cacheKey, refreshed);
+    return refreshed.value;
+  }
   if (response.status === 404) throw new PublicApiError("not-found", 404);
   if (response.status === 429) {
     throw new PublicApiError("rate-limited", 429, parseRetryAfter(response.headers.get("Retry-After")));
@@ -412,6 +427,7 @@ async function requestConditionalJson<T>(
     value: envelope.data,
     etag: response.headers.get("ETag") ?? undefined,
     lastModified: response.headers.get("Last-Modified") ?? undefined,
+    validatedAt: Date.now(),
   });
   return envelope.data;
 }
@@ -499,10 +515,20 @@ export function getPublicGuideline(id: string, signal?: AbortSignal) {
   return signal ? load() : deduplicated(`detail:${url}`, load);
 }
 
-export function getPublicGuidelineManifest(id: string, signal?: AbortSignal) {
+export function getPublicGuidelineManifest(
+  id: string,
+  signal?: AbortSignal,
+  forceRevalidate = false,
+) {
   const url = publicUrl(`/guidelines/${encodeURIComponent(id)}/manifest`);
   const load = async () => {
-    const manifest = await requestConditionalJson(url, isManifest, signal);
+    const manifest = await requestConditionalJson(
+      url,
+      isManifest,
+      signal,
+      url,
+      forceRevalidate ? 0 : publicationPointerTtlMs,
+    );
     const identity = publicationIdentity(manifest);
     const previous = manifestIdentityByGuideline.get(id);
     if (previous && previous !== identity) {
@@ -526,6 +552,7 @@ export async function getPublicGuidelineContent(
     isContent,
     signal,
     `${url}#${identity}`,
+    immutableProjectionTtlMs,
   );
   assertPublicationIdentity(value, manifest);
   return value;
@@ -541,7 +568,13 @@ export function listPublicGuidelineSections(id: string, signal?: AbortSignal) {
 export async function getPublicGuidelineSection(id: string, sectionId: string, manifest: PublicGuidelineManifest, signal?: AbortSignal) {
   const url = publicUrl(`/guidelines/${encodeURIComponent(id)}/sections/${encodeURIComponent(sectionId)}`);
   const identity = publicationIdentity(manifest);
-  const load = () => requestConditionalJson(url, isSectionDetail, signal, `${url}#${identity}`);
+  const load = () => requestConditionalJson(
+    url,
+    isSectionDetail,
+    signal,
+    `${url}#${identity}`,
+    immutableProjectionTtlMs,
+  );
   const value = signal ? await load() : await deduplicated(`section:${url}:${identity}`, load);
   assertPublicationIdentity(value, manifest);
   return value;
@@ -592,9 +625,19 @@ export function getPublicGuidelineOfflinePackage(id: string, signal?: AbortSigna
 export async function getPublicGuidelineMarkdown(
   id: string,
   signal?: AbortSignal,
+  forceRevalidate = false,
 ): Promise<PublicMarkdown> {
   const cacheKey = id;
   const cached = markdownCache.get(cacheKey);
+  if (
+    cached &&
+    !forceRevalidate &&
+    Date.now() - cached.validatedAt < publicationPointerTtlMs
+  ) {
+    markdownCache.delete(cacheKey);
+    markdownCache.set(cacheKey, cached);
+    return { ...cached.value, fromCache: true };
+  }
   const headers: HeadersInit = { Accept: "text/markdown" };
   if (cached?.etag) headers["If-None-Match"] = cached.etag;
 
@@ -604,9 +647,10 @@ export async function getPublicGuidelineMarkdown(
     signal,
   );
   if (response.status === 304 && cached) {
+    const refreshed = { ...cached, validatedAt: Date.now() };
     markdownCache.delete(cacheKey);
-    markdownCache.set(cacheKey, cached);
-    return { ...cached, fromCache: true };
+    markdownCache.set(cacheKey, refreshed);
+    return { ...cached.value, fromCache: true };
   }
   if (response.status === 404) throw new PublicApiError("not-found", 404);
   if (response.status === 429) {
@@ -620,7 +664,7 @@ export async function getPublicGuidelineMarkdown(
     lastModified: response.headers.get("Last-Modified") ?? undefined,
     fromCache: false,
   };
-  markdownCache.set(cacheKey, result);
+  markdownCache.set(cacheKey, { value: result, etag: result.etag, lastModified: result.lastModified, validatedAt: Date.now() });
   while (markdownCache.size > maxCachedDocuments) {
     const oldest = markdownCache.keys().next().value;
     if (oldest === undefined) break;

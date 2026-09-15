@@ -19,6 +19,14 @@ server {
 
     client_max_body_size 100m;
 
+    # Structured guideline snapshots can be large. Compress proxied API JSON as
+    # well as the public application's static JavaScript and styles.
+    gzip on;
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_min_length 1024;
+    gzip_types text/plain text/css application/json application/javascript image/svg+xml;
+
     # Next.js is built with basePath=/admin. Preserve the prefix: a trailing
     # slash on proxy_pass here would strip it and break routes and static assets.
     location = /admin {

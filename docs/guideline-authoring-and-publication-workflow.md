@@ -420,6 +420,16 @@ environment data from sharing a cache. A downloaded package is marked
 `updateAvailable` when a newer current publication is discovered and is no
 longer treated as the current ready package.
 
+The public web reader keeps current-publication metadata, manifests, and
+Markdown fresh for 30 seconds. Structured content and individual sections are
+cached for 10 minutes under the complete immutable publication identity above;
+a new manifest identity invalidates the old entries. A cold reader load starts
+metadata, manifest, and Markdown requests together, then loads the content,
+figures, and a forced manifest identity check in parallel. This makes repeat
+navigation fast without allowing content from two published versions to be
+combined. The production reverse proxy must enable gzip for `application/json`
+because large guidelines can contain thousands of reviewed blocks.
+
 Bulk review alone does not make content searchable. At publication the backend
 first demotes every chunk in the version, then promotes only chunks belonging
 to blocks that are still reviewed. Reviewed chunks must have generated

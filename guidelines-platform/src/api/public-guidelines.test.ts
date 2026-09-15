@@ -73,13 +73,27 @@ describe("public guideline API client", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const first = await getPublicGuidelineMarkdown("guideline-id");
-    const second = await getPublicGuidelineMarkdown("guideline-id");
+    const second = await getPublicGuidelineMarkdown("guideline-id", undefined, true);
 
     expect(first).toMatchObject({ content: "# Published", fromCache: false });
     expect(second).toMatchObject({ content: "# Published", fromCache: true });
     const secondOptions = fetchMock.mock.calls[1][1] as RequestInit;
     expect((secondOptions.headers as Record<string, string>)["If-None-Match"])
       .toBe('"sha256-one"');
+  });
+
+  it("serves recently validated Markdown without another request", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response("# Published", {
+      status: 200,
+      headers: { ETag: '"sha256-one"', "Content-Type": "text/markdown" },
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await getPublicGuidelineMarkdown("guideline-id");
+    const cached = await getPublicGuidelineMarkdown("guideline-id");
+
+    expect(cached).toMatchObject({ content: "# Published", fromCache: true });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("validates and conditionally revalidates each document manifest", async () => {
@@ -125,11 +139,34 @@ describe("public guideline API client", () => {
     expect(first.reviewed_section_count).toBe(5);
     expect(first.reviewed_leaf_section_count).toBe(3);
     expect(first.empty_leaf_section_count).toBe(1);
-    expect(await getPublicGuidelineManifest("guideline/id")).toEqual(manifest);
+    expect(await getPublicGuidelineManifest("guideline/id", undefined, true)).toEqual(manifest);
     expect(String(fetchMock.mock.calls[0][0])).toContain("guideline%2Fid/manifest");
     const secondOptions = fetchMock.mock.calls[1][1] as RequestInit;
     expect((secondOptions.headers as Record<string, string>)["If-None-Match"])
       .toBe('"manifest-v3"');
+  });
+
+  it("serves a recently validated manifest without another request", async () => {
+    const manifest = {
+      guideline_id: "guideline-id", version_id: "version-id", version: "2.1",
+      schema_version: 1, package_version: 3, extraction_quality: "reviewed",
+      has_chapters: true, has_key_points: false, has_tables: false,
+      has_figures: false, has_algorithms: false, has_original_pdf: false,
+      has_offline_package: false, section_count: 1, block_count: 1,
+      table_count: 0, figure_count: 0, algorithm_count: 0,
+      checksum: "sha256-document", etag: '"manifest-v3"',
+      generated_at: "2026-08-10T10:00:00Z",
+    };
+    const fetchMock = vi.fn().mockResolvedValue(new Response(
+      JSON.stringify({ success: true, data: manifest }),
+      { status: 200, headers: { "Content-Type": "application/json" } },
+    ));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await getPublicGuidelineManifest("guideline-id");
+    await getPublicGuidelineManifest("guideline-id");
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("rejects malformed structured manifests instead of rendering dynamic data", async () => {
@@ -194,13 +231,42 @@ describe("public guideline API client", () => {
 
     const first = await getPublicGuidelineManifest("guideline-id");
     await getPublicGuidelineContent("guideline-id", first);
-    const second = await getPublicGuidelineManifest("guideline-id");
+    const second = await getPublicGuidelineManifest("guideline-id", undefined, true);
     const current = await getPublicGuidelineContent("guideline-id", second);
 
     expect(current.version_id).toBe("version-2");
     expect(fetchMock).toHaveBeenCalledTimes(4);
     const finalHeaders = fetchMock.mock.calls[3][1]?.headers as Record<string, string>;
     expect(finalHeaders["If-None-Match"]).toBeUndefined();
+  });
+
+  it("reuses immutable structured content for the same publication identity", async () => {
+    const manifest = {
+      guideline_id: "guideline-id", version_id: "version-2", version: "2",
+      schema_version: 2, package_version: 2, extraction_quality: "reviewed" as const,
+      has_chapters: true, has_key_points: false, has_tables: false,
+      has_figures: false, has_algorithms: false, has_original_pdf: false,
+      has_offline_package: false, section_count: 1, block_count: 0,
+      table_count: 0, figure_count: 0, algorithm_count: 0,
+      checksum: "checksum-2", etag: "etag-2", generated_at: "2026-09-09T00:00:00Z",
+    };
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      success: true,
+      data: {
+        guideline_id: manifest.guideline_id,
+        version_id: manifest.version_id,
+        package_version: manifest.package_version,
+        checksum: manifest.checksum,
+        sections: [],
+        blocks: [],
+      },
+    }), { status: 200, headers: { "Content-Type": "application/json" } }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await getPublicGuidelineContent("guideline-id", manifest);
+    await getPublicGuidelineContent("guideline-id", manifest);
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("aborts an in-flight request when navigation is cancelled", async () => {
