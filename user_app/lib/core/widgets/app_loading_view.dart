@@ -21,9 +21,9 @@ class AppLoadingView extends StatelessWidget {
       liveRegion: true,
       label: semanticsLabel,
       child: ExcludeSemantics(
-        child: Center(
-          child: Padding(
-            padding: padding,
+        child: SingleChildScrollView(
+          padding: padding,
+          child: Center(
             child: AppShimmer(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 720),
