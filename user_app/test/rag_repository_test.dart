@@ -149,7 +149,10 @@ void main() {
       contentType: 'outbreak_document',
     );
 
-    expect(api.requests.single['body'], containsPair('disease_slug', 'cholera'));
+    expect(
+      api.requests.single['body'],
+      containsPair('disease_slug', 'cholera'),
+    );
     expect(
       api.requests.single['body'],
       containsPair('hub_slug', 'cholera-response'),
