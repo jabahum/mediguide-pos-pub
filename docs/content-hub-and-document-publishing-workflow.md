@@ -219,13 +219,25 @@ rules.
 ## Search and RAG behavior
 
 Public search and the AI assistant use the approved source projection, not the
-hub card as a substitute for content. Publishing a hub improves navigation but
-does not repair missing chunks, embeddings or extraction output.
+hub card as a substitute for content. The general assistant can retrieve
+reviewed current guideline chunks plus eligible outbreak summaries, situation
+reports, extracted outbreak documents and forms, published algorithms,
+clinical tools and approved drug references. Hub, pillar and disease records
+are navigation/filter metadata and are not clinical evidence by themselves.
+Approved external URLs are searchable links but never ground an AI answer.
+
+The mobile assistant sends category, disease, content-type, hub and pillar
+scope when those values are present in its current context and their rollout
+flags are enabled. The backend resolves aliases/slugs to canonical IDs and
+reapplies public eligibility before returning every citation. A taxonomy or
+pillar assignment can narrow retrieval but cannot make content eligible.
 
 1. Confirm the source itself is publicly eligible.
 2. Confirm extraction or structured regeneration completed without blocking
    errors.
-3. Confirm published blocks have search chunks and required embeddings.
+3. For guidelines, confirm published blocks have approved search chunks and
+   required embeddings. For managed outbreak documents and forms, confirm the
+   governed extraction/index status contains searchable text.
 4. Query public search with a distinctive source term and open the returned
    resource.
 5. Ask the assistant a question answerable by that source and verify its cited
@@ -233,8 +245,19 @@ does not repair missing chunks, embeddings or extraction output.
 6. Enable `pillar_rag_metadata` only after retrieval tests show that hub/pillar
    context improves results without changing clinical eligibility.
 
-Never generate a clinical answer from hub metadata alone. If retrieval has no
-eligible evidence, the assistant must return its governed no-answer state.
+Each source is stored once. Category, disease, hub and pillar relationships are
+attached as metadata rather than copied into duplicate vectors. Never generate
+a clinical answer from hub metadata alone. If retrieval has no eligible
+evidence, the assistant must return its governed no-answer state.
+
+The current AI-worker vector index contains guideline chunks. The backend
+therefore preflights the unified public corpus for every general question. A
+disease-, hub-, pillar- or content-type-scoped question, or any question that
+matches an eligible non-guideline source, uses the backend's citation-first
+mixed-source response. Guideline-only questions may continue to use the
+configured AI worker. This transition rule prevents a guideline-heavy result
+set from hiding a relevant managed document or report while the worker protocol
+is expanded to carry typed taxonomy filters.
 
 ## Public visibility checklist
 
@@ -312,6 +335,8 @@ eligible, not that authentication is required.
 | A withdrawn item remains offline | Device has not completed reconciliation | Restore connectivity, refresh/sync and verify the public API omits it |
 | Search omits a document | Source is ineligible, extraction failed or search is disabled | Inspect lifecycle and extraction; reprocess only through the audited workflow |
 | Outbreak hub uses the older layout | `api_driven_outbreak_pillars` is false | This is safe compatibility mode; enable only after rollout approval |
+| Assistant ignores the current hub or pillar | `pillar_rag_metadata` is disabled or the assistant was opened without hub context | Enable the flag for the approved audience and open **Ask AI** from the hub/pillar page |
+| Assistant finds a source title but no document body | Managed-document extraction is incomplete or the file is scanned without OCR | Inspect extraction status, upload an extractable source or retain the governed original-only fallback |
 
 ## Correction and rollback
 

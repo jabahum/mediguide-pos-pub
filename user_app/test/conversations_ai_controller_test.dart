@@ -133,6 +133,14 @@ class FakeRagAssistant implements RagAssistant {
     required String question,
     String? country,
     String? programArea,
+    String? categoryId,
+    String? diseaseId,
+    String? diseaseSlug,
+    String? hubId,
+    String? hubSlug,
+    String? pillarId,
+    String? pillarSlug,
+    String? contentType,
     bool authenticated = false,
   }) async {
     lastMessage = question;

@@ -14,6 +14,14 @@ abstract interface class RagAssistant {
     required String question,
     String? country,
     String? programArea,
+    String? categoryId,
+    String? diseaseId,
+    String? diseaseSlug,
+    String? hubId,
+    String? hubSlug,
+    String? pillarId,
+    String? pillarSlug,
+    String? contentType,
     bool authenticated = false,
   });
 }
@@ -36,6 +44,14 @@ final class RagRepository implements RagAssistant {
     required String question,
     String? country,
     String? programArea,
+    String? categoryId,
+    String? diseaseId,
+    String? diseaseSlug,
+    String? hubId,
+    String? hubSlug,
+    String? pillarId,
+    String? pillarSlug,
+    String? contentType,
     bool authenticated = false,
   }) async {
     final normalizedQuestion = question.trim();
@@ -48,6 +64,18 @@ final class RagRepository implements RagAssistant {
       'language': _language,
       'country': _normalizeCountry(country),
       'program_area': programArea?.trim() ?? '',
+      if (categoryId?.trim().isNotEmpty == true)
+        'category_id': categoryId!.trim(),
+      if (diseaseId?.trim().isNotEmpty == true) 'disease_id': diseaseId!.trim(),
+      if (diseaseSlug?.trim().isNotEmpty == true)
+        'disease_slug': diseaseSlug!.trim(),
+      if (hubId?.trim().isNotEmpty == true) 'hub_id': hubId!.trim(),
+      if (hubSlug?.trim().isNotEmpty == true) 'hub_slug': hubSlug!.trim(),
+      if (pillarId?.trim().isNotEmpty == true) 'pillar_id': pillarId!.trim(),
+      if (pillarSlug?.trim().isNotEmpty == true)
+        'pillar_slug': pillarSlug!.trim(),
+      if (contentType?.trim().isNotEmpty == true)
+        'content_type': contentType!.trim(),
       if (_sessionId?.isNotEmpty == true) 'session_id': _sessionId,
     });
     final endpoint = authenticated

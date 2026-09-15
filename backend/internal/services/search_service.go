@@ -8,6 +8,7 @@ import (
 	"unicode"
 
 	cachepkg "mediguide/internal/cache"
+	"mediguide/internal/models"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -282,13 +283,92 @@ func (s SearchService) SearchPublishedGuidelineContext(ctx context.Context, guid
 // program-area hint when it does not match the source taxonomy and matches
 // meaningful question terms instead of requiring the full sentence verbatim.
 func (s SearchService) SearchApprovedGuidelineContext(ctx context.Context, question string, limit int) ([]SearchResult, error) {
-	return s.SearchApprovedGuidelineContextFiltered(ctx, question, PublicSearchFilter{}, limit)
+	return s.SearchApprovedContentContextFiltered(ctx, question, PublicSearchFilter{}, limit)
+}
+
+// SearchApprovedContentContextFiltered retrieves citation-ready evidence from
+// the same publication-safe corpus used by public discovery. This makes the
+// general assistant useful for guidelines, outbreak material, situation
+// reports, forms, tools, algorithms and drug references without weakening the
+// lifecycle/review checks enforced by the public services.
+func (s SearchService) SearchApprovedContentContextFiltered(ctx context.Context, question string, filter PublicSearchFilter, limit int) ([]SearchResult, error) {
+	if limit <= 0 || limit > 10 {
+		limit = 5
+	}
+	terms := publicAssistantTerms(question)
+	if len(terms) == 0 {
+		return []SearchResult{}, nil
+	}
+	// Minimal migration/test databases may only contain guideline projections.
+	// Preserve the original safe retrieval path until discovery tables exist.
+	if !s.hasDiscoverySchema() {
+		if filter.ContentType != "" && filter.ContentType != "guideline" {
+			return []SearchResult{}, nil
+		}
+		return s.SearchApprovedGuidelineContextFiltered(ctx, question, filter, limit)
+	}
+	// Categories classify guidelines only. Keep that contract explicit instead
+	// of allowing unrelated resource kinds into a category-scoped answer.
+	if strings.TrimSpace(filter.CategoryID) != "" && strings.TrimSpace(filter.ContentType) == "" {
+		filter.ContentType = "guideline"
+	}
+	results := make([]SearchResult, 0, limit)
+	seen := map[string]bool{}
+	contentTypes := []string{strings.TrimSpace(filter.ContentType)}
+	perTypeLimit := 20
+	if contentTypes[0] == "" {
+		// PublicSearch orders guideline chunks first. Query each evidence type
+		// separately so a large guideline cannot crowd every other approved
+		// source out of a general assistant response.
+		contentTypes = []string{
+			"guideline",
+			models.ContentDiseaseOutbreak,
+			models.ContentDiseaseOutbreakDocument,
+			models.ContentDiseaseSituationReport,
+			models.ContentDiseaseAlgorithm,
+			models.ContentDiseaseClinicalTool,
+			models.ContentDiseaseForm,
+			models.ContentDiseaseDrugReference,
+		}
+		perTypeLimit = 3
+	}
+	for _, term := range terms {
+		for _, contentType := range contentTypes {
+			typedFilter := filter
+			typedFilter.ContentType = contentType
+			matches, err := s.PublicSearchContextFiltered(ctx, term, typedFilter, perTypeLimit)
+			if err != nil {
+				return nil, err
+			}
+			for _, match := range matches {
+				// Taxonomy/navigation records and external links are discoverable but
+				// are not clinical evidence from which an answer may be generated.
+				switch match.ResultType {
+				case "disease", "hub", "pillar", "internal_route", "approved_external_url":
+					continue
+				}
+				key := match.ResultType + ":" + match.ID
+				if seen[key] || strings.TrimSpace(match.Snippet) == "" {
+					continue
+				}
+				seen[key] = true
+				results = append(results, match)
+				if len(results) == limit {
+					return results, nil
+				}
+			}
+		}
+	}
+	return results, nil
 }
 
 // SearchApprovedGuidelineContextFiltered is the RAG retrieval boundary for the
 // general assistant. Taxonomy assignments narrow eligible published content;
 // they never make an unreviewed or non-current source eligible.
 func (s SearchService) SearchApprovedGuidelineContextFiltered(ctx context.Context, question string, filter PublicSearchFilter, limit int) ([]SearchResult, error) {
+	if strings.TrimSpace(filter.ContentType) != "" && filter.ContentType != "guideline" {
+		return s.SearchApprovedContentContextFiltered(ctx, question, filter, limit)
+	}
 	if limit <= 0 || limit > 10 {
 		limit = 5
 	}

@@ -197,10 +197,11 @@ func (s SearchService) taxonomyHubSearch(ctx context.Context, query string, filt
 				if filter.ContentType != "" && filter.ContentType != resource.ContentType {
 					continue
 				}
-				if !match(resource.Title, resource.Description, resource.SourceOrganization, resource.IssuingAuthority) {
+				evidence := s.approvedResourceEvidence(ctx, resource)
+				if !match(resource.Title, resource.Description, resource.SourceOrganization, resource.IssuingAuthority, evidence) {
 					continue
 				}
-				results = append(results, SearchResult{ID: resource.ID.String(), ResultType: resource.ContentType, ContentType: resource.ContentType, Title: resource.Title, Snippet: resource.Description, SourceName: firstNonEmpty(resource.IssuingAuthority, resource.SourceOrganization), SourceVersion: resource.Version, Route: resource.Route, Diseases: []SearchFacet{facet}, Metadata: publicResourceMetadata(resource)})
+				results = append(results, SearchResult{ID: resource.ID.String(), ResultType: resource.ContentType, ContentType: resource.ContentType, Title: resource.Title, Snippet: firstNonEmpty(evidence, resource.Description), SourceName: firstNonEmpty(resource.IssuingAuthority, resource.SourceOrganization), SourceVersion: resource.Version, Route: resource.Route, Diseases: []SearchFacet{facet}, Metadata: publicResourceMetadata(resource)})
 			}
 		}
 	}
@@ -250,10 +251,11 @@ func (s SearchService) taxonomyHubSearch(ctx context.Context, query string, filt
 					if item.DescriptionOverride != "" {
 						description = item.DescriptionOverride
 					}
-					if !match(title, description, resource.SourceOrganization, resource.IssuingAuthority) {
+					evidence := s.approvedResourceEvidence(ctx, *resource)
+					if !match(title, description, resource.SourceOrganization, resource.IssuingAuthority, evidence) {
 						continue
 					}
-					results = append(results, SearchResult{ID: resource.ID.String(), ResultType: resource.ContentType, ContentType: resource.ContentType, Title: title, Snippet: description, SourceName: firstNonEmpty(resource.IssuingAuthority, resource.SourceOrganization), SourceVersion: resource.Version, Route: resource.Route, Hubs: []SearchFacet{hubFacet}, Pillars: []SearchFacet{pillarFacet}, Diseases: diseaseFacets, Metadata: publicResourceMetadata(*resource)})
+					results = append(results, SearchResult{ID: resource.ID.String(), ResultType: resource.ContentType, ContentType: resource.ContentType, Title: title, Snippet: firstNonEmpty(evidence, description), SourceName: firstNonEmpty(resource.IssuingAuthority, resource.SourceOrganization), SourceVersion: resource.Version, Route: resource.Route, Hubs: []SearchFacet{hubFacet}, Pillars: []SearchFacet{pillarFacet}, Diseases: diseaseFacets, Metadata: publicResourceMetadata(*resource)})
 				}
 				visit(pillar.Children)
 			}
@@ -261,6 +263,50 @@ func (s SearchService) taxonomyHubSearch(ctx context.Context, query string, filt
 		visit(hub.Pillars)
 	}
 	return results, nil
+}
+
+// approvedResourceEvidence returns content from an already publication-safe
+// resource projection. It never changes eligibility; it only gives search/RAG
+// a useful reviewed excerpt instead of grounding answers on titles alone.
+func (s SearchService) approvedResourceEvidence(ctx context.Context, resource PublicContentResource) string {
+	var evidence string
+	switch resource.ContentType {
+	case models.ContentDiseaseOutbreakDocument, models.ContentDiseaseForm:
+		var row models.OutbreakResource
+		if err := s.DB.WithContext(ctx).Select("search_content", "search_headings").First(&row, "id = ?", resource.ID).Error; err == nil {
+			evidence = strings.TrimSpace(row.SearchHeadings + "\n" + row.SearchContent)
+		}
+	case models.ContentDiseaseSituationReport:
+		var row models.SituationReport
+		if err := s.DB.WithContext(ctx).Select("summary", "key_highlights").First(&row, "id = ?", resource.ID).Error; err == nil {
+			evidence = strings.TrimSpace(row.Summary + "\n" + string(row.KeyHighlights))
+		}
+	case models.ContentDiseaseClinicalTool:
+		var row models.CalculatorVersion
+		if err := s.DB.WithContext(ctx).Where("calculator_id = ? AND status = ?", resource.ID, "published").Order("published_at DESC").First(&row).Error; err == nil {
+			evidence = string(row.DefinitionJSON)
+		}
+	case models.ContentDiseaseDrugReference:
+		var row models.Drug
+		if err := s.DB.WithContext(ctx).First(&row, "id = ?", resource.ID).Error; err == nil {
+			values := []*string{row.Description, row.Indications, row.Contraindications, row.AdultDose, row.PediatricDose, row.Warnings, row.ClinicalNotes, row.ReferenceText}
+			parts := []string{}
+			for _, value := range values {
+				if value != nil && strings.TrimSpace(*value) != "" {
+					parts = append(parts, strings.TrimSpace(*value))
+				}
+			}
+			evidence = strings.Join(parts, "\n")
+		}
+	case models.ContentDiseaseAlgorithm:
+		var row models.GuidelineContentBlock
+		if err := s.DB.WithContext(ctx).Select("content_json").First(&row, "id = ?", resource.ID).Error; err == nil {
+			evidence = string(row.ContentJSON)
+		}
+	default:
+		evidence = resource.Description
+	}
+	return truncate(strings.TrimSpace(evidence), 1200)
 }
 
 func (s SearchService) attachSearchMetadata(ctx context.Context, result *SearchResult) error {
@@ -327,15 +373,17 @@ func (s SearchService) attachSearchMetadata(ctx context.Context, result *SearchR
 		}
 	}
 	result.Route = publicSearchRoute(*result)
-	metadata := map[string]any{
-		"content_type": contentType, "content_id": id.String(),
-		"publication_status": "published", "review_state": "approved",
-		"source_organization": result.SourceName, "version": result.SourceVersion,
-		"category_ids": facetValues(result.Categories, false), "category_names": facetValues(result.Categories, true),
-		"disease_ids": facetValues(result.Diseases, false), "disease_names": facetValues(result.Diseases, true),
-		"hub_ids": facetValues(result.Hubs, false), "hub_names": facetValues(result.Hubs, true),
-		"pillar_ids": facetValues(result.Pillars, false), "pillar_names": facetValues(result.Pillars, true),
+	metadata := map[string]any{}
+	for key, value := range result.Metadata {
+		metadata[key] = value
 	}
+	metadata["content_type"], metadata["content_id"] = contentType, id.String()
+	metadata["publication_status"], metadata["review_state"] = "published", "approved"
+	metadata["source_organization"], metadata["version"] = result.SourceName, result.SourceVersion
+	metadata["category_ids"], metadata["category_names"] = facetValues(result.Categories, false), facetValues(result.Categories, true)
+	metadata["disease_ids"], metadata["disease_names"] = facetValues(result.Diseases, false), facetValues(result.Diseases, true)
+	metadata["hub_ids"], metadata["hub_names"] = facetValues(result.Hubs, false), facetValues(result.Hubs, true)
+	metadata["pillar_ids"], metadata["pillar_names"] = facetValues(result.Pillars, false), facetValues(result.Pillars, true)
 	if len(result.Diseases) > 0 {
 		metadata["canonical_disease_name"] = result.Diseases[0].Name
 		metadata["disease_aliases"] = result.Diseases[0].Aliases

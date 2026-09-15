@@ -223,6 +223,28 @@ class AiAssistantController extends _$AiAssistantController {
       question: requestMessage,
       country: _country,
       programArea: _programArea,
+      categoryId: ref.read(guidelineCategoryAssignmentEnabledProvider)
+          ? _contextMetadata('category_id')
+          : null,
+      diseaseId: ref.read(diseaseContentAssignmentEnabledProvider)
+          ? _contextMetadata('disease_id')
+          : null,
+      diseaseSlug: ref.read(diseaseContentAssignmentEnabledProvider)
+          ? _contextMetadata('disease_slug')
+          : null,
+      hubId: ref.read(pillarRagMetadataEnabledProvider)
+          ? _contextMetadata('hub_id')
+          : null,
+      hubSlug: ref.read(pillarRagMetadataEnabledProvider)
+          ? _contextMetadata('hub_slug')
+          : null,
+      pillarId: ref.read(pillarRagMetadataEnabledProvider)
+          ? _contextMetadata('pillar_id')
+          : null,
+      pillarSlug: ref.read(pillarRagMetadataEnabledProvider)
+          ? _contextMetadata('pillar_slug')
+          : null,
+      contentType: _contextMetadata('content_type'),
       authenticated: _domainUser != null,
     );
 
@@ -234,6 +256,11 @@ class AiAssistantController extends _$AiAssistantController {
     _addAssistantMessage(response.answerWithSources);
 
     unawaited(_trackUsage());
+  }
+
+  String? _contextMetadata(String key) {
+    final value = state.currentContext?.metadata?[key]?.toString().trim() ?? '';
+    return value.isEmpty ? null : value;
   }
 
   Future<void> retryLastRequest() async {

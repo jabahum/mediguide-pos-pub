@@ -137,6 +137,33 @@ void main() {
     expect(api.requests.single['includeAuth'], isFalse);
   });
 
+  test('sends disease, hub, pillar and content scopes to RAG', () async {
+    final api = RagApi();
+    final repository = RagRepository(api, preferences);
+
+    await repository.ask(
+      question: 'How should cases be managed?',
+      diseaseSlug: 'cholera',
+      hubSlug: 'cholera-response',
+      pillarSlug: 'clinical-care',
+      contentType: 'outbreak_document',
+    );
+
+    expect(api.requests.single['body'], containsPair('disease_slug', 'cholera'));
+    expect(
+      api.requests.single['body'],
+      containsPair('hub_slug', 'cholera-response'),
+    );
+    expect(
+      api.requests.single['body'],
+      containsPair('pillar_slug', 'clinical-care'),
+    );
+    expect(
+      api.requests.single['body'],
+      containsPair('content_type', 'outbreak_document'),
+    );
+  });
+
   test('reuses the server-issued session for conversational context', () async {
     final api = RagApi();
     final repository = RagRepository(api, preferences);

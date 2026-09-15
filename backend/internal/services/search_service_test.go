@@ -211,3 +211,62 @@ func TestRAGRetrievalResolvesDiseaseAliasesAndHubScopeWithoutLeakingDrafts(t *te
 		}
 	}
 }
+
+func TestRAGRetrievalIncludesEligibleOutbreakEvidenceAndExcludesDrafts(t *testing.T) {
+	db := classificationTestDB(t)
+	if err := db.AutoMigrate(&models.ContentHub{}, &models.ContentHubDisease{}, &models.ContentPillar{}, &models.ContentPillarItem{}, &models.DiseaseAlias{}, &models.DiseaseCode{}, &models.GuidelineChunk{}); err != nil {
+		t.Fatal(err)
+	}
+	now := time.Now().UTC()
+	disease := models.Disease{Name: "Cholera", NormalizedName: "cholera", Slug: "cholera", Status: models.DiseaseStatusActive}
+	if err := db.Create(&disease).Error; err != nil {
+		t.Fatal(err)
+	}
+	public := models.Outbreak{Title: "Cholera response", DiseaseType: "Cholera", Summary: "Use approved cholera case management guidance", Status: "active", PublishedAt: &now, LastUpdate: now}
+	draft := models.Outbreak{Title: "Draft cholera response", DiseaseType: "Cholera", Summary: "Private cholera instructions", Status: "draft", LastUpdate: now}
+	for _, outbreak := range []*models.Outbreak{&public, &draft} {
+		if err := db.Create(outbreak).Error; err != nil {
+			t.Fatal(err)
+		}
+		if err := db.Create(&models.ContentDiseaseAssignment{DiseaseID: disease.ID, ContentType: models.ContentDiseaseOutbreak, ContentID: outbreak.ID, IsPrimary: true}).Error; err != nil {
+			t.Fatal(err)
+		}
+	}
+	document := models.GuidelineDocument{Title: "Cholera clinical guideline", SourceOrg: "Ministry of Health"}
+	if err := db.Create(&document).Error; err != nil {
+		t.Fatal(err)
+	}
+	version := models.GuidelineVersion{DocumentID: document.ID, Version: "1", Status: "published"}
+	if err := db.Create(&version).Error; err != nil {
+		t.Fatal(err)
+	}
+	if err := db.Model(&document).Update("current_version_id", version.ID).Error; err != nil {
+		t.Fatal(err)
+	}
+	for index := 0; index < 8; index++ {
+		if err := db.Create(&models.GuidelineChunk{DocumentID: document.ID, VersionID: version.ID, Title: "Cholera treatment", Content: "Approved cholera case management guidance", ReviewStatus: "approved", SourceName: "Ministry of Health"}).Error; err != nil {
+			t.Fatal(err)
+		}
+	}
+	results, err := (SearchService{DB: db}).SearchApprovedContentContextFiltered(t.Context(), "How should cholera cases be managed?", PublicSearchFilter{DiseaseSlug: "cholera", ContentType: "outbreak"}, 5)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(results) != 1 || results[0].ID != public.ID.String() || results[0].ResultType != "outbreak" {
+		t.Fatalf("expected only published outbreak evidence, got %#v", results)
+	}
+	mixed, err := (SearchService{DB: db}).SearchApprovedContentContextFiltered(t.Context(), "How should cholera cases be managed?", PublicSearchFilter{}, 5)
+	if err != nil {
+		t.Fatal(err)
+	}
+	foundOutbreak := false
+	for _, result := range mixed {
+		foundOutbreak = foundOutbreak || result.ID == public.ID.String()
+		if result.ID == draft.ID.String() {
+			t.Fatalf("draft outbreak leaked into mixed retrieval: %#v", mixed)
+		}
+	}
+	if !foundOutbreak {
+		t.Fatalf("guideline chunks crowded outbreak evidence out of mixed retrieval: %#v", mixed)
+	}
+}
