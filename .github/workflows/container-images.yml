@@ -221,7 +221,10 @@ jobs:
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
           cache-from: type=gha,scope=${{ matrix.package }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.package }}
+          # Cache storage is an optimisation, not a release artifact. Keep the
+          # export compact and do not fail otherwise-valid image builds when
+          # the repository's GitHub Actions cache quota is temporarily full.
+          cache-to: type=gha,mode=min,scope=${{ matrix.package }},ignore-error=true
           provenance: mode=max
           sbom: true
 
