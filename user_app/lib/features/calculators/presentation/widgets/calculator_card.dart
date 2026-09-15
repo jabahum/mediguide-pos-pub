@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:user_app/core/utils/app_extensions.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:user_app/app/theme/app_text_styles.dart';
+import 'package:user_app/core/utils/app_extensions.dart';
+import 'package:user_app/core/utils/extensions.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:user_app/shared/models/models.dart';
 import 'package:user_app/core/constants/app_spacing.dart';
 
