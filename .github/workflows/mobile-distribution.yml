@@ -411,7 +411,7 @@ jobs:
           done
 
       - name: Build and distribute iOS beta with Firebase
-        if: startsWith(github.ref, 'refs/tags/v') || inputs.destination == 'all' || inputs.destination == 'firebase-ios'
+        if: inputs.destination == 'all' || inputs.destination == 'firebase-ios'
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/user_app/firebase-app-distribution.json
@@ -421,7 +421,7 @@ jobs:
         run: bundle exec fastlane ios firebase_release
 
       - name: Build and upload iOS beta to TestFlight
-        if: startsWith(github.ref, 'refs/tags/v') || inputs.destination == 'all' || inputs.destination == 'testflight'
+        if: inputs.destination == 'all' || inputs.destination == 'testflight'
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}

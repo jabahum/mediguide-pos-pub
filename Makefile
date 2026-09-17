@@ -9,6 +9,9 @@ PRODUCTION_COMPOSE := docker compose --env-file $(PRODUCTION_ENV_FILE) -f $(COMP
 PYTHON ?= python3
 AI_REQUIREMENTS_FILE := $(AI_WORKER_DIR)/requirements.txt
 AI_REQUIREMENTS_STAMP := $(AI_WORKER_DIR)/.requirements.sha256
+# Native Windows does not provide a POSIX shell or sudo. WSL uses the
+# existing Linux recipes; native GNU Make delegates stack operations to PS.
+WINDOWS_DEV_STACK := powershell.exe -NoProfile -File scripts/dev-stack.ps1
 
 .DEFAULT_GOAL := help
 
@@ -58,31 +61,59 @@ help:
 
 .PHONY: up
 up:
+ifeq ($(OS),Windows_NT)
+	$(WINDOWS_DEV_STACK) -Action up
+else
 	$(DOCKER_COMPOSE) up -d --build
+endif
 
 .PHONY: down
 down:
+ifeq ($(OS),Windows_NT)
+	$(WINDOWS_DEV_STACK) -Action down
+else
 	$(DOCKER_COMPOSE) down --remove-orphans
+endif
 
 .PHONY: reset
 reset:
+ifeq ($(OS),Windows_NT)
+	$(WINDOWS_DEV_STACK) -Action reset -ConfirmReset
+else
 	$(DOCKER_COMPOSE) down --volumes --remove-orphans
+endif
 
 .PHONY: build
 build:
+ifeq ($(OS),Windows_NT)
+	$(WINDOWS_DEV_STACK) -Action build
+else
 	$(DOCKER_COMPOSE) build
+endif
 
 .PHONY: ps
 ps:
+ifeq ($(OS),Windows_NT)
+	$(WINDOWS_DEV_STACK) -Action ps
+else
 	$(DOCKER_COMPOSE) ps
+endif
 
 .PHONY: logs
 logs:
+ifeq ($(OS),Windows_NT)
+	$(WINDOWS_DEV_STACK) -Action logs
+else
 	$(DOCKER_COMPOSE) logs -f
+endif
 
 .PHONY: config
 config:
+ifeq ($(OS),Windows_NT)
+	$(WINDOWS_DEV_STACK) -Action config
+else
 	$(DOCKER_COMPOSE) config
+endif
 
 .PHONY: env-check
 env-check:
@@ -90,7 +121,11 @@ env-check:
 
 .PHONY: guidelines-logs
 guidelines-logs:
+ifeq ($(OS),Windows_NT)
+	$(WINDOWS_DEV_STACK) -Action guidelines-logs
+else
 	$(DOCKER_COMPOSE) logs -f guidelines
+endif
 
 .PHONY: prod-up
 prod-up: production-env-check

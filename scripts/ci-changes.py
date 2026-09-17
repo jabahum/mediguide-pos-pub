@@ -17,7 +17,7 @@ IMAGES = [
 def classify(paths, full=False):
     changed = {name: full for name in MODULES}
     for path in paths:
-        if path.startswith((".github/", "scripts/", "proto/", "protos/")) or path in {"VERSION", ".dockerignore"}:
+        if path.startswith((".github/", "scripts/", "proto/", "protos/")) or path in {"VERSION", ".dockerignore", "Makefile", ".gitattributes"}:
             return dict.fromkeys(MODULES, True)
         if path.startswith("backend/"):
             # Backend API/schema changes invalidate generated consumer contracts.
