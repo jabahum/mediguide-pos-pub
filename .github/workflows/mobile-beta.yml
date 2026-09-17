@@ -10,7 +10,7 @@ on:
       destination:
         description: Beta distribution destination
         required: true
-        default: all
+        default: firebase-android
         type: choice
         options:
           - all

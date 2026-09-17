@@ -4,27 +4,25 @@ on:
   pull_request:
     branches:
       - main
-    paths:
-      - "user_app/**"
-      - ".github/workflows/mobile-release.yml"
-      - ".github/workflows/mobile-distribution.yml"
-      - ".github/workflows/mobile-alpha.yml"
-      - ".github/workflows/mobile-beta.yml"
-      - ".github/workflows/mobile-production.yml"
   push:
     branches:
       - main
     tags:
       - "v*"
-    paths:
-      - "user_app/**"
-      - ".github/workflows/mobile-release.yml"
-      - ".github/workflows/mobile-distribution.yml"
-      - ".github/workflows/mobile-alpha.yml"
-      - ".github/workflows/mobile-beta.yml"
-      - ".github/workflows/mobile-production.yml"
   workflow_dispatch:
     inputs:
+      build_web:
+        description: Build optional Flutter web artifact
+        type: boolean
+        default: false
+      build_unsigned_ios:
+        description: Build optional unsigned iOS verification artifact
+        type: boolean
+        default: false
+      build_macos:
+        description: Build optional macOS verification artifact
+        type: boolean
+        default: false
       api_base_url:
         description: API URL embedded in the release builds
         required: false
@@ -35,17 +33,85 @@ permissions:
 
 concurrency:
   group: mobile-release-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
 
 env:
   FLUTTER_VERSION: 3.44.8
   MOBILE_API_BASE_URL: ${{ inputs.api_base_url || vars.MOBILE_API_BASE_URL || 'https://mediguide.health.go.ug' }}
 
 jobs:
-  quality:
-    name: Test and analyze
+  changes:
+    name: Detect mobile changes
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 5
+    outputs:
+      mobile: ${{ steps.changes.outputs.mobile }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Classify mobile and shared contract changes
+        id: changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          FULL_CHECK: ${{ github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v') }}
+        run: |
+          args=(--base "${BASE_SHA}" --head "${HEAD_SHA}")
+          if [ "${FULL_CHECK}" = true ]; then args+=(--full); fi
+          python3 scripts/ci-changes.py "${args[@]}"
+
+  preflight:
+    name: Validate selected release credentials
+    if: github.repository == 'mohuganda/mediguide-pos' && (github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: production
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate configuration without exposing secrets
+        env:
+          DESTINATION: android-artifacts
+          MOBILE_FLAVOR: production
+          FIREBASE_ANDROID_APP_ID: ${{ vars.FIREBASE_ANDROID_APP_ID }}
+          FIREBASE_IOS_APP_ID: ${{ vars.FIREBASE_IOS_APP_ID }}
+          FIREBASE_MOBILE_CONFIG_JSON: ${{ secrets.FIREBASE_MOBILE_CONFIG_JSON }}
+          FIREBASE_APP_DISTRIBUTION_SERVICE_ACCOUNT_BASE64: ${{ secrets.FIREBASE_APP_DISTRIBUTION_SERVICE_ACCOUNT_BASE64 }}
+          ANDROID_UPLOAD_KEYSTORE_BASE64: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_BASE64 }}
+          ANDROID_UPLOAD_STORE_PASSWORD: ${{ secrets.ANDROID_UPLOAD_STORE_PASSWORD }}
+          ANDROID_UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_UPLOAD_KEY_ALIAS }}
+          ANDROID_UPLOAD_KEY_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEY_PASSWORD }}
+          GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64 }}
+          IOS_DISTRIBUTION_CERTIFICATE_BASE64: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}
+          IOS_DISTRIBUTION_CERTIFICATE_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          IOS_FIREBASE_PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_FIREBASE_PROVISIONING_PROFILE_BASE64 }}
+          IOS_FIREBASE_EXPORT_OPTIONS_PLIST_BASE64: ${{ secrets.IOS_FIREBASE_EXPORT_OPTIONS_PLIST_BASE64 }}
+          IOS_TESTFLIGHT_PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_TESTFLIGHT_PROVISIONING_PROFILE_BASE64 }}
+          IOS_TESTFLIGHT_EXPORT_OPTIONS_PLIST_BASE64: ${{ secrets.IOS_TESTFLIGHT_EXPORT_OPTIONS_PLIST_BASE64 }}
+          IOS_APP_STORE_PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_APP_STORE_PROVISIONING_PROFILE_BASE64 }}
+          IOS_APP_STORE_EXPORT_OPTIONS_PLIST_BASE64: ${{ secrets.IOS_APP_STORE_EXPORT_OPTIONS_PLIST_BASE64 }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY_BASE64 }}
+        run: |
+          python3 scripts/ci-mobile-preflight.py "${DESTINATION}"
+          if [ '${{ inputs.build_unsigned_ios }}' = true ]; then
+            python3 scripts/ci-mobile-preflight.py ios-artifacts
+          fi
+          if [ '${{ inputs.build_web }}' = true ]; then
+            python3 scripts/ci-mobile-preflight.py web-artifacts
+          fi
+          if [ '${{ inputs.build_macos }}' = true ]; then
+            python3 scripts/ci-mobile-preflight.py macos-artifacts
+          fi
+
+  mobile-checks:
+    name: Mobile source checks
+    needs: changes
+    if: needs.changes.outputs.mobile == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: user_app
@@ -114,15 +180,29 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
+  quality:
+    name: Test and analyze
+    if: always()
+    needs: [changes, mobile-checks]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require applicable mobile checks
+        env:
+          DETECTION: ${{ needs.changes.result }}
+          CHECKS: ${{ needs.mobile-checks.result }}
+        run: |
+          test "${DETECTION}" = success
+          test "${CHECKS}" = success || test "${CHECKS}" = skipped
+
   android:
     name: Build Android artifacts
-    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
-    needs: quality
+    if: github.repository == 'mohuganda/mediguide-pos' && (github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v'))
+    needs: [quality, preflight]
     runs-on: ubuntu-latest
     environment: production
-    # Release builds compile both an APK and an app bundle. A cold hosted
-    # runner can exceed one hour while Gradle warms its caches.
-    timeout-minutes: 90
+    # Recent warm builds take ~11 minutes; retain headroom for cold Gradle caches.
+    timeout-minutes: 45
     defaults:
       run:
         working-directory: user_app
@@ -136,7 +216,11 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
-          cache: gradle
+
+      - name: Set up Gradle build cache
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -166,7 +250,6 @@ jobs:
         run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Configure Android release signing
-        if: startsWith(github.ref, 'refs/tags/v')
         env:
           ANDROID_UPLOAD_KEYSTORE_BASE64: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_BASE64 }}
           ANDROID_UPLOAD_STORE_PASSWORD: ${{ secrets.ANDROID_UPLOAD_STORE_PASSWORD }}
@@ -270,10 +353,10 @@ jobs:
 
   web:
     name: Build web artifact
-    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
-    needs: quality
+    if: github.repository == 'mohuganda/mediguide-pos' && github.event_name == 'workflow_dispatch' && inputs.build_web
+    needs: [quality, preflight]
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: user_app
@@ -313,11 +396,11 @@ jobs:
 
   apple:
     name: Build unsigned Apple artifacts
-    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
-    needs: quality
+    if: github.repository == 'mohuganda/mediguide-pos' && github.event_name == 'workflow_dispatch' && (inputs.build_unsigned_ios || inputs.build_macos)
+    needs: [quality, preflight]
     runs-on: macos-latest
     environment: production
-    timeout-minutes: 75
+    timeout-minutes: 45
     defaults:
       run:
         working-directory: user_app
@@ -325,6 +408,12 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
+
+      - name: Cache CocoaPods downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/CocoaPods
+          key: cocoapods-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('user_app/ios/Podfile.lock') }}
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -354,6 +443,7 @@ jobs:
         run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Build unsigned iOS app
+        if: inputs.build_unsigned_ios
         run: >-
           flutter build ios --release --no-codesign
           --flavor production
@@ -364,12 +454,14 @@ jobs:
           ${FIREBASE_BUILD_ARGS}
 
       - name: Archive unsigned iOS app
+        if: inputs.build_unsigned_ios
         run: >-
           ditto -c -k --sequesterRsrc --keepParent
           build/ios/iphoneos/Runner.app
           build/ios/iphoneos/mediguide-ios-unsigned.zip
 
       - name: Enforce iOS artifact size budgets
+        if: inputs.build_unsigned_ios
         run: |
           set -eu
           max_app_bytes=$((70 * 1024 * 1024))
@@ -391,11 +483,13 @@ jobs:
           fi
 
       - name: Build macOS release
+        if: inputs.build_macos
         run: >-
           flutter build macos --release
           --dart-define=MEDIGUIDE_API_BASE_URL="${MOBILE_API_BASE_URL}"
 
       - name: Archive macOS app
+        if: inputs.build_macos
         run: >-
           ditto -c -k --sequesterRsrc --keepParent
           build/macos/Build/Products/Release/MediGuide.app
@@ -418,11 +512,9 @@ jobs:
 
   release:
     name: Publish GitHub release
-    if: startsWith(github.ref, 'refs/tags/v')
-    needs:
-      - android
-      - web
-      - apple
+    if: github.repository == 'mohuganda/mediguide-pos' && startsWith(github.ref, 'refs/tags/v')
+    needs: android
+    timeout-minutes: 20
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -446,24 +538,22 @@ jobs:
           set -eu
           owner="$(printf '%s' "${GHCR_OWNER}" | tr '[:upper:]' '[:lower:]')"
           version="${RELEASE_TAG#v}"
-          for package in \
-            mediguide-pos-api \
-            mediguide-pos-ai-worker \
-            mediguide-pos-dashboard \
-            mediguide-pos-guidelines; do
-            image="ghcr.io/${owner}/${package}:${version}"
-            ready=false
-            for attempt in $(seq 1 45); do
-              if docker buildx imagetools inspect "${image}" >/dev/null 2>&1; then
-                ready=true
-                break
-              fi
-              sleep 20
+          # One shared deadline for the whole set, not 15 minutes per image.
+          deadline=$((SECONDS + 600))
+          pending=(mediguide-pos-api mediguide-pos-ai-worker mediguide-pos-dashboard mediguide-pos-guidelines)
+          while [ "${#pending[@]}" -gt 0 ]; do
+            remaining=()
+            for package in "${pending[@]}"; do
+              image="ghcr.io/${owner}/${package}:${version}"
+              docker buildx imagetools inspect "${image}" >/dev/null 2>&1 || remaining+=("${package}")
             done
-            if [ "${ready}" != true ]; then
-              echo "Timed out waiting for ${image}." >&2
+            pending=("${remaining[@]}")
+            if [ "${#pending[@]}" -eq 0 ]; then break; fi
+            if [ "${SECONDS}" -ge "${deadline}" ]; then
+              echo "Timed out waiting for release images: ${pending[*]}" >&2
               exit 1
             fi
+            sleep 20
           done
 
       - name: Download release artifacts
@@ -497,13 +587,10 @@ jobs:
           macos="$(find release-artifacts -name mediguide-macos.zip -print -quit)"
           web="$(find release-artifacts -type d -name 'mediguide-web-*' -print -quit)"
 
-          test -n "${arm_apk}" && test -n "${arm64_apk}" && test -n "${aab}" && test -n "${ios}" && test -n "${macos}" && test -n "${web}"
+          test -n "${arm_apk}" && test -n "${arm64_apk}" && test -n "${aab}"
           cp "${arm_apk}" "dist/mediguide-${mobile_artifact_version}-android-armeabi-v7a.apk"
           cp "${arm64_apk}" "dist/mediguide-${mobile_artifact_version}-android-arm64-v8a.apk"
           cp "${aab}" "dist/mediguide-${mobile_artifact_version}-android.aab"
-          cp "${ios}" "dist/mediguide-${mobile_artifact_version}-ios-unsigned.zip"
-          cp "${macos}" "dist/mediguide-${mobile_artifact_version}-macos-unsigned.zip"
-          tar -C "${web}" -czf "dist/mediguide-${mobile_artifact_version}-web.tar.gz" .
 
           printf '%s\n' \
             "release_tag=${RELEASE_TAG}" \
@@ -523,7 +610,7 @@ jobs:
             "Mobile version: ${mobile_version} (build ${mobile_build_number})." \
             "" \
             "The Android APK and AAB are signed with the configured upload key." \
-            "The iOS and macOS archives are unsigned verification artifacts and are not store-ready." \
+            "Signed iOS distribution and optional web/macOS verification artifacts are separate, explicitly selected workflows." \
             "Use the release manifest for immutable GHCR image references and verify every download with SHA256SUMS." \
             > dist/ARTIFACT-NOTES.md
           (cd dist && sha256sum * > SHA256SUMS)

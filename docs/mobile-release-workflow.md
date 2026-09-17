@@ -43,9 +43,8 @@ Generate -> format -> analyze -> test
 Manual alpha/beta           Stable vX.Y.Z tag
 (staging flavor)            (production flavor)
         |                        |
-        v                        +--> signed Firebase/TestFlight builds
-Firebase/TestFlight             +--> split APKs + AAB
-                                 +--> unsigned iOS verification archive
+        v                        +--> split APKs + AAB
+Firebase/TestFlight
                                  +--> checksums + GitHub Release
                                               |
                                               v
@@ -66,7 +65,7 @@ Firebase/TestFlight             +--> split APKs + AAB
 | Pull request/main validation | Current commit | None | CI only | No |
 | Alpha | Exact commit contained in `main` | `staging` | Firebase and/or internal TestFlight | No |
 | Beta | Exact approved commit contained in `main` | `staging` | Firebase and/or internal TestFlight | No |
-| Stable tagged artifacts | Stable tag | `production` | GitHub Release, Firebase, TestFlight | No |
+| Stable tagged artifacts | Stable tag | `production` | Android artifacts and GitHub Release | No |
 | Production candidate | Existing stable tag | `production` | Google Play draft and/or App Store Connect | No |
 
 Native identifiers are fixed by flavor:
@@ -81,7 +80,7 @@ Native identifiers are fixed by flavor:
 
 | File | Responsibility |
 |---|---|
-| `.github/workflows/mobile-release.yml` | Quality checks, tagged artifacts, tagged test distribution and GitHub Release |
+| `.github/workflows/mobile-release.yml` | Module-scoped quality checks, tagged Android artifacts and GitHub Release; optional manual web/Apple artifacts |
 | `.github/workflows/mobile-alpha.yml` | Alpha metadata, quality gate and staging distribution |
 | `.github/workflows/mobile-beta.yml` | Beta wrapper around the alpha implementation |
 | `.github/workflows/mobile-distribution.yml` | Reusable signed Firebase and TestFlight delivery |
@@ -231,7 +230,7 @@ gh workflow run mobile-alpha.yml \
   --repo mohuganda/mediguide-pos \
   --ref main \
   -f release_ref="${release_sha}" \
-  -f destination=all \
+  -f destination=firebase-android \
   -f alpha_number=1 \
   -f release_notes='Test login, guest access, RAG answers and outbreak navigation. Known issue: none.'
 ```
@@ -273,7 +272,7 @@ gh workflow run mobile-beta.yml \
   --repo mohuganda/mediguide-pos \
   --ref main \
   -f release_ref="${release_sha}" \
-  -f destination=all \
+  -f destination=firebase-android \
   -f beta_number=1 \
   -f regression_testing_confirmed=true \
   -f clinical_review_confirmed=true \
@@ -335,6 +334,11 @@ Google Play.
 
 ### Apple verification artifacts
 
+These no longer run on release tags. Dispatch `mobile-release.yml` manually
+with `build_unsigned_ios=true` and/or `build_macos=true` to opt in. Flutter web
+artifacts similarly require `build_web=true`. The manual artifact run also builds
+Android; it does not upload anything to Firebase or the stores.
+
 - Builds a production `iphoneos` application in release mode without signing.
 - Archives it as `mediguide-ios-unsigned.zip` for verification.
 - Rejects installed app contents above 70 MiB or the archive above 35 MiB.
@@ -345,7 +349,9 @@ Signed iOS delivery is handled separately by Fastlane.
 ### Signed tester distribution
 
 The alpha and beta workflows call the reusable distribution workflow with the
-staging flavor and protected `staging` Environment. They send:
+staging flavor and protected `staging` Environment. Android is the default;
+select `firebase-ios`, `testflight`, or `all` explicitly for Apple delivery.
+Depending on that selection, they send:
 
 - signed Android APK to Firebase App Distribution;
 - signed Ad Hoc iOS IPA to Firebase App Distribution;
@@ -358,17 +364,24 @@ Environment.
 
 ### GitHub Release
 
-The GitHub Release waits for Android, web, Apple and signed tester distribution
-jobs and for the complete immutable GHCR image set. It contains:
+The GitHub Release waits for Android and the complete immutable GHCR image set
+(one shared ten-minute image deadline). It does not wait for optional web/Apple
+or separately selected tester distribution. It contains:
 
 - versioned ARM64 and ARMv7 APKs;
 - versioned AAB;
-- unsigned iOS verification archive;
-- macOS and web archives;
 - release manifest;
 - `SHA256SUMS`.
 
 Verify the checksums before redistributing any direct-download artifact.
+
+Selected release credentials are checked in a five-minute Linux job using the
+same protected Environment as the build jobs, before allocating Android/macOS
+build runners. The preflight checks required values, base64 payloads, JSON,
+export-options plists and Firebase flavor/platform identifiers without printing
+secrets. Native signing validation remains mandatory on the build runner; the
+preflight cannot confirm Apple account access or provisioning validity by itself.
+See [CI runner policy](ci-runner-policy.md) for triggers, caching and timeouts.
 
 ## Production store candidate procedure
 

@@ -9,7 +9,7 @@ on:
         type: string
       destination:
         required: false
-        default: all
+        default: firebase-android
         type: string
       sequence_number:
         required: false
@@ -31,7 +31,7 @@ on:
       destination:
         description: Alpha distribution destination
         required: true
-        default: all
+        default: firebase-android
         type: choice
         options:
           - all
@@ -183,7 +183,7 @@ jobs:
     name: Test and analyze prerelease
     needs: metadata
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: user_app
