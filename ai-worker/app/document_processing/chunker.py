@@ -106,7 +106,7 @@ def _block_text(block: ExtractedContentBlock) -> str:
         return str(content.get("text") or "").strip()
     if block.type in {"ordered_list", "unordered_list"}:
         return "\n".join(str(item) for item in content.get("items") or []).strip()
-    if block.type in {"recommendation", "warning", "key_point"}:
+    if block.type in {"recommendation", "warning", "key_point", "caution", "clinical_note"}:
         return " ".join(
             value
             for value in (
@@ -120,4 +120,8 @@ def _block_text(block: ExtractedContentBlock) -> str:
         return "\n".join(" | ".join(str(cell) for cell in row) for row in rows).strip()
     if block.type == "reference":
         return str(content.get("citation") or "").strip()
+    if block.type == "figure":
+        # Index reviewed descriptions, never infer clinical meaning from pixels.
+        values = [str(content.get(key) or "").strip() for key in ("caption", "alternative_text")]
+        return " ".join(dict.fromkeys(value for value in values if value))
     return ""

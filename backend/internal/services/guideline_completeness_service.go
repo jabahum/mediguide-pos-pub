@@ -297,7 +297,11 @@ func (s GuidelineService) populateCompletenessRAG(versionID uuid.UUID, report *G
 			return err
 		}
 	}
-	report.RAG.TotalChunks = report.RAG.ApprovedChunks + report.RAG.DraftChunks + report.RAG.RejectedChunks
+	// Regeneration can preserve a reviewed chunk status. Count all live chunks,
+	// rather than silently omitting statuses outside approved/draft/rejected.
+	if err := s.DB.Model(&models.GuidelineChunk{}).Where("version_id = ?", versionID).Count(&report.RAG.TotalChunks).Error; err != nil {
+		return err
+	}
 	if err := s.DB.Model(&models.GuidelineContentBlock{}).
 		Where("version_id = ? AND review_status = ? AND EXISTS (SELECT 1 FROM guideline_chunks gc WHERE gc.block_id = guideline_content_blocks.id AND gc.deleted_at IS NULL)", versionID, models.GuidelineBlockReviewed).
 		Count(&report.RAG.ReviewedBlocksWithChunks).Error; err != nil {

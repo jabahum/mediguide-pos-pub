@@ -157,7 +157,7 @@ func TestGuidelineCompletenessReportUsesCandidateEmbeddingsForReadiness(t *testi
 	if err := db.Create(&block).Error; err != nil {
 		t.Fatal(err)
 	}
-	chunk := models.GuidelineChunk{DocumentID: document.ID, VersionID: version.ID, SectionID: &section.ID, BlockID: &block.ID, Content: "reviewed", ReviewStatus: "draft"}
+	chunk := models.GuidelineChunk{DocumentID: document.ID, VersionID: version.ID, SectionID: &section.ID, BlockID: &block.ID, Content: "reviewed", ReviewStatus: "reviewed"}
 	if err := db.Create(&chunk).Error; err != nil {
 		t.Fatal(err)
 	}
@@ -169,7 +169,7 @@ func TestGuidelineCompletenessReportUsesCandidateEmbeddingsForReadiness(t *testi
 	if err != nil {
 		t.Fatal(err)
 	}
-	if report.RAG.ApprovedChunks != 0 || report.RAG.ReviewedBlockChunks != 1 || report.RAG.EmbeddedReviewedBlockChunks != 1 || report.RAG.MissingReviewedEmbeddings != 0 || !report.RAG.Ready {
+	if report.RAG.TotalChunks != 1 || report.RAG.ApprovedChunks != 0 || report.RAG.ReviewedBlockChunks != 1 || report.RAG.EmbeddedReviewedBlockChunks != 1 || report.RAG.MissingReviewedEmbeddings != 0 || !report.RAG.Ready {
 		t.Fatalf("candidate embeddings should be ready before publication: %#v", report.RAG)
 	}
 }
