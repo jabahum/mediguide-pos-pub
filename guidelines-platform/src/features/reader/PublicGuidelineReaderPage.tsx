@@ -40,6 +40,12 @@ import {
 } from "./components/GuidelineBlockRenderer";
 import { EmptyReviewedSection } from "./components/EmptyReviewedSection";
 import { reviewedDescendants } from "./components/empty-reviewed-section";
+import {
+  isDocumentTitleWrapper,
+  readerBlocks,
+  readerNavigationSections,
+  readerSections,
+} from "./components/reader-presentation";
 
 type ReaderView = "read" | SupplementalReaderView;
 
@@ -178,6 +184,16 @@ export function PublicGuidelineReaderPage() {
   }
 
   const { data } = state;
+  const displayedSections = readerSections(
+    data.guideline,
+    data.sections,
+    data.blocks,
+  );
+  const navigationSections = readerNavigationSections(
+    data.guideline,
+    displayedSections,
+  );
+  const displayedData = { ...data, sections: displayedSections };
   const tabs = availableViews(data);
   const view = tabs.includes(requestedView) ? requestedView : tabs[0];
   const selectView = (nextView: ReaderView) => {
@@ -266,7 +282,7 @@ export function PublicGuidelineReaderPage() {
         >
           {view === "chapters" && (
             <SectionNavigation
-              sections={data.sections}
+              sections={navigationSections}
               selectedId={selectedSectionId}
               onSelect={selectSection}
             />
@@ -277,12 +293,13 @@ export function PublicGuidelineReaderPage() {
             )}
             {view === "chapters" && (
               <SectionReader
-                data={data}
+                data={displayedData}
                 state={sectionDisplayState(
                   sectionState,
                   selectedSectionId,
-                  data.sections,
+                  navigationSections,
                 )}
+                firstSectionId={navigationSections[0]?.id}
                 onSelect={selectSection}
                 onOpenSourcePage={(page) => openOriginal(guidelineId, page)}
                 onOpenOriginal={() => openOriginal(guidelineId)}
@@ -588,12 +605,14 @@ function SectionNavigation({
 function SectionReader({
   data,
   state,
+  firstSectionId,
   onSelect,
   onOpenSourcePage,
   onOpenOriginal,
 }: {
   data: ReaderData;
   state: SectionDisplayState;
+  firstSectionId?: string;
   onSelect: (id: string) => void;
   onOpenSourcePage: (page: number) => void;
   onOpenOriginal: () => void;
@@ -618,12 +637,14 @@ function SectionReader({
           This publication has {data.manifest?.section_count ?? data.sections.length} section
           {(data.manifest?.section_count ?? data.sections.length) === 1 ? "" : "s"}, including {data.manifest?.reviewed_section_count ?? 0} with reviewed content. Its navigation follows the structure of the uploaded document.
         </p>
-        <button
-          className="button button-primary"
-          onClick={() => onSelect(data.sections[0].id)}
-        >
-          Open first section
-        </button>
+        {firstSectionId && (
+          <button
+            className="button button-primary"
+            onClick={() => onSelect(firstSectionId)}
+          >
+            Open first section
+          </button>
+        )}
       </section>
     );
   if (state.status === "loading")
@@ -640,6 +661,12 @@ function SectionReader({
       />
     );
   const figures = new Map(data.figures.map((figure) => [figure.id, figure]));
+  const blocks = readerBlocks(state.detail.section, state.detail.blocks);
+  const documentTitleWrapper = isDocumentTitleWrapper(
+    data.guideline,
+    state.detail.section,
+    data.sections,
+  );
   const descendants = reviewedDescendants(
     state.detail.section.id,
     data.sections,
@@ -647,17 +674,19 @@ function SectionReader({
   );
   return (
     <article className="structured-section">
-      <header>
-        <span className="eyebrow">
-          {sourcePages(
-            state.detail.section.page_start,
-            state.detail.section.page_end,
-          )}
-        </span>
-        <h2>{state.detail.section.title}</h2>
-      </header>
-      {state.detail.blocks.length > 0 ? (
-        state.detail.blocks.map((block) => (
+      {!documentTitleWrapper && (
+        <header>
+          <span className="eyebrow">
+            {sourcePages(
+              state.detail.section.page_start,
+              state.detail.section.page_end,
+            )}
+          </span>
+          <h2>{state.detail.section.title}</h2>
+        </header>
+      )}
+      {blocks.length > 0 ? (
+        blocks.map((block) => (
           <GuidelineBlockRenderer
             block={block}
             figure={figures.get(block.id)}

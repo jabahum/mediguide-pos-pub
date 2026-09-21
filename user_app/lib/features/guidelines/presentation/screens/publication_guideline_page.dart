@@ -490,7 +490,7 @@ class _PublicationGuidelinePageState
       );
     }
 
-    final sections = value.sections;
+    final sections = value.readerSections;
 
     _scheduleInitialProgress(sections);
 
@@ -505,9 +505,18 @@ class _PublicationGuidelinePageState
         ? sections.where((section) => selectedIds.contains(section.id)).toList()
         : sections;
 
-    final rootSections = sections
+    final navigationSections = sections
+        .where((section) => !value.isDocumentTitleWrapper(section))
+        .toList(growable: false);
+    final navigationSectionIds = navigationSections
+        .map((section) => section.id)
+        .toSet();
+    final rootSections = navigationSections
         .where(
-          (section) => section.parentId == null || section.parentId!.isEmpty,
+          (section) =>
+              section.parentId == null ||
+              section.parentId!.isEmpty ||
+              !navigationSectionIds.contains(section.parentId),
         )
         .toList(growable: false);
 
@@ -612,7 +621,8 @@ class _PublicationGuidelinePageState
               itemBuilder: (_, index) {
                 final section = visibleSections[index];
 
-                final blocks = value.blocksFor(section.id);
+                final blocks = value.displayBlocksFor(section);
+                final showSectionTitle = !value.isDocumentTitleWrapper(section);
 
                 _sectionKeys.putIfAbsent(section.id, GlobalKey.new);
 
@@ -625,13 +635,14 @@ class _PublicationGuidelinePageState
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Semantics(
-                          header: true,
-                          child: Text(
-                            section.title,
-                            style: Theme.of(context).textTheme.headlineSmall,
+                        if (showSectionTitle)
+                          Semantics(
+                            header: true,
+                            child: Text(
+                              section.title,
+                              style: Theme.of(context).textTheme.headlineSmall,
+                            ),
                           ),
-                        ),
 
                         if (section.pageLabel.isNotEmpty)
                           Text(

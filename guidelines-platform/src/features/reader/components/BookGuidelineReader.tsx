@@ -17,6 +17,7 @@ import {
 import { SecureMarkdown } from "./SecureMarkdown";
 import { GuidelineAssistant } from "./GuidelineAssistant";
 import { bookReaderPublicationGuidance } from "./book-reader-publication-guidance";
+import { removeLeadingDocumentTitle } from "./reader-presentation";
 
 export type SupplementalReaderView =
   | "overview"
@@ -52,10 +53,10 @@ export function BookGuidelineReader({
   const [fontScale, setFontScale] = useState(1);
   const [assistantOpen, setAssistantOpen] = useState(false);
   const searchInput = useRef<HTMLInputElement>(null);
-  const headings = useMemo(() => getMarkdownHeadings(markdown.content), [markdown.content]);
-  const searchIndex = useMemo(() => buildMarkdownSearchIndex(markdown.content), [markdown.content]);
+  const content = useMemo(() => removeLeadingDocumentTitle(markdown.content), [markdown.content]);
+  const headings = useMemo(() => getMarkdownHeadings(content), [content]);
+  const searchIndex = useMemo(() => buildMarkdownSearchIndex(content), [content]);
   const results = useMemo(() => searchMarkdown(searchIndex, query), [query, searchIndex]);
-  const content = useMemo(() => removeLeadingTitle(markdown.content, guideline.title), [guideline.title, markdown.content]);
   const publicationGuidance = bookReaderPublicationGuidance(partial, manifest?.has_original_pdf === true);
 
   useEffect(() => {
@@ -170,13 +171,6 @@ function formatDate(value?: string) {
 
 function viewLabel(view: SupplementalReaderView) {
   return view === "chapters" ? "Reviewed chapters" : `Reviewed ${view}`;
-}
-
-function removeLeadingTitle(content: string, title: string) {
-  const match = /^\s*#\s+(.+?)\s*#*\r?\n+/.exec(content);
-  if (!match) return content;
-  const normalize = (value: string) => value.replace(/[*_`~]/g, "").trim().toLocaleLowerCase();
-  return normalize(match[1]) === normalize(title) ? content.slice(match[0].length) : content;
 }
 
 function MenuIcon() { return <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 7h16M4 12h16M4 17h16" /></svg>; }
