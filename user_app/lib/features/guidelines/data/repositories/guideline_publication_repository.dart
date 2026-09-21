@@ -1,6 +1,7 @@
 import 'package:user_app/core/network/api_client.dart';
 import 'package:user_app/core/network/contracts/generated/backend_contracts.dart';
 import 'package:user_app/core/config/app_config.dart';
+import 'package:user_app/core/utils/markdown_text.dart';
 import 'package:user_app/core/storage/local_cache_service.dart';
 import 'package:user_app/features/guidelines/data/models/guideline_publication.dart';
 import 'package:user_app/shared/models/paginated_response.dart';
@@ -406,7 +407,7 @@ GuidelinePublication _publicationFromContract(Map<String, dynamic> json) {
   return GuidelinePublication(
     id: dto.id ?? '',
     slug: dto.slug ?? '',
-    title: dto.title ?? '',
+    title: markdownLabel(dto.title ?? ''),
     description: dto.description ?? '',
     country: dto.country ?? '',
     sourceOrganization: dto.sourceOrg ?? '',
@@ -467,7 +468,7 @@ PublicationSection _sectionFromContract(Map<String, dynamic> json) {
   return PublicationSection(
     id: dto.id ?? '',
     parentId: dto.parentId,
-    title: dto.title ?? '',
+    title: markdownLabel(dto.title ?? ''),
     slug: dto.slug ?? '',
     level: dto.level ?? 1,
     pageStart: dto.pageStart,
@@ -522,7 +523,7 @@ GuidelineBlock _block(ServicesPublicGuidelineBlock dto, GuidelineAsset? asset) {
         id: id,
         sectionId: sectionId,
         sortOrder: sortOrder,
-        text: content['text']?.toString() ?? '',
+        text: markdownLabel(content['text']?.toString() ?? ''),
         level: _integer(content['level'], 2),
         pageStart: pageStart,
         pageEnd: pageEnd,
@@ -552,7 +553,10 @@ GuidelineBlock _block(ServicesPublicGuidelineBlock dto, GuidelineAsset? asset) {
         id: id,
         sectionId: sectionId,
         sortOrder: sortOrder,
-        payload: GuidelineTablePayload.fromJson(content),
+        payload: GuidelineTablePayload.fromJson({
+          ...content,
+          'title': markdownLabel(content['title']?.toString() ?? ''),
+        }),
         pageStart: pageStart,
         pageEnd: pageEnd,
       );
@@ -571,7 +575,10 @@ GuidelineBlock _block(ServicesPublicGuidelineBlock dto, GuidelineAsset? asset) {
         id: id,
         sectionId: sectionId,
         sortOrder: sortOrder,
-        payload: GuidelineAlgorithmPayload.fromJson(content),
+        payload: GuidelineAlgorithmPayload.fromJson({
+          ...content,
+          'title': markdownLabel(content['title']?.toString() ?? ''),
+        }),
         pageStart: pageStart,
         pageEnd: pageEnd,
       );
@@ -610,7 +617,10 @@ GuidelineBlock _block(ServicesPublicGuidelineBlock dto, GuidelineAsset? asset) {
         sectionId: sectionId,
         sortOrder: sortOrder,
         blockType: type,
-        payload: GuidelineCalloutPayload.fromJson(content),
+        payload: GuidelineCalloutPayload.fromJson({
+          ...content,
+          'title': markdownLabel(content['title']?.toString() ?? ''),
+        }),
         pageStart: pageStart,
         pageEnd: pageEnd,
       );

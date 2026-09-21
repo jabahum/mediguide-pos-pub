@@ -27,6 +27,7 @@ import 'package:user_app/features/guidelines/presentation/widgets/publication_bl
 import 'package:user_app/features/guidelines/presentation/widgets/publication_guideline_page_empty_section.dart';
 import 'package:user_app/features/library/presentation/widgets/save_to_collection_sheet.dart';
 import 'package:user_app/features/library/presentation/utils/collection_messages.dart';
+import 'package:user_app/shared/widgets/app_markdown_body.dart';
 
 part '../widgets/publication_guideline_page_guideline_menu_action.dart';
 part '../widgets/publication_guideline_page_guideline_content_search_delegate.dart';
