@@ -38,13 +38,27 @@ class AppMarkdownBody extends StatelessWidget {
     );
 
     return MarkdownBody(
-      data: data.trim(),
+      // flutter_markdown deliberately drops raw HTML nodes. Preserve them as
+      // visible, inert source text instead: clinical content must never execute
+      // embedded HTML, but silently hiding it can change the meaning of the
+      // reviewed source and makes unsafe markup impossible to spot.
+      data: _escapeRawHtml(data.trim()),
       selectable: selectable,
       fitContent: true,
       styleSheet: sheet,
       onTapLink: (_, href, _) => _openLink(context, href),
     );
   }
+}
+
+String _escapeRawHtml(String value) {
+  return value.replaceAllMapped(
+    RegExp(r'</?[A-Za-z][^>\n]*>'),
+    (match) => match
+        .group(0)!
+        .replaceFirst('<', '&lt;')
+        .replaceFirst(RegExp(r'>$'), '&gt;'),
+  );
 }
 
 Future<void> _openLink(BuildContext context, String? value) async {
