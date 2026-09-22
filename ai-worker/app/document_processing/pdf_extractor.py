@@ -930,7 +930,7 @@ def _image_caption(page: fitz.Page, rect: fitz.Rect) -> str:
     return min(candidates, default=(0.0, ""), key=lambda item: item[0])[1]
 
 
-def _extract_embedded_images(doc: fitz.Document) -> list[ExtractedAsset]:
+def _extract_embedded_images(doc: fitz.Document, on_error=None) -> list[ExtractedAsset]:
     assets: list[ExtractedAsset] = []
     seen: set[str] = set()
     for page_number, page in enumerate(doc, start=1):
@@ -991,6 +991,8 @@ def _extract_embedded_images(doc: fitz.Document) -> list[ExtractedAsset]:
                     )
                 )
             except Exception:
+                if on_error is not None:
+                    on_error()
                 continue
     return assets
 
@@ -1028,7 +1030,7 @@ def _dedupe_section_html(section_html: str, tables: list[ExtractedTable]) -> str
     return str(soup)
 
 
-def _extract_tables_pdfplumber(path: Path) -> list[ExtractedTable]:
+def _extract_tables_pdfplumber(path: Path, on_error=None) -> list[ExtractedTable]:
     tables: list[ExtractedTable] = []
     try:
         import pdfplumber
@@ -1054,6 +1056,8 @@ def _extract_tables_pdfplumber(path: Path) -> list[ExtractedTable]:
                     )
     except Exception:
         # Table extraction is best-effort. The PDF text extraction should continue.
+        if on_error is not None:
+            on_error()
         return tables
     return tables
 
@@ -1072,26 +1076,31 @@ def _is_low_signal_page_text(text: str) -> bool:
     return len(unique) <= 3 and "camscanner" in unique
 
 
-def _ocr_page_text(page: fitz.Page) -> str:
+def _ocr_page_text(page: fitz.Page, artifacts=None, ocr_settings=None) -> str:
     try:
         pixmap = page.get_pixmap(matrix=fitz.Matrix(2, 2), alpha=False)
-        with tempfile.TemporaryDirectory(prefix="mediguide-ocr-") as tmp:
-            image_path = Path(tmp) / "page.png"
-            image_path.write_bytes(pixmap.tobytes("png"))
-            proc = subprocess.run(
-                ["tesseract", str(image_path), "stdout", "-l", "eng"],
-                check=True,
-                capture_output=True,
-                text=True,
-            )
-            return _clean_text(proc.stdout)
+        image = pixmap.tobytes("png")
+        def compute():
+            with tempfile.TemporaryDirectory(prefix="mediguide-ocr-") as tmp:
+                image_path = Path(tmp) / "page.png"
+                image_path.write_bytes(image)
+                proc = subprocess.run(
+                    ["tesseract", str(image_path), "stdout", "-l", "eng"],
+                    check=True, capture_output=True, text=True,
+                )
+                return _clean_text(proc.stdout)
+        if artifacts is not None:
+            return artifacts.ocr(hashlib.sha256(image).hexdigest(), ocr_settings, compute)
+        return compute()
     except Exception:
+        if artifacts is not None:
+            artifacts.extraction_incomplete()
         return ""
 
 
-def extract_pdf(path: Path) -> ExtractedDocument:
+def extract_pdf(path: Path, *, artifacts=None, ocr_settings=None) -> ExtractedDocument:
     table_started = time.perf_counter()
-    tables = _extract_tables_pdfplumber(path)
+    tables = _extract_tables_pdfplumber(path, artifacts.extraction_incomplete) if artifacts is not None else _extract_tables_pdfplumber(path)
     table_seconds = time.perf_counter() - table_started
     ocr_seconds = 0.0
     ocr_attempts = 0
@@ -1128,7 +1137,7 @@ def extract_pdf(path: Path) -> ExtractedDocument:
             text = raw_text
         if _is_low_signal_page_text(text):
             ocr_started = time.perf_counter()
-            ocr_text = _ocr_page_text(page)
+            ocr_text = _ocr_page_text(page, artifacts, ocr_settings) if artifacts is not None else _ocr_page_text(page)
             ocr_seconds += time.perf_counter() - ocr_started
             ocr_attempts += 1
             if len(ocr_text) > len(text):
@@ -1198,7 +1207,7 @@ def extract_pdf(path: Path) -> ExtractedDocument:
     clean_html = str(soup)
     markdown = md(clean_html, heading_style="ATX")
     text = _clean_text("\n\n".join(all_text))
-    assets = _extract_embedded_images(doc)
+    assets = _extract_embedded_images(doc, artifacts.extraction_incomplete) if artifacts is not None else _extract_embedded_images(doc)
     blocks = build_structured_blocks(
         sections,
         tables,

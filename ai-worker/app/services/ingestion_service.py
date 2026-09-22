@@ -19,6 +19,9 @@ from app.repositories.guideline_repo import (
     GuidelineSourceSupersededError,
 )
 from app.repositories.ingestion_repo import IngestionRepository
+from app.repositories.artifact_cache_repo import ArtifactCacheRepository
+from app.services.ingestion_artifacts import IngestionArtifacts
+from app.document_processing.artifact_identity import extraction_identity, embedding_identity, ocr_identity, identity
 
 log = structlog.get_logger()
 
@@ -38,6 +41,7 @@ class IngestionService:
         self.guidelines = GuidelineRepository()
         self.storage = ObjectStorage()
         self.embedder = get_embedding_provider()
+        self.artifact_repository = ArtifactCacheRepository()
 
     def _source_is_current(
         self,
@@ -164,7 +168,16 @@ class IngestionService:
                 checksum=document_checksum,
             )
 
-            if self.guidelines.is_extraction_current(version_id, document_checksum):
+            reuse = getattr(self.settings, "ingestion_artifact_reuse", False)
+            artifacts = IngestionArtifacts(self.artifact_repository, self.storage, getattr(self, "_metrics", {})) if reuse else None
+            extraction_key = extraction_identity(document_checksum, source_format, self.settings, version.get("document_title") or "Guideline") if reuse else None
+            embedding_key = embedding_identity(self.settings, self.embedder) if reuse else None
+            processing_identity = identity({"extraction": extraction_key, "embedding": embedding_key, "chunking": [self.settings.chunk_size, self.settings.chunk_overlap, self.settings.min_chunk_chars]}) if extraction_key and embedding_key else None
+            previous_metadata = version.get("extraction_metadata_json") or {}
+            if isinstance(previous_metadata, str):
+                previous_metadata = json.loads(previous_metadata)
+            same_pipeline = not reuse or (processing_identity is not None and previous_metadata.get("processing_identity") == processing_identity and previous_metadata.get("source_file_key") == source_key and previous_metadata.get("markdown_revision_id") == revision_id)
+            if same_pipeline and self.guidelines.is_extraction_current(version_id, document_checksum):
                 if hasattr(self, "_metrics"):
                     self._metrics["checksum_noop"] = True
                 log.info(
@@ -179,13 +192,18 @@ class IngestionService:
 
             stage("parsing", 20)
             started = time.perf_counter()
-            extracted = (
-                extract_markdown(
-                    source_path, fallback_title=version.get("document_title") or "Guideline"
-                )
-                if source_format == "markdown"
-                else extract_pdf(source_path)
-            )
+            def compute_extraction():
+                if source_format == "markdown":
+                    return extract_markdown(source_path, fallback_title=version.get("document_title") or "Guideline")
+                if artifacts is not None:
+                    ocr = ocr_identity()
+                    return extract_pdf(source_path, artifacts=artifacts, ocr_settings={"epoch": self.settings.artifact_cache_epoch, **ocr} if ocr else None)
+                return extract_pdf(source_path)
+            # Save raw extraction BEFORE enriching with revision/job IDs,
+            # version-owned storage keys or the original PDF attachment.
+            extracted = artifacts.extraction(extraction_key, compute_extraction) if artifacts else compute_extraction()
+            if artifacts is not None and not artifacts.extraction_complete:
+                processing_identity = None
             for block in extracted.blocks:
                 block.provenance = {
                     **block.provenance,
@@ -282,7 +300,10 @@ class IngestionService:
             batch_size = max(1, self.settings.embedding_request_batch_size)
             started = time.perf_counter()
             stage("embeddings", 65)
-            for i in range(0, len(texts), batch_size):
+            if artifacts:
+                embeddings = artifacts.embeddings(texts, self.embedder, embedding_key, self.settings.embedding_dim, batch_size,
+                    lambda done, total: stage("embeddings", min(84, 65 + int((done / max(1, total)) * 19))))
+            for i in range(0, len(texts) if not artifacts else 0, batch_size):
                 stage("embeddings", min(84, 65 + int((i / max(1, len(texts))) * 19)))
                 batch_started = time.perf_counter()
                 batch = texts[i : i + batch_size]
@@ -338,6 +359,7 @@ class IngestionService:
                 checksum=document_checksum,
                 metadata={
                     **extracted.metadata,
+                    "processing_identity": processing_identity,
                     "source_format": source_format,
                     "source_file_key": source_key,
                     "markdown_checksum": markdown_checksum,

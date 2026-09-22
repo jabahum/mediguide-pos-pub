@@ -1,4 +1,4 @@
-# Document upload performance: phases 1–3
+# Document upload performance: phases 1–4
 
 ## Scope and safety
 
@@ -174,3 +174,104 @@ This creates/removes one uniquely named `upload-tests` object, not guideline dat
 Before production enablement, test authenticated browser CORS, network interruption,
 refresh during transfer/verification, completed/failed notifications, and a full
 UCG draft upload. These deployment checks are distinct from unit-test completion.
+
+## Phase 4: reusable computation and retry checkpoints
+
+Apply migration `00055_ingestion_artifact_cache.sql` before enabling the updated
+worker. Reuse is independent of direct uploads and works with both upload paths.
+It is disabled by default in the worker and all tracked deployment templates.
+
+```dotenv
+INGESTION_ARTIFACT_REUSE=true
+ARTIFACT_CACHE_EPOCH=1
+EMBEDDING_CACHE_MODEL_REVISION=
+```
+
+Recreate both worker services after changing configuration. Start locally; do not
+enable production reuse until the provider identity and deployment smoke tests
+have been verified. Set `INGESTION_ARTIFACT_REUSE=false` to return to the existing
+processing path. No cache cleanup is required for rollback.
+
+| Artifact | Identity and storage |
+|---|---|
+| Raw extraction | Source SHA-256, source format, extractor source/dependency versions, OCR engine/trained-data/settings, epoch; Markdown also includes fallback title. Compressed JSON in private MinIO `ingestion-cache/v1/extraction/`, with a checksum marker in PostgreSQL. |
+| OCR | Rendered page PNG SHA-256, Tesseract version, English trained-data checksum, render scale/language/arguments, extraction wrapper revision and epoch. Text checkpoint in PostgreSQL. |
+| Embedding | Exact input string SHA-256 plus provider, model, immutable revision, dimensions, endpoint, provider implementation/dependencies and epoch. Vector checkpoint in PostgreSQL. |
+
+Ollama resolves mutable model tags to their installed digest for each job. For
+OpenAI or sentence-transformers, set `EMBEDDING_CACHE_MODEL_REVISION` to an
+operator-maintained immutable deployment/weights revision and change it whenever
+model behavior changes. If a trustworthy identity cannot be established, that
+cache is bypassed. Never leave a fixed revision across model upgrades. Restart
+workers after changing OCR binaries or trained data. Increment the epoch to
+invalidate all artifact classes without deleting active document content.
+
+Successful embedding batches are committed before the next provider call. Failed
+jobs can therefore reuse earlier batches. Duplicate identical inputs within a
+job are computed once and restored in their original order. Invalid vector
+dimensions, non-finite numbers, and mismatched response counts fail the job;
+Ollama's dynamic shortened-input fallback is never checkpointed under the
+original exact-input identity.
+
+Extraction is cached **before** adding version-owned storage keys, source PDF
+attachments, revision IDs or job IDs. Each target still gets its own projection,
+assets and existing editorial workflow. Cache hits never approve or publish
+anything. Source-supersession checks, cancellation checks and transactional final
+projection replacement remain in place. A partially successful best-effort
+table/OCR/image extraction is not saved as a complete extraction artifact.
+
+Missing/corrupt blobs or unavailable cache storage cause recomputation, not loss
+of source content. Blob names include their payload checksum so concurrent cache
+writers cannot overwrite a different payload under a valid marker. Cache access
+is internal only; do not expose its MinIO prefix or add public cache lookup APIs.
+
+### Metrics, retention and repeatable verification
+
+Job metrics include extraction/OCR hits and misses, embedding hits, unique input
+misses, provider calls and whether a complete extraction checkpoint was withheld.
+Cached extraction metadata retains the original extraction timings; use the
+current job's parsing stage time for warm-run latency, not those original timings.
+
+Caches are disposable but currently have no automatic retention policy. Monitor
+PostgreSQL size and the private MinIO prefix. Any retention/erasure policy must
+cover both stores: OCR checkpoints contain source text and extracted artifacts
+contain source content. Deleting a guideline does not automatically erase shared
+cache artifacts. Eviction must never target the separate `guidelines/` source and
+published-asset prefixes. Missing evicted artifacts safely recompute.
+
+Run the isolated acceptance benchmark in the worker environment with a 4 GiB
+memory limit for UCG:
+
+```sh
+PYTHONPATH=. python scripts/benchmark_artifact_reuse.py /path/to/UCG2023.pdf
+python -m pytest tests/test_ingestion_artifacts.py -q
+```
+
+The benchmark uses temporary durable SQLite/filesystem adapters and deterministic
+development embeddings, not production PostgreSQL/MinIO or a clinical embedding
+model. It verifies cold versus identical extraction, byte-equivalent serialized
+output, unchanged embedding reuse, and one changed embedding input. The changed
+input scenario is **not** a revised-PDF end-to-end upload benchmark. The script
+does not change clinical versions, reviews or publication state. Full-chain
+staging tests and production-provider timing remain phase 6 rollout work.
+
+### UCG artifact benchmark: 23 September 2026 (local time)
+
+Isolated Linux container, 2 CPUs, 4 GiB cap, no network; same UCG checksum as the
+baseline above. One cold/warm pair, not a median or tail-latency claim:
+
+| Scenario | Extraction | Embedding calls | Cached chunk inputs |
+|---|---:|---:|---:|
+| Cold | 69.987 s | 79 batches (64 unique inputs maximum per batch) | 0 |
+| Identical | 0.236 s | 0 | 6,835 |
+| One changed embedding input | 0.248 s | 1 | 6,834 |
+
+There were 5,029 unique cold embedding inputs among 6,835 chunks. All runs retained
+1,161 pages, 2,481 sections, 6,815 blocks, 856 tables and 36 extracted assets. The
+serialized extraction digest matched across all three scenarios:
+`be1625a8bb92fccb097dc93ca145e6b19fecab686608b5d2bc6741627fa81239`.
+Cold OCR produced nine checkpoints. Peak process RSS was 3,582,944 KiB (about
+3.42 GiB); caching does not solve cold-run extraction memory use. Measured
+development-embedding times were 0.690 / 0.162 / 4.870 seconds respectively;
+the last single-run result illustrates why provider speed claims require repeated
+measurements rather than inference from cache hit counts.
