@@ -125,6 +125,10 @@ final class GuidelinePublicationRepository {
       );
       var manifest = _manifestFromContract(_data(manifestResponse));
       requestedManifest = manifest;
+      final cachedContent = await _cachedContent(manifest);
+      if (cachedContent != null) {
+        return cachedContent;
+      }
       final results = await Future.wait<Map<String, dynamic>>([
         _public('/api/public/guidelines/$id'),
         _structuredContent(id),
@@ -234,6 +238,25 @@ final class GuidelinePublicationRepository {
     }
   }
 
+  /// Loads the small publication pointer used to paint the overview shell.
+  /// The complete reviewed projection continues through [content].
+  Future<GuidelinePublicationContent> summary(String guidelineId) async {
+    final id = guidelineId.trim();
+    if (id.isEmpty) {
+      throw ArgumentError.value(guidelineId, 'guidelineId', 'is required');
+    }
+    final results = await Future.wait<Map<String, dynamic>>([
+      _public('/api/public/guidelines/$id'),
+      _public('/api/public/guidelines/$id/manifest'),
+    ]);
+    return GuidelinePublicationContent(
+      publication: _publicationFromContract(_data(results[0])),
+      manifest: _manifestFromContract(_data(results[1])),
+      sections: const [],
+      blocks: const [],
+    );
+  }
+
   Future<GuidelineAsset?> originalDocument(String guidelineId) =>
       _asset('/api/public/guidelines/$guidelineId/original');
 
@@ -317,6 +340,38 @@ final class GuidelinePublicationRepository {
 
   Future<Map<String, dynamic>> _structuredContent(String guidelineId) =>
       _public('/api/public/guidelines/$guidelineId/content');
+
+  Future<GuidelinePublicationContent?> _cachedContent(
+    GuidelineManifest manifest,
+  ) async {
+    try {
+      final cacheId = _publicationIdentity(manifest);
+      final index = await _cache.get(
+        type: _contentIndexType,
+        id: manifest.guidelineId,
+        scope: _cacheScope,
+      );
+      if (index?['cache_id']?.toString() != cacheId) return null;
+      final cached = await _cache.get(
+        type: _contentType,
+        id: cacheId,
+        scope: _cacheScope,
+      );
+      if (cached == null) return null;
+      return GuidelinePublicationContent(
+        publication: GuidelinePublication.fromJson(_map(cached['publication'])),
+        manifest: GuidelineManifest.fromJson(_map(cached['manifest'])),
+        sections: _maps(
+          cached['sections'],
+        ).map(PublicationSection.fromJson).toList(growable: false),
+        blocks: _maps(
+          cached['blocks'],
+        ).map(GuidelineBlock.fromJson).toList(growable: false),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
 
   Future<Map<String, dynamic>> _public(
     String path, {

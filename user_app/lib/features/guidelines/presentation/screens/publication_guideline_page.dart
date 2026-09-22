@@ -103,7 +103,15 @@ class _PublicationGuidelinePageState
 
   @override
   Widget build(BuildContext context) {
-    final content = ref.watch(publicationGuidelineProvider(widget.guidelineId));
+    final completeContent = ref.watch(
+      publicationGuidelineProvider(widget.guidelineId),
+    );
+    final summaryContent = ref.watch(
+      publicationGuidelineSummaryProvider(widget.guidelineId),
+    );
+    final content = widget.readerOnly || completeContent.valueOrNull != null
+        ? completeContent
+        : summaryContent;
 
     final progress = ref
         .watch(publicationReadingProgressProvider(widget.guidelineId))
@@ -212,6 +220,9 @@ class _PublicationGuidelinePageState
           error: error,
           onRetry: () {
             ref.invalidate(publicationGuidelineProvider(widget.guidelineId));
+            ref.invalidate(
+              publicationGuidelineSummaryProvider(widget.guidelineId),
+            );
           },
         ),
         data: (value) {
