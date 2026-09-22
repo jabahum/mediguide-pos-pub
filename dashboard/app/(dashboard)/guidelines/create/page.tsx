@@ -8,11 +8,12 @@ import {
   FileText,
   LayoutTemplate,
   Loader2,
-  Upload,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { GuidelineDocumentForm } from "../components/guideline-document-form";
+import { GuidelineUploadProgress } from "../components/guideline-upload-progress";
+import type { UploadOptions } from "@/services/guideline-upload.service";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -57,6 +58,19 @@ export default function CreateGuidelinePage() {
   const [reviewDate, setReviewDate] = React.useState("");
   const [file, setFile] = React.useState<File | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
+
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const documentId = params.get("document");
+    const versionId = params.get("version");
+    if (!documentId || !versionId) return;
+    let disposed = false;
+    void GuidelineDocumentsService.getDocument(documentId).then(value => {
+      const saved = value.versions.find(item => item.id === versionId);
+      if (!disposed && saved) { setDocument(value); setVersion(saved); setStage(2); }
+    }).catch(() => { if (!disposed) showToast.error("Could not restore upload", "Open the guideline from All Guidelines to resume its version upload."); });
+    return () => { disposed = true; };
+  }, []);
 
   React.useEffect(() => {
     if (!loading && !hasPermission("content", "create:any"))
@@ -138,6 +152,7 @@ export default function CreateGuidelinePage() {
       );
       setVersion(created);
       setStage(2);
+      router.replace(`/guidelines/create?document=${document.id}&version=${created.id}`);
       showToast.success(
         "Version created",
         "Upload its PDF or Markdown source.",
@@ -152,21 +167,19 @@ export default function CreateGuidelinePage() {
     }
   }
 
-  async function uploadVersion() {
-    if (!version || !file) return;
+  async function uploadVersion(source: File, options?: UploadOptions) {
+    if (!version) return;
     setSubmitting(true);
     try {
-      await GuidelineDocumentsService.uploadVersionSource(version.id, file);
+      const job = await GuidelineDocumentsService.uploadVersionSource(version.id, source, options);
       setStage(3);
       showToast.success(
         "Source uploaded",
         "Extraction and indexing are running. This page will refresh automatically.",
       );
+      return job;
     } catch (error) {
-      showToast.error(
-        "Upload failed",
-        error instanceof Error ? error.message : "Unknown error",
-      );
+      throw error;
     } finally {
       setSubmitting(false);
     }
@@ -292,13 +305,6 @@ export default function CreateGuidelinePage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
-            <FileUpload
-              value={file || undefined}
-              onValueChange={setFile}
-              accept="application/pdf,text/markdown,.pdf,.md,.markdown"
-              maxSize={100}
-              placeholder="Choose guideline PDF or Markdown file"
-            />
             <div className="flex justify-end gap-2">
               <Button
                 variant="outline"
@@ -326,18 +332,18 @@ export default function CreateGuidelinePage() {
               >
                 <LayoutTemplate className="h-4 w-4" /> Start from template
               </Button>
-              <Button disabled={submitting || !file} onClick={uploadVersion}>
-                {submitting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Upload className="h-4 w-4" />
-                )}
-                Upload and Review
-              </Button>
             </div>
           </CardContent>
         </Card>
       )}
+
+      {(stage === 2 || stage === 3) && version && <Card>
+        <CardHeader><CardTitle>Source transfer and processing</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <FileUpload value={file || undefined} onValueChange={next => { if (!submitting) setFile(next); }} accept="application/pdf,text/markdown,.pdf,.md,.markdown" maxSize={100} placeholder="Choose guideline PDF or Markdown file" />
+          <GuidelineUploadProgress key={version.id} versionId={version.id} file={file} submitting={submitting} onSubmit={uploadVersion} />
+        </CardContent>
+      </Card>}
 
       {stage === 3 && (
         <Card>
@@ -352,12 +358,10 @@ export default function CreateGuidelinePage() {
           <CardContent className="space-y-5">
             {!extractionReady ? (
               <div className="flex min-h-72 flex-col items-center justify-center gap-4 rounded-lg border border-dashed">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                 <div className="text-center">
-                  <div className="font-medium">Extraction in progress</div>
+                  <div className="font-medium">Source not yet ready for authoring</div>
                   <div className="text-sm text-muted-foreground">
-                    You may finish later and return to the guideline detail
-                    page.
+                    See the processing status above. You may finish later and return to the guideline detail page.
                   </div>
                 </div>
               </div>

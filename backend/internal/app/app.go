@@ -29,10 +29,11 @@ import (
 )
 
 type App struct {
-	Router *gin.Engine
-	DB     *gorm.DB
-	Redis  *redis.Client
-	Cache  *cachepkg.Store
+	stopUploads context.CancelFunc
+	Router      *gin.Engine
+	DB          *gorm.DB
+	Redis       *redis.Client
+	Cache       *cachepkg.Store
 }
 
 func New(cfg config.Config) (*App, error) {
@@ -162,7 +163,7 @@ func New(cfg config.Config) (*App, error) {
 	}
 
 	authH := handlers.AuthHandler{Service: authSvc}
-	guidelineH := handlers.GuidelineHandler{Service: guidelineSvc, MaxUploadMB: cfg.MaxUploadMB}
+	guidelineH := handlers.GuidelineHandler{Service: guidelineSvc, MaxUploadMB: cfg.MaxUploadMB, DirectUploads: cfg.GuidelineDirectUploads && cfg.S3PublicEndpoint != ""}
 	publicGuidelineH := handlers.PublicGuidelineHandler{Service: publicGuidelineSvc, Content: publicGuidelineSvc}
 	outbreakH := handlers.OutbreakHandler{Service: outbreakSvc}
 	outbreakAdminH := handlers.OutbreakAdminHandler{Service: outbreakAdminSvc, MaxUploadMB: cfg.MaxUploadMB}
@@ -604,6 +605,14 @@ func New(cfg config.Config) (*App, error) {
 		protected.DELETE("/guidelines/:id", middleware.RequirePermission("guideline.write"), middleware.RequirePermission("guideline.publish"), guidelineH.Delete)
 		protected.POST("/guidelines/:id/versions", middleware.RequirePermission("guideline.write"), guidelineH.CreateVersion)
 		protected.POST("/guideline-versions/:id/upload", middleware.RequirePermission("guideline.markdown.upload"), rateLimiter.Limit(middleware.Policy("guideline-upload", 10, time.Hour, 0), middleware.UserIdentity), rateLimiter.Concurrency("guideline-upload", 1, 15*time.Minute, middleware.UserIdentity), guidelineH.UploadPDF)
+		protected.GET("/guideline-versions/:id/upload-capabilities", middleware.RequirePermission("guideline.markdown.upload"), guidelineH.UploadCapabilities)
+		protected.GET("/guideline-versions/:id/upload-jobs/:jobId", middleware.RequirePermission("guideline.markdown.upload"), guidelineH.SourceUploadJob)
+		protected.GET("/guideline-versions/:id/uploads", middleware.RequirePermission("guideline.markdown.upload"), guidelineH.ListSourceUploads)
+		protected.POST("/guideline-versions/:id/uploads", middleware.RequirePermission("guideline.markdown.upload"), rateLimiter.Limit(middleware.Policy("guideline-upload", 10, time.Hour, 0), middleware.UserIdentity), guidelineH.BeginSourceUpload)
+		protected.GET("/guideline-versions/:id/uploads/:session", middleware.RequirePermission("guideline.markdown.upload"), guidelineH.GetSourceUpload)
+		protected.DELETE("/guideline-versions/:id/uploads/:session", middleware.RequirePermission("guideline.markdown.upload"), guidelineH.AbortSourceUpload)
+		protected.POST("/guideline-versions/:id/uploads/:session/parts/:part", middleware.RequirePermission("guideline.markdown.upload"), rateLimiter.Limit(middleware.Policy("guideline-upload-part", 180, time.Minute, 10), middleware.UserIdentity), guidelineH.SignSourceUploadPart)
+		protected.POST("/guideline-versions/:id/uploads/:session/complete", middleware.RequirePermission("guideline.markdown.upload"), rateLimiter.Concurrency("guideline-upload", 1, 15*time.Minute, middleware.UserIdentity), guidelineH.CompleteSourceUpload)
 		protected.POST("/guideline-versions/:id/publish", middleware.RequirePermission("guideline.publish"), rateLimiter.Limit(middleware.Policy("guideline-publish", 10, time.Hour, 0), middleware.UserIdentity), guidelineH.Publish)
 		protected.GET("/guideline-versions/:id/review", middleware.RequirePermission("guideline.review"), guidelineH.ReviewWorkspace)
 		protected.GET("/guideline-versions/:id/review-blocks", middleware.RequirePermission("guideline.review"), guidelineH.ListReviewBlocks)
@@ -779,10 +788,32 @@ func New(cfg config.Config) (*App, error) {
 		protected.GET("/sync/packages/:id/download", middleware.RequirePermission("sync.read"), rateLimiter.Limit(middleware.Policy("sync-download-url", 30, time.Minute, 5), middleware.UserIdentity), syncH.Download)
 
 	}
-	return &App{Router: r, DB: database, Redis: redisClient, Cache: cacheStore}, nil
+	uploadContext, stopUploads := context.WithCancel(context.Background())
+	if guidelineH.DirectUploads {
+		go func() {
+			ticker := time.NewTicker(30 * time.Second)
+			defer ticker.Stop()
+			for {
+				select {
+				case <-uploadContext.Done():
+					return
+				case <-ticker.C:
+				}
+				ctx, cancel := context.WithTimeout(uploadContext, 25*time.Second)
+				if err := guidelineSvc.MaintainSourceUploads(ctx); err != nil {
+					log.Error().Err(err).Msg("guideline upload maintenance failed")
+				}
+				cancel()
+			}
+		}()
+	}
+	return &App{Router: r, DB: database, Redis: redisClient, Cache: cacheStore, stopUploads: stopUploads}, nil
 }
 
 func (a *App) Close() error {
+	if a != nil && a.stopUploads != nil {
+		a.stopUploads()
+	}
 	if a == nil || a.Redis == nil {
 		return nil
 	}

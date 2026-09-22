@@ -20,8 +20,9 @@ import (
 )
 
 type GuidelineHandler struct {
-	Service     services.GuidelineService
-	MaxUploadMB int64
+	Service       services.GuidelineService
+	MaxUploadMB   int64
+	DirectUploads bool
 }
 
 type UpdateMarkdownInput struct {

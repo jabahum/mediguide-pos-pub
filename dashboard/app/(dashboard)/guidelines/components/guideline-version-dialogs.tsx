@@ -1,7 +1,9 @@
 "use client"
 
 import * as React from "react"
-import { Loader2, Plus, Upload } from "lucide-react"
+import { Loader2, Plus } from "lucide-react"
+import { GuidelineUploadProgress } from "./guideline-upload-progress"
+import type { UploadOptions } from "@/services/guideline-upload.service"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -19,6 +21,7 @@ import {
   CreateGuidelineVersionInput,
   GuidelineDocumentRecord,
   GuidelineVersionRecord,
+  IngestionJobRecord,
 } from "@/services/guideline-documents.service"
 
 export function CreateVersionDialog({
@@ -124,7 +127,7 @@ export function UploadVersionDialog({
   open: boolean
   submitting: boolean
   onOpenChange: (open: boolean) => void
-  onSubmit: (file: File) => Promise<void>
+  onSubmit: (file: File, options?: UploadOptions) => Promise<IngestionJobRecord | void>
 }) {
   const [file, setFile] = React.useState<File | null>(null)
 
@@ -135,7 +138,7 @@ export function UploadVersionDialog({
   }, [open])
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(value) => { if (!submitting) onOpenChange(value) }}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Upload Guideline Source</DialogTitle>
@@ -148,20 +151,17 @@ export function UploadVersionDialog({
           <Label>PDF or Markdown File</Label>
           <FileUpload
             value={file || undefined}
-            onValueChange={setFile}
+            onValueChange={(next) => { if (!submitting) setFile(next) }}
             accept="application/pdf,text/markdown,.pdf,.md,.markdown"
             maxSize={100}
             placeholder="Choose guideline PDF or Markdown file"
           />
         </div>
 
+        {version && <GuidelineUploadProgress key={version.id} versionId={version.id} file={file} submitting={submitting} onSubmit={onSubmit} />}
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
-            Cancel
-          </Button>
-          <Button onClick={() => file && onSubmit(file)} disabled={submitting || !file}>
-            {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-            Upload Source
+            Close
           </Button>
         </DialogFooter>
       </DialogContent>

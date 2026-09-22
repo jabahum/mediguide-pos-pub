@@ -109,25 +109,23 @@ export default function GuidelineDetailsPage() {
     }
   }
 
-  async function uploadSource(file: File) {
+  async function uploadSource(file: File, options?: import("@/services/guideline-upload.service").UploadOptions) {
     if (!uploadVersion) return;
     setSubmitting(true);
     try {
-      await GuidelineDocumentsService.uploadVersionSource(
+      const job = await GuidelineDocumentsService.uploadVersionSource(
         uploadVersion.id,
         file,
+        options,
       );
-      setUploadVersion(null);
       await refresh();
       showToast.success(
         "Source uploaded",
         "Extraction and indexing have been queued.",
       );
+      return job;
     } catch (error) {
-      showToast.error(
-        "Upload failed",
-        error instanceof Error ? error.message : "Unknown error",
-      );
+      throw error;
     } finally {
       setSubmitting(false);
     }

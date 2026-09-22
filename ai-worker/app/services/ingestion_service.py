@@ -5,6 +5,7 @@ import json
 import mimetypes
 import tempfile
 import time
+from datetime import datetime, timezone
 import structlog
 from app.core.config import get_settings
 from app.core.storage import ObjectStorage
@@ -66,6 +67,13 @@ class IngestionService:
             return
         # For API-triggered runs the job may not be in 'running' state yet.
         self.jobs.mark_running(job_id)
+        self._metrics = {"stage_seconds": {}}
+        created = job.get("created_at")
+        if isinstance(created, datetime):
+            self._metrics["queue_seconds"] = round(max(0, (datetime.now(timezone.utc) - created.replace(tzinfo=created.tzinfo or timezone.utc)).total_seconds()), 3)
+        self._stage_name = None
+        self._stage_started = time.perf_counter()
+        job_started = self._stage_started
         try:
             self._process(job)
             self.jobs.mark_completed(job_id)
@@ -79,11 +87,28 @@ class IngestionService:
             log.exception("ingestion_job_failed", job_id=job_id, error=str(exc))
             self.jobs.mark_failed(job_id, str(exc))
             raise
+        finally:
+            self._finish_stage()
+            self._metrics["processing_seconds"] = round(time.perf_counter() - job_started, 3)
+            log.info("ingestion_benchmark", job_id=job_id, **self._metrics)
+            try:
+                self.jobs.record_metrics(job_id, self._metrics)
+            except Exception:
+                log.exception("ingestion_metrics_save_failed", job_id=job_id)
+
+    def _finish_stage(self):
+        if getattr(self, "_stage_name", None):
+            stages = self._metrics["stage_seconds"]
+            stages[self._stage_name] = round(stages.get(self._stage_name, 0) + time.perf_counter() - self._stage_started, 3)
+        self._stage_started = time.perf_counter()
 
     def _process(self, job: dict) -> None:
         job_id = str(job["id"])
 
         def stage(name: str, percent: int) -> None:
+            if hasattr(self, "_metrics") and name != self._stage_name:
+                self._finish_stage()
+                self._stage_name = name
             if self.jobs.cancellation_requested(job_id):
                 raise IngestionCanceled()
             self.jobs.set_progress(job_id, name, percent)
@@ -127,6 +152,8 @@ class IngestionService:
             started = time.perf_counter()
             self.storage.download_file(source_key, source_path)
             document_checksum = self._file_checksum(source_path)
+            if hasattr(self, "_metrics"):
+                self._metrics.update(source_bytes=source_path.stat().st_size, source_format=source_format, checksum=document_checksum)
             log.info(
                 "ingestion_download_completed",
                 job_id=str(job["id"]),
@@ -138,6 +165,8 @@ class IngestionService:
             )
 
             if self.guidelines.is_extraction_current(version_id, document_checksum):
+                if hasattr(self, "_metrics"):
+                    self._metrics["checksum_noop"] = True
                 log.info(
                     "ingestion_skipped_current_checksum",
                     job_id=str(job["id"]),
@@ -163,6 +192,8 @@ class IngestionService:
                     "markdown_revision_id": revision_id,
                     "ingestion_job_id": job_id,
                 }
+            if hasattr(self, "_metrics"):
+                self._metrics.update(pages=extracted.pages, blocks=len(extracted.blocks), sections=len(extracted.sections), tables=len(extracted.tables), assets=len(extracted.assets), extraction=extracted.metadata.get("extraction_timings", {}))
             markdown_bytes = extracted.markdown.encode("utf-8")
             markdown_checksum = hashlib.sha256(markdown_bytes).hexdigest()
             log.info(
@@ -181,6 +212,8 @@ class IngestionService:
             chunks = chunk_blocks(extracted.blocks)
             if not chunks:
                 chunks = chunk_sections(extracted.sections)
+            if hasattr(self, "_metrics"):
+                self._metrics["chunks"] = len(chunks)
             log.info(
                 "ingestion_chunking_completed",
                 job_id=str(job["id"]),
@@ -198,6 +231,7 @@ class IngestionService:
             )
 
             started = time.perf_counter()
+            stage("uploading_assets", 50)
             self.storage.upload_bytes(
                 extracted.html.encode("utf-8"), html_key, "text/html; charset=utf-8"
             )

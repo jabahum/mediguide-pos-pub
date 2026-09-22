@@ -1,6 +1,6 @@
 "use client";
 
-import { getBackendClient } from "@/lib/backend-client";
+import { BackendRequestError, getBackendClient } from "@/lib/backend-client";
 import type { ServicesGuidelineNotificationCampaignInput } from "@/types/generated/backend-openapi";
 
 export const guidelineDocumentsQueryKey = ["v2-guideline-documents"] as const;
@@ -102,6 +102,9 @@ export interface IngestionJobRecord {
   version_id: string;
   job_type: string;
   status: string;
+  progress_stage?: string;
+  progress_percent?: number;
+  metrics?: Record<string, unknown>;
   payload_json?: string;
   error?: string;
   created_at: string;
@@ -503,7 +506,17 @@ export class GuidelineDocumentsService {
   static async uploadVersionSource(
     versionId: string,
     file: File,
+    options: import("./guideline-upload.service").UploadOptions = {},
   ): Promise<IngestionJobRecord> {
+    const capabilities = await getBackendClient().request<{ direct_uploads: boolean; max_size_bytes: number }>(`/api/v2/guideline-versions/${versionId}/upload-capabilities`).catch(error => {
+      if (error instanceof BackendRequestError && error.status === 404) return { direct_uploads: false, max_size_bytes: 100 << 20 };
+      throw error;
+    });
+    if (file.size > capabilities.max_size_bytes) throw new Error("File exceeds the server upload limit.");
+    if (capabilities.direct_uploads && globalThis.crypto?.subtle) {
+      const { uploadGuidelineDirect } = await import("./guideline-upload.service");
+      return uploadGuidelineDirect(versionId, file, options);
+    }
     const formData = new FormData();
     formData.append("file", file);
     return getBackendClient().request<IngestionJobRecord>(
@@ -511,6 +524,7 @@ export class GuidelineDocumentsService {
       {
         method: "POST",
         body: formData,
+        signal: options.signal,
       },
     );
   }

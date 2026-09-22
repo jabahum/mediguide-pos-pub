@@ -89,16 +89,16 @@ export default function GuidelinesPage() {
     }
   }
 
-  async function uploadSource(file: File) {
+  async function uploadSource(file: File, options?: import("@/services/guideline-upload.service").UploadOptions) {
     if (!uploadVersion) return
     setSubmitting(true)
     try {
-      await GuidelineDocumentsService.uploadVersionSource(uploadVersion.id, file)
-      setUploadVersion(null)
+      const job = await GuidelineDocumentsService.uploadVersionSource(uploadVersion.id, file, options)
       await refresh()
       showToast.success("Source uploaded", "Document extraction and indexing have been queued.")
+      return job
     } catch (error) {
-      showToast.error("Upload failed", error instanceof Error ? error.message : "Unknown error")
+      throw error
     } finally {
       setSubmitting(false)
     }

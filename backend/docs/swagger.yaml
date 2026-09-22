@@ -915,6 +915,8 @@ definitions:
         type: string
       job_type:
         type: string
+      metrics:
+        type: object
       payload_json:
         type: string
       progress_percent:
@@ -2360,6 +2362,47 @@ definitions:
       success:
         type: boolean
     type: object
+  handlers.SourceUploadCapabilities:
+    properties:
+      direct_uploads:
+        type: boolean
+      max_size_bytes:
+        type: integer
+      part_size:
+        type: integer
+    type: object
+  handlers.SourceUploadCapabilitiesResponse:
+    properties:
+      data:
+        $ref: '#/definitions/handlers.SourceUploadCapabilities'
+    type: object
+  handlers.SourceUploadJobResponse:
+    properties:
+      data:
+        $ref: '#/definitions/models.IngestionJob'
+    type: object
+  handlers.SourceUploadListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.GuidelineUpload'
+        type: array
+    type: object
+  handlers.SourceUploadPartResponse:
+    properties:
+      data:
+        $ref: '#/definitions/handlers.SourceUploadPartURL'
+    type: object
+  handlers.SourceUploadPartURL:
+    properties:
+      url:
+        type: string
+    type: object
+  handlers.SourceUploadResponse:
+    properties:
+      data:
+        $ref: '#/definitions/services.GuidelineUploadState'
+    type: object
   handlers.SupportReplyEnvelope:
     properties:
       data:
@@ -3755,6 +3798,31 @@ definitions:
       updated_at:
         type: string
     type: object
+  models.GuidelineUpload:
+    properties:
+      checksum:
+        type: string
+      created_at:
+        type: string
+      expires_at:
+        type: string
+      filename:
+        type: string
+      id:
+        type: string
+      job_id:
+        type: string
+      part_size:
+        type: integer
+      size_bytes:
+        type: integer
+      status:
+        type: string
+      updated_at:
+        type: string
+      version_id:
+        type: string
+    type: object
   models.GuidelineVersion:
     properties:
       approved_at:
@@ -3895,6 +3963,8 @@ definitions:
         type: string
       job_type:
         type: string
+      metrics:
+        type: object
       payload_json:
         type: string
       progress_percent:
@@ -4526,6 +4596,15 @@ definitions:
         type: string
     required:
     - reviewer_id
+    type: object
+  services.BeginGuidelineUpload:
+    properties:
+      checksum:
+        type: string
+      filename:
+        type: string
+      size_bytes:
+        type: integer
     type: object
   services.BulkReviewGuidelineBlocksInput:
     properties:
@@ -6587,6 +6666,39 @@ definitions:
       description:
         type: string
       name:
+        type: string
+    type: object
+  services.GuidelineUploadState:
+    properties:
+      checksum:
+        type: string
+      created_at:
+        type: string
+      expires_at:
+        type: string
+      filename:
+        type: string
+      id:
+        type: string
+      job:
+        $ref: '#/definitions/models.IngestionJob'
+      job_id:
+        type: string
+      object_complete:
+        type: boolean
+      part_size:
+        type: integer
+      parts:
+        items:
+          $ref: '#/definitions/storage.UploadPart'
+        type: array
+      size_bytes:
+        type: integer
+      status:
+        type: string
+      updated_at:
+        type: string
+      version_id:
         type: string
     type: object
   services.LanguageInput:
@@ -9868,6 +9980,15 @@ definitions:
         type: string
       verified:
         type: boolean
+    type: object
+  storage.UploadPart:
+    properties:
+      etag:
+        type: string
+      number:
+        type: integer
+      size:
+        type: integer
     type: object
 info:
   contact:
@@ -17055,6 +17176,198 @@ paths:
       summary: Upload a guideline PDF or Markdown source
       tags:
       - guidelines
+  /api/v2/guideline-versions/{id}/upload-capabilities:
+    get:
+      parameters:
+      - description: Version ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SourceUploadCapabilitiesResponse'
+      security:
+      - BearerAuth: []
+      summary: Discover guideline source upload capabilities
+      tags:
+      - guideline-uploads
+  /api/v2/guideline-versions/{id}/upload-jobs/{jobId}:
+    get:
+      parameters:
+      - description: Version ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Job ID
+        format: uuid
+        in: path
+        name: jobId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SourceUploadJobResponse'
+      security:
+      - BearerAuth: []
+      summary: Read source ingestion status and timing metrics
+      tags:
+      - guideline-uploads
+  /api/v2/guideline-versions/{id}/uploads:
+    get:
+      parameters:
+      - description: Version ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SourceUploadListResponse'
+      security:
+      - BearerAuth: []
+      summary: List the current editor's recent source uploads
+      tags:
+      - guideline-uploads
+    post:
+      parameters:
+      - description: Version ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Source identity
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/services.BeginGuidelineUpload'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SourceUploadResponse'
+      security:
+      - BearerAuth: []
+      summary: Begin a resumable source upload owned by the current editor
+      tags:
+      - guideline-uploads
+  /api/v2/guideline-versions/{id}/uploads/{session}:
+    delete:
+      parameters:
+      - description: Version ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Upload session ID
+        format: uuid
+        in: path
+        name: session
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Cancel an unattached source upload
+      tags:
+      - guideline-uploads
+    get:
+      parameters:
+      - description: Version ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Upload session ID
+        format: uuid
+        in: path
+        name: session
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SourceUploadResponse'
+      security:
+      - BearerAuth: []
+      summary: Recover source upload parts and processing job
+      tags:
+      - guideline-uploads
+  /api/v2/guideline-versions/{id}/uploads/{session}/complete:
+    post:
+      parameters:
+      - description: Version ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Upload session ID
+        format: uuid
+        in: path
+        name: session
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SourceUploadJobResponse'
+      security:
+      - BearerAuth: []
+      summary: Verify source bytes and idempotently queue ingestion
+      tags:
+      - guideline-uploads
+  /api/v2/guideline-versions/{id}/uploads/{session}/parts/{part}:
+    post:
+      parameters:
+      - description: Version ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Upload session ID
+        format: uuid
+        in: path
+        name: session
+        required: true
+        type: string
+      - description: One-based part number
+        in: path
+        name: part
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SourceUploadPartResponse'
+      security:
+      - BearerAuth: []
+      summary: Sign one bounded source upload part
+      tags:
+      - guideline-uploads
   /api/v2/guideline-versions/{id}/validate-publication:
     post:
       parameters:

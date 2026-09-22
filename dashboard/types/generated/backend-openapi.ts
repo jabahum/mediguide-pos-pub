@@ -579,6 +579,7 @@ export interface HandlersIngestionJobResponse {
   error?: string;
   id?: string;
   job_type?: string;
+  metrics?: object;
   payload_json?: string;
   progress_percent?: number;
   progress_stage?: string;
@@ -1527,6 +1528,36 @@ export interface HandlersSituationReportEnvelope {
   success?: boolean;
 }
 
+export interface HandlersSourceUploadCapabilities {
+  direct_uploads?: boolean;
+  max_size_bytes?: number;
+  part_size?: number;
+}
+
+export interface HandlersSourceUploadCapabilitiesResponse {
+  data?: HandlersSourceUploadCapabilities;
+}
+
+export interface HandlersSourceUploadJobResponse {
+  data?: ModelsIngestionJob;
+}
+
+export interface HandlersSourceUploadListResponse {
+  data?: ModelsGuidelineUpload[];
+}
+
+export interface HandlersSourceUploadPartResponse {
+  data?: HandlersSourceUploadPartURL;
+}
+
+export interface HandlersSourceUploadPartURL {
+  url?: string;
+}
+
+export interface HandlersSourceUploadResponse {
+  data?: ServicesGuidelineUploadState;
+}
+
 export interface HandlersSupportReplyEnvelope {
   data?: ModelsSupportTicketReply;
   success?: boolean;
@@ -2299,6 +2330,20 @@ export interface ModelsGuidelineTag {
   updated_at?: string;
 }
 
+export interface ModelsGuidelineUpload {
+  checksum?: string;
+  created_at?: string;
+  expires_at?: string;
+  filename?: string;
+  id?: string;
+  job_id?: string;
+  part_size?: number;
+  size_bytes?: number;
+  status?: string;
+  updated_at?: string;
+  version_id?: string;
+}
+
 export interface ModelsGuidelineVersion {
   approved_at?: string;
   approved_by?: string;
@@ -2368,6 +2413,7 @@ export interface ModelsIngestionJob {
   error?: string;
   id?: string;
   job_type?: string;
+  metrics?: object;
   payload_json?: string;
   progress_percent?: number;
   progress_stage?: string;
@@ -2708,6 +2754,12 @@ export interface ServicesAskResponse {
 export interface ServicesAssignGuidelineReviewerInput {
   due_at?: string;
   reviewer_id: string;
+}
+
+export interface ServicesBeginGuidelineUpload {
+  checksum?: string;
+  filename?: string;
+  size_bytes?: number;
 }
 
 export interface ServicesBulkReviewGuidelineBlocksInput {
@@ -3819,6 +3871,23 @@ export interface ServicesGuidelineSectionOrderInput {
 export interface ServicesGuidelineTagInput {
   description?: string;
   name?: string;
+}
+
+export interface ServicesGuidelineUploadState {
+  checksum?: string;
+  created_at?: string;
+  expires_at?: string;
+  filename?: string;
+  id?: string;
+  job?: ModelsIngestionJob;
+  job_id?: string;
+  object_complete?: boolean;
+  part_size?: number;
+  parts?: StorageUploadPart[];
+  size_bytes?: number;
+  status?: string;
+  updated_at?: string;
+  version_id?: string;
 }
 
 export interface ServicesLanguageInput {
@@ -5580,6 +5649,12 @@ export interface ServicesUserView {
   timezone?: string;
   updated_at?: string;
   verified?: boolean;
+}
+
+export interface StorageUploadPart {
+  etag?: string;
+  number?: number;
+  size?: number;
 }
 
 /**

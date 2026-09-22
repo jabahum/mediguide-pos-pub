@@ -1,11 +1,17 @@
 from __future__ import annotations
 
 from typing import Any
+import json
 
 from app.core.db import db_conn
 
 
 class IngestionRepository:
+    def record_metrics(self, job_id: str, metrics: dict) -> None:
+        with db_conn() as conn, conn.cursor() as cur:
+            cur.execute("UPDATE ingestion_jobs SET metrics_json=COALESCE(metrics_json, '{}'::jsonb) || %s::jsonb WHERE id=%s", (json.dumps(metrics), job_id))
+            conn.commit()
+
     def _has_attempt_count(self) -> bool:
         with db_conn() as conn, conn.cursor() as cur:
             cur.execute(

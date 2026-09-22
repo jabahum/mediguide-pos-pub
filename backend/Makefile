@@ -60,7 +60,7 @@ clinical-tools-retirement-rehearsal-check:
 	go run ./cmd/clinicaltool-rehearsal
 
 swagger:
-	go run github.com/swaggo/swag/cmd/swag@v1.16.6 init -g main.go -d cmd/api,internal/handlers,internal/httpx,internal/models,internal/services,internal/clinicaltools -o docs --outputTypes go,json,yaml --generatedTime=false --parseInternal
+	go run github.com/swaggo/swag/cmd/swag@v1.16.6 init -g main.go -d cmd/api,internal/handlers,internal/httpx,internal/models,internal/services,internal/clinicaltools,internal/storage -o docs --outputTypes go,json,yaml --generatedTime=false --parseInternal
 
 proto:
 	$(BASH) ../scripts/generate_proto.sh

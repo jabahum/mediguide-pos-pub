@@ -7,6 +7,7 @@ import math
 import re
 import subprocess
 import tempfile
+import time
 import fitz
 from bs4 import BeautifulSoup
 from markdownify import markdownify as md
@@ -1089,7 +1090,11 @@ def _ocr_page_text(page: fitz.Page) -> str:
 
 
 def extract_pdf(path: Path) -> ExtractedDocument:
+    table_started = time.perf_counter()
     tables = _extract_tables_pdfplumber(path)
+    table_seconds = time.perf_counter() - table_started
+    ocr_seconds = 0.0
+    ocr_attempts = 0
     table_bboxes_by_page: dict[int, list[tuple[float, float, float, float]]] = {}
     for table in tables:
         if table.bbox:
@@ -1122,7 +1127,10 @@ def extract_pdf(path: Path) -> ExtractedDocument:
         if _should_use_raw_page_text(text, raw_text):
             text = raw_text
         if _is_low_signal_page_text(text):
+            ocr_started = time.perf_counter()
             ocr_text = _ocr_page_text(page)
+            ocr_seconds += time.perf_counter() - ocr_started
+            ocr_attempts += 1
             if len(ocr_text) > len(text):
                 text = ocr_text
                 method = "ocr"
@@ -1222,6 +1230,7 @@ def extract_pdf(path: Path) -> ExtractedDocument:
             "ocr_pages": ocr_pages,
             "multi_column_pages": multi_column_pages,
             "toc_detected": bool(toc_entries),
+            "extraction_timings": {"tables_seconds": round(table_seconds, 3), "ocr_seconds": round(ocr_seconds, 3), "ocr_attempts": ocr_attempts},
         }
     )
 
