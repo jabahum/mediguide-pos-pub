@@ -5,10 +5,12 @@ import hashlib
 import json
 import math
 import tempfile
+import threading
 from dataclasses import asdict
 from pathlib import Path
 import structlog
 from app.document_processing.artifact_identity import identity
+from app.document_processing.bounded_work import ordered_work
 from app.document_processing.types import ExtractedDocument, ExtractedSection, ExtractedTable, ExtractedContentBlock, ExtractedAsset
 
 log = structlog.get_logger()
@@ -39,6 +41,11 @@ class IngestionArtifacts:
     def __init__(self, repository, storage, metrics):
         self.repository, self.storage, self.metrics = repository, storage, metrics
         self._extraction_complete = True
+        self._metrics_lock = threading.Lock()
+
+    def _increment(self, name):
+        with self._metrics_lock:
+            self.metrics[name] = self.metrics.get(name, 0) + 1
 
     def extraction_incomplete(self):
         # Preserve best-effort extraction, but never freeze a transient failure
@@ -94,14 +101,17 @@ class IngestionArtifacts:
         key = identity({"kind": "ocr-v1", "page": page_hash, "engine": engine_identity})
         value = self.repository.get_many("ocr", [key]).get(key)
         if isinstance(value, dict) and isinstance(value.get("text"), str):
-            self.metrics["ocr_cache_hits"] = self.metrics.get("ocr_cache_hits", 0) + 1
+            self._increment("ocr_cache_hits")
             return value["text"]
-        self.metrics["ocr_cache_misses"] = self.metrics.get("ocr_cache_misses", 0) + 1
+        self._increment("ocr_cache_misses")
         text = compute()  # exceptions are not cached as empty successful OCR
         self.repository.put_many("ocr", {key: {"text": text}})
         return text
 
-    def embeddings(self, texts, provider, provider_identity, dimensions, batch_size, progress):
+    def embeddings(self, texts, provider, provider_identity, dimensions, batch_size, progress, workers=1, provider_factory=None):
+        if workers > 1 and provider_factory is None:
+            raise ValueError("Concurrent embeddings require an isolated provider factory")
+        local = threading.local()
         def valid(vector):
             return isinstance(vector, list) and len(vector) == dimensions and all(type(n) in (int, float) and math.isfinite(n) for n in vector)
         keys = [identity({"input": text, "provider": provider_identity}) for text in texts]
@@ -112,17 +122,30 @@ class IngestionArtifacts:
         missing = [key for key in unique if key not in vectors]
         self.metrics["embedding_unique_misses"] = len(missing)
         self.metrics["embedding_cache_enabled"] = provider_identity is not None
-        for offset in range(0, len(missing), max(1, batch_size)):
-            progress(offset, len(missing))  # includes cancellation before every provider call
-            batch = missing[offset:offset + max(1, batch_size)]
-            self.metrics["embedding_provider_calls"] = self.metrics.get("embedding_provider_calls", 0) + 1
-            result = provider.embed([unique[key] for key in batch])
+        def batches():
+            for offset in range(0, len(missing), max(1, batch_size)):
+                progress(offset, len(missing))  # cancellation before bounded submission
+                yield missing[offset:offset + max(1, batch_size)]
+
+        def compute(batch):
+            if workers > 1:
+                if not hasattr(local, "provider"):
+                    local.provider = provider_factory()
+                active = local.provider
+            else:
+                active = provider
+            self._increment("embedding_provider_calls")
+            result = active.embed([unique[key] for key in batch])
             if len(result) != len(batch) or not all(valid(vector) for vector in result):
                 raise ValueError("Embedding provider returned invalid vectors or count")
-            vectors.update(zip(batch, result))
+            completed = dict(zip(batch, result))
             # A successful batch is durable before starting the next one. Do not
             # cache a provider's dynamic shorter-input fallback as an exact input.
-            if provider_identity and getattr(provider, "last_batch_cacheable", True):
-                self.repository.put_many("embedding", {key: {"vector": vectors[key]} for key in batch})
+            if provider_identity and getattr(active, "last_batch_cacheable", True):
+                self.repository.put_many("embedding", {key: {"vector": vector} for key, vector in completed.items()})
+            return completed
+
+        for completed in ordered_work(compute, batches(), workers):
+            vectors.update(completed)
         progress(len(missing), len(missing))
         return [list(vectors[key]) for key in keys]

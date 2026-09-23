@@ -7,6 +7,7 @@ import (
 	"io"
 	"mediguide/internal/config"
 	"net/http"
+	"net/url"
 	"os"
 	"testing"
 	"time"
@@ -31,6 +32,22 @@ func TestMinioMultipartIntegration(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { _ = s.AbortUpload(context.Background(), key, id); _ = s.Delete(context.Background(), key) })
+	// A genuinely expired signed URL must be rejected; the normal fresh signer
+	// below then resumes the same multipart session successfully.
+	expired, err := s.uploadClient.Presign(ctx, "PUT", s.bucket, key, time.Second, url.Values{"uploadId": {id}, "partNumber": {"1"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	time.Sleep(2100 * time.Millisecond)
+	expiredRequest, _ := http.NewRequestWithContext(ctx, http.MethodPut, expired.String(), bytes.NewReader([]byte("expired")))
+	expiredResponse, err := http.DefaultClient.Do(expiredRequest)
+	if err != nil {
+		t.Fatal("expired URL request failed")
+	}
+	expiredResponse.Body.Close()
+	if expiredResponse.StatusCode != http.StatusForbidden {
+		t.Fatalf("expired URL status %d", expiredResponse.StatusCode)
+	}
 	content := append([]byte("%PDF-1.7\n"), bytes.Repeat([]byte("x"), 9<<20)...)
 	for number, offset := 1, 0; offset < len(content); number, offset = number+1, offset+(8<<20) {
 		url, err := s.SignUploadPart(ctx, key, id, number)
@@ -61,6 +78,18 @@ func TestMinioMultipartIntegration(t *testing.T) {
 		response.Body.Close()
 		if response.StatusCode != 200 {
 			t.Fatalf("signed PUT status %d", response.StatusCode)
+		}
+		if number == 1 {
+			// Reconnect with a fresh storage client, as after a browser/process
+			// interruption. Part one remains durable and is never PUT again.
+			s, err = NewMinioStore(config.Config{S3Endpoint: endpoint, S3PublicEndpoint: endpoint, S3Bucket: "mediguide", S3AccessKey: "mediguide", S3SecretKey: "mediguide123"})
+			if err != nil {
+				t.Fatal(err)
+			}
+			stored, err := s.UploadParts(ctx, key, id)
+			if err != nil || len(stored) != 1 || stored[0].Number != 1 || stored[0].Size != 8<<20 {
+				t.Fatalf("resume lost completed part: %+v %v", stored, err)
+			}
 		}
 	}
 	parts, err := s.UploadParts(ctx, key, id)

@@ -192,13 +192,23 @@ class IngestionService:
 
             stage("parsing", 20)
             started = time.perf_counter()
+            last_parsing_check = 0.0
+            def check_parsing_cancel():
+                nonlocal last_parsing_check
+                now = time.perf_counter()
+                if now - last_parsing_check >= 1:
+                    stage("parsing", 20)
+                    last_parsing_check = now
             def compute_extraction():
                 if source_format == "markdown":
                     return extract_markdown(source_path, fallback_title=version.get("document_title") or "Guideline")
+                concurrent = getattr(self.settings, "ingestion_processing_concurrency", False)
+                parallel_options = {"page_workers": self.settings.pdf_page_workers, "ocr_workers": self.settings.ocr_workers,
+                    "check_cancel": check_parsing_cancel} if concurrent else {}
                 if artifacts is not None:
                     ocr = ocr_identity()
-                    return extract_pdf(source_path, artifacts=artifacts, ocr_settings={"epoch": self.settings.artifact_cache_epoch, **ocr} if ocr else None)
-                return extract_pdf(source_path)
+                    return extract_pdf(source_path, artifacts=artifacts, ocr_settings={"epoch": self.settings.artifact_cache_epoch, **ocr} if ocr else None, **parallel_options)
+                return extract_pdf(source_path, **parallel_options)
             # Save raw extraction BEFORE enriching with revision/job IDs,
             # version-owned storage keys or the original PDF attachment.
             extracted = artifacts.extraction(extraction_key, compute_extraction) if artifacts else compute_extraction()
@@ -300,10 +310,17 @@ class IngestionService:
             batch_size = max(1, self.settings.embedding_request_batch_size)
             started = time.perf_counter()
             stage("embeddings", 65)
-            if artifacts:
-                embeddings = artifacts.embeddings(texts, self.embedder, embedding_key, self.settings.embedding_dim, batch_size,
-                    lambda done, total: stage("embeddings", min(84, 65 + int((done / max(1, total)) * 19))))
-            for i in range(0, len(texts) if not artifacts else 0, batch_size):
+            concurrent = getattr(self.settings, "ingestion_processing_concurrency", False)
+            embedding_artifacts = artifacts or (IngestionArtifacts(self.artifact_repository, self.storage, getattr(self, "_metrics", {})) if concurrent else None)
+            if embedding_artifacts:
+                workers = self.settings.embedding_workers if concurrent else 1
+                # Never multiply in-process transformer model weights/GPU memory.
+                if self.settings.embedding_provider.lower() == "sentence_transformers":
+                    workers = 1
+                embeddings = embedding_artifacts.embeddings(texts, self.embedder, embedding_key, self.settings.embedding_dim, batch_size,
+                    lambda done, total: stage("embeddings", min(84, 65 + int((done / max(1, total)) * 19))),
+                    workers=workers, provider_factory=get_embedding_provider if workers > 1 else None)
+            for i in range(0, len(texts) if not embedding_artifacts else 0, batch_size):
                 stage("embeddings", min(84, 65 + int((i / max(1, len(texts))) * 19)))
                 batch_started = time.perf_counter()
                 batch = texts[i : i + batch_size]

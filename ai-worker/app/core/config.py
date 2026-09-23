@@ -70,6 +70,10 @@ class Settings(BaseSettings):
 
     worker_enabled: bool = True
     ingestion_artifact_reuse: bool = Field(default=False, validation_alias="INGESTION_ARTIFACT_REUSE")
+    ingestion_processing_concurrency: bool = Field(default=False, validation_alias="INGESTION_PROCESSING_CONCURRENCY")
+    pdf_page_workers: int = Field(default=2, ge=1, le=4, validation_alias="PDF_PAGE_WORKERS")
+    ocr_workers: int = Field(default=2, ge=1, le=4, validation_alias="OCR_WORKERS")
+    embedding_workers: int = Field(default=1, ge=1, le=4, validation_alias="EMBEDDING_WORKERS")
     artifact_cache_epoch: str = Field(default="1", min_length=1, validation_alias="ARTIFACT_CACHE_EPOCH")
     # Pin this to deployed weights/settings for providers without digest discovery.
     embedding_cache_model_revision: str = Field(default="", validation_alias="EMBEDDING_CACHE_MODEL_REVISION")

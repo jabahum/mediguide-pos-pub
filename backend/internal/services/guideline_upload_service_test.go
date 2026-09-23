@@ -182,3 +182,33 @@ func TestSourceUploadCompletionNotificationIsDeduplicated(t *testing.T) {
 		t.Fatalf("expected one owner notification: %+v", notices)
 	}
 }
+
+func TestSourceUploadRejectsInvalidContentAndCanceledSessions(t *testing.T) {
+	for _, test := range []struct{ filename, content string }{
+		{"source.pdf", "This is not a PDF"},
+		{"source.md", "# Invalid UTF8\n\xff"},
+	} {
+		t.Run(test.filename, func(t *testing.T) {
+			s, _, row := uploadFixture(t, test.filename, test.content)
+			if _, err := s.CompleteSourceUpload(context.Background(), row.VersionID, row.UserID, row.ID); !errors.Is(err, ErrUploadInvalid) {
+				t.Fatalf("invalid content accepted: %v", err)
+			}
+			var count int64
+			s.DB.Model(&models.IngestionJob{}).Count(&count)
+			if count != 0 {
+				t.Fatalf("invalid upload queued %d jobs", count)
+			}
+		})
+	}
+	s, _, row := uploadFixture(t, "source.pdf", "%PDF-1.7\nTest document")
+	ctx := context.Background()
+	if err := s.AbortSourceUpload(ctx, row.VersionID, row.UserID, row.ID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.CompleteSourceUpload(ctx, row.VersionID, row.UserID, row.ID); !errors.Is(err, ErrUploadConflict) {
+		t.Fatalf("canceled completion: %v", err)
+	}
+	if _, err := s.SignSourcePart(ctx, row.VersionID, row.UserID, row.ID, 1); !errors.Is(err, ErrUploadConflict) {
+		t.Fatalf("canceled signing: %v", err)
+	}
+}
