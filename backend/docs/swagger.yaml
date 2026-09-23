@@ -9999,7 +9999,7 @@ info:
     name: Proprietary
   termsOfService: https://mediguide.local/terms
   title: MediGuide Backend API
-  version: 2.1.4
+  version: 2.1.5
 paths:
   /api/public/assistant/ask:
     post:
