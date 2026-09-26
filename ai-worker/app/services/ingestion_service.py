@@ -351,7 +351,13 @@ class IngestionService:
                     workers = 1
                 embeddings = embedding_artifacts.embeddings(texts, self.embedder, embedding_key, self.settings.embedding_dim, batch_size,
                     lambda done, total: stage("embeddings", min(84, 65 + int((done / max(1, total)) * 19))),
-                    workers=workers, provider_factory=get_embedding_provider if workers > 1 else None)
+                    workers=workers,
+                    provider_factory=(
+                        (lambda: get_embedding_provider(self.settings))
+                        if workers > 1
+                        else None
+                    ),
+                )
             for i in range(0, len(texts) if not embedding_artifacts else 0, batch_size):
                 stage("embeddings", min(84, 65 + int((i / max(1, len(texts))) * 19)))
                 batch_started = time.perf_counter()

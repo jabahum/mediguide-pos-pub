@@ -230,7 +230,7 @@ func TestRetrySourceIngestionJobResetsRuntimeState(t *testing.T) {
 		t.Fatal(err)
 	}
 	actor := uuid.New()
-	if err = s.DB.Create(&models.User{Base: models.Base{ID: actor}, Email: "retry@test.invalid", FullName: "Retry User"}).Error; err != nil {
+	if err = s.DB.Create(&models.User{Base: models.Base{ID: actor}, Email: "retry@test.invalid", Name: "Retry User"}).Error; err != nil {
 		t.Fatal(err)
 	}
 	retried, err := s.RetrySourceIngestionJob(ctx, row.VersionID, job.ID, actor)
@@ -250,7 +250,7 @@ func TestUpdateSourceIngestionPriorityOnlyAllowsWaitingWork(t *testing.T) {
 		t.Fatal(err)
 	}
 	actor := uuid.New()
-	if err = s.DB.Create(&models.User{Base: models.Base{ID: actor}, Email: "priority@test.invalid", FullName: "Priority User"}).Error; err != nil {
+	if err = s.DB.Create(&models.User{Base: models.Base{ID: actor}, Email: "priority@test.invalid", Name: "Priority User"}).Error; err != nil {
 		t.Fatal(err)
 	}
 	updated, err := s.UpdateSourceIngestionPriority(ctx, row.VersionID, job.ID, actor, 100)

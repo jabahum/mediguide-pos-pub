@@ -12,7 +12,7 @@ def test_claimed_jobs_process_concurrently_with_isolated_services():
     seen = []
 
     class Service:
-        def run_job(self, job_id):
+        def run_job(self, job_id, lease_guard=None):
             nonlocal active, peak
             with lock:
                 active += 1
@@ -37,7 +37,7 @@ def test_each_concurrent_job_gets_a_distinct_service_instance():
         def __init__(self):
             instances.append(self)
 
-        def run_job(self, _job_id):
+        def run_job(self, _job_id, lease_guard=None):
             return None
 
     jobs = [{"id": "one"}, {"id": "two"}]
