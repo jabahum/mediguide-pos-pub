@@ -17,7 +17,10 @@ void main() {
       ]) {
         expect(AppRoutes.isPublic(route), isTrue, reason: route);
       }
-      expect(AppRoutes.isPublic(AppRoutes.reviewCalculator('draft-1')), isFalse);
+      expect(
+        AppRoutes.isPublic(AppRoutes.reviewCalculator('draft-1')),
+        isFalse,
+      );
       expect(AppRoutes.isPublic(AppRoutes.editProfile), isFalse);
     });
 
