@@ -31,12 +31,15 @@ class AppMarkdownBody extends StatelessWidget {
     final sheet = MarkdownStyleSheet.fromTheme(theme).copyWith(
       p: textStyle,
       textAlign: justify ? WrapAlignment.spaceBetween : WrapAlignment.start,
-      unorderedListAlign:
-          justify ? WrapAlignment.spaceBetween : WrapAlignment.start,
-      orderedListAlign:
-          justify ? WrapAlignment.spaceBetween : WrapAlignment.start,
-      blockquoteAlign:
-          justify ? WrapAlignment.spaceBetween : WrapAlignment.start,
+      unorderedListAlign: justify
+          ? WrapAlignment.spaceBetween
+          : WrapAlignment.start,
+      orderedListAlign: justify
+          ? WrapAlignment.spaceBetween
+          : WrapAlignment.start,
+      blockquoteAlign: justify
+          ? WrapAlignment.spaceBetween
+          : WrapAlignment.start,
       listBullet: textStyle,
       tableBody: textStyle,
       a: textStyle?.copyWith(
@@ -115,11 +118,7 @@ String _normalizeBoldTags(String value) {
     (match) => '<${match.group(1)}>',
   );
   final formatted = decoded.replaceAllMapped(
-    RegExp(
-      r'<(b|strong)\s*>(.*?)</\1\s*>',
-      caseSensitive: false,
-      dotAll: true,
-    ),
+    RegExp(r'<(b|strong)\s*>(.*?)</\1\s*>', caseSensitive: false, dotAll: true),
     (match) {
       final content = match.group(2)!;
       final text = content.trim();
