@@ -15,11 +15,10 @@ func TestUsageCoverageCountersAndRetryKeys(t *testing.T) {
 		t.Fatal(err)
 	}
 	owner := uuid.New()
-	clinical := models.MedicalGuideline{ConditionName: "Test clinical guideline"}
 	abbreviation := models.Abbreviation{Abbreviation: "ABC", Meaning: "Test abbreviation"}
 	drug := models.Drug{Name: "Test drug"}
 	facility := models.HealthFacility{Name: "Test facility"}
-	for _, value := range []any{&clinical, &abbreviation, &drug, &facility} {
+	for _, value := range []any{&abbreviation, &drug, &facility} {
 		if err := s.DB.Create(value).Error; err != nil {
 			t.Fatal(err)
 		}
@@ -31,7 +30,6 @@ func TestUsageCoverageCountersAndRetryKeys(t *testing.T) {
 		model              any
 	}{
 		{"guideline", "guideline_document", document, nil},
-		{"guideline", "medical_guideline", clinical.ID, &models.MedicalGuideline{}},
 		{"abbreviation", "", abbreviation.ID, &models.Abbreviation{}},
 	} {
 		resource := item.id.String()
@@ -88,6 +86,14 @@ func TestUsageCoverageCountersAndRetryKeys(t *testing.T) {
 	}
 	if _, err := s.RecordUsage(owner, "feature", UsageEventInput{IdempotencyKey: "invalid-feature", Feature: "raw search text"}); !errors.Is(err, ErrProgressUsageInvalid) {
 		t.Fatalf("invalid feature accepted: %v", err)
+	}
+	// Historical opens remain part of engagement after their content table is retired.
+	if err := s.DB.Create(&models.HistoricalGuidelineUsageLog{UserID: owner, LegacyGuidelineID: uuid.New()}).Error; err != nil {
+		t.Fatal(err)
+	}
+	retiredID := uuid.New().String()
+	if _, err := s.RecordUsage(owner, "guideline", UsageEventInput{ResourceID: &retiredID, ResourceType: "medical_guideline", IdempotencyKey: "retired"}); !errors.Is(err, ErrProgressUsageInvalid) {
+		t.Fatalf("retired resource type accepted: %v", err)
 	}
 	rows, err := s.UsageAggregates(nil)
 	if err != nil {

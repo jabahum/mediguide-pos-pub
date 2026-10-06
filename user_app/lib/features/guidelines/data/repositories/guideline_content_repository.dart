@@ -35,23 +35,16 @@ final class GuidelineContentRepository {
 
     try {
       final response = await _typedList<Guideline>(
-        '/api/v2/medical-guidelines',
-        Guideline.fromJson,
+        '/api/public/guidelines',
+        _publishedGuideline,
         page: safePage,
         perPage: safePerPage,
         query: {
           if (_present(search)) 'search': search!.trim(),
-          if (_present(status)) 'status': status!,
           if (_present(categoryId)) 'category_id': categoryId!,
-          if (_present(tagId)) 'tag_id': tagId!,
-          if (_present(indexId)) 'parent_id': indexId!,
-          if (_present(priority)) 'priority': priority!,
           if (_present(healthcareLevel)) 'healthcare_level': healthcareLevel!,
           if (_present(targetPopulation))
-            'target_population': targetPopulation!,
-          if (published != null) 'is_published': '$published',
-          'sort': sort,
-          'order': order,
+            'intended_population': targetPopulation!,
         },
       );
 
@@ -99,8 +92,8 @@ final class GuidelineContentRepository {
 
     try {
       final guideline = await _get<Guideline>(
-        '/api/v2/medical-guidelines/$normalizedId',
-        Guideline.fromJson,
+        '/api/public/guidelines/$normalizedId',
+        _publishedGuideline,
       );
 
       try {
@@ -541,6 +534,22 @@ final class GuidelineContentRepository {
   // =========================================================
   // HELPERS
   // =========================================================
+
+  // Compatibility metadata for older list/home helpers. Reading uses the
+  // publication reader, whose content comes from the document version.
+  static Guideline _publishedGuideline(Map<String, dynamic> json) =>
+      Guideline.fromJson({
+        'id': json['id'],
+        'condition_name': json['title'] ?? '',
+        'definition': json['description'] ?? '',
+        'target_population': json['intended_population'] ?? '',
+        'healthcare_level_required': json['healthcare_level'] ?? '',
+        'version': json['version'] ?? '',
+        'updated_at': json['last_updated'],
+        'categories': json['categories'] ?? const [],
+        'status': 'published',
+        'is_published': true,
+      });
 
   static bool _present(String? value) {
     return value?.trim().isNotEmpty == true;

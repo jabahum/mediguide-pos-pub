@@ -39,7 +39,6 @@ void main() {
     final api = QueuedUsageApi();
     var usage = UsageRepository(api, store.cache, () => 'owner');
     await usage.guideline('document');
-    await usage.medicalGuideline('clinical');
     await usage.abbreviation('abbreviation');
     await usage.drug('drug');
     await usage.facility('facility');
@@ -48,12 +47,12 @@ void main() {
     await usage.sync();
     expect(
       await store.cache.list(type: 'usage_pending', scope: 'user:owner'),
-      hasLength(7),
+      hasLength(6),
     );
     usage = UsageRepository(api, store.cache, () => 'owner');
     api.offline = false;
     await usage.sync();
-    expect(api.keys, hasLength(7));
+    expect(api.keys, hasLength(6));
     expect(
       await store.cache.list(type: 'usage_pending', scope: 'user:owner'),
       isEmpty,
@@ -63,7 +62,6 @@ void main() {
         .toList();
     expect(guidelines.map((c) => c['body']['resource_type']).toSet(), {
       'guideline_document',
-      'medical_guideline',
     });
     expect(
       api.calls.map((c) => c['path']).toSet(),
@@ -76,6 +74,37 @@ void main() {
       ]),
     );
   });
+  test(
+    'upgrade removes retired guideline events while syncing document usage',
+    () async {
+      final store = TestLocalStore();
+      addTearDown(store.close);
+      final api = QueuedUsageApi()..offline = false;
+      await store.cache.put(
+        type: 'usage_pending',
+        id: 'old-reader-event',
+        scope: 'user:owner',
+        data: {
+          'id': 'old-reader-event',
+          'path': '/api/v2/usage/guidelines',
+          'body': {
+            'resource_type': 'medical_guideline',
+            'resource_id': 'retired-id',
+            'idempotency_key': 'old-reader-event',
+          },
+        },
+      );
+      final usage = UsageRepository(api, store.cache, () => 'owner');
+      await usage.guideline('document-id');
+      await usage.sync();
+      expect(api.calls, hasLength(1));
+      expect(api.calls.single['body']['resource_type'], 'guideline_document');
+      expect(
+        await store.cache.list(type: 'usage_pending', scope: 'user:owner'),
+        isEmpty,
+      );
+    },
+  );
   test('lost response is replayed with unchanged key', () async {
     final store = TestLocalStore();
     addTearDown(store.close);

@@ -44,14 +44,16 @@ type AIUsageLog struct {
 
 func (AIUsageLog) TableName() string { return "ai_usage_logs" }
 
-type MedicalGuidelineUsageLog struct {
+// HistoricalGuidelineUsageLog retains engagement for retired condition cards.
+// No API writes new records to this table.
+type HistoricalGuidelineUsageLog struct {
 	Base
-	UserID             uuid.UUID `gorm:"uniqueIndex:medical_guideline_usage_user_key" json:"user_id"`
-	MedicalGuidelineID uuid.UUID `json:"medical_guideline_id"`
-	IdempotencyKey     *string   `gorm:"uniqueIndex:medical_guideline_usage_user_key" json:"idempotency_key,omitempty"`
+	UserID            uuid.UUID `gorm:"uniqueIndex:historical_guideline_usage_user_key" json:"user_id"`
+	LegacyGuidelineID uuid.UUID `json:"legacy_guideline_id"`
+	IdempotencyKey    *string   `gorm:"uniqueIndex:historical_guideline_usage_user_key" json:"idempotency_key,omitempty"`
 }
 
-func (MedicalGuidelineUsageLog) TableName() string { return "medical_guideline_usage_logs" }
+func (HistoricalGuidelineUsageLog) TableName() string { return "historical_guideline_usage_logs" }
 
 type FeatureUsageLog struct {
 	Base

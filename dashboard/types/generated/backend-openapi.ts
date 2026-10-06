@@ -715,11 +715,6 @@ export interface HandlersMarkdownValidationEnvelope {
   success?: boolean;
 }
 
-export interface HandlersMedicalGuidelineEnvelope {
-  data?: ModelsMedicalGuideline;
-  success?: boolean;
-}
-
 export interface HandlersMessageEnvelope {
   data?: ServicesMessageView;
   success?: boolean;
@@ -1093,11 +1088,6 @@ export interface HandlersPaginatedMarkdownRevisions {
 export interface HandlersPaginatedMarkdownRevisionsEnvelope {
   data?: HandlersPaginatedMarkdownRevisions;
   /** @example true */
-  success?: boolean;
-}
-
-export interface HandlersPaginatedMedicalGuidelinesEnvelope {
-  data?: ServicesPageResultModelsMedicalGuideline;
   success?: boolean;
 }
 
@@ -2508,47 +2498,6 @@ export interface ModelsLanguage {
   translations_url?: string;
   updated_at?: string;
   version?: number;
-}
-
-export interface ModelsMedicalGuideline {
-  icd10_code?: string;
-  categories?: string[];
-  category_details?: ModelsGuidelineCategory[];
-  causes?: string;
-  classification_critical?: string;
-  classification_mild?: string;
-  classification_moderate?: string;
-  classification_severe?: string;
-  clinical_features?: string;
-  condition_name?: string;
-  contraindications?: string;
-  created_at?: string;
-  definition?: string;
-  differential_diagnosis?: string;
-  dosage_adult?: string;
-  dosage_pediatric?: string;
-  dosage_secondary_adult?: string;
-  dosage_secondary_pediatric?: string;
-  general_management?: string;
-  healthcare_level_required?: string;
-  id?: string;
-  index_item_id?: string;
-  index_item_title?: string;
-  is_published?: boolean;
-  medication_primary?: string;
-  medication_secondary?: string;
-  monitoring_requirements?: string;
-  prevention_measures?: string;
-  priority?: string;
-  route_administration?: string;
-  special_notes?: string;
-  status?: string;
-  tag_details?: ModelsGuidelineTag[];
-  tags?: string[];
-  target_population?: string;
-  updated_at?: string;
-  usage_count?: number;
-  version?: string;
 }
 
 export interface ModelsMinistryDirectoryEntry {
@@ -3985,40 +3934,6 @@ export interface ServicesMarkdownValidationResult {
   warnings?: number;
 }
 
-export interface ServicesMedicalGuidelineInput {
-  icd10_code?: string;
-  categories?: string[];
-  causes?: string;
-  classification_critical?: string;
-  classification_mild?: string;
-  classification_moderate?: string;
-  classification_severe?: string;
-  clinical_features?: string;
-  condition_name?: string;
-  contraindications?: string;
-  definition?: string;
-  differential_diagnosis?: string;
-  dosage_adult?: string;
-  dosage_pediatric?: string;
-  dosage_secondary_adult?: string;
-  dosage_secondary_pediatric?: string;
-  general_management?: string;
-  healthcare_level_required?: string;
-  index_item_id?: string;
-  is_published?: boolean;
-  medication_primary?: string;
-  medication_secondary?: string;
-  monitoring_requirements?: string;
-  prevention_measures?: string;
-  priority?: string;
-  route_administration?: string;
-  special_notes?: string;
-  status?: string;
-  tags?: string[];
-  target_population?: string;
-  version?: string;
-}
-
 export interface ServicesMergeGuidelineSectionInput {
   target_section_id: string;
 }
@@ -4625,14 +4540,6 @@ export interface ServicesPageResultModelsGuidelineIndexEntry {
 
 export interface ServicesPageResultModelsGuidelineTag {
   items?: ModelsGuidelineTag[];
-  page?: number;
-  per_page?: number;
-  total_items?: number;
-  total_pages?: number;
-}
-
-export interface ServicesPageResultModelsMedicalGuideline {
-  items?: ModelsMedicalGuideline[];
   page?: number;
   per_page?: number;
   total_items?: number;

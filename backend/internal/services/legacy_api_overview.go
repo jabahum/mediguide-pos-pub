@@ -76,7 +76,7 @@ func (s LegacyAPIService) overviewUncached() (OverviewResult, error) {
 		return OverviewResult{}, err
 	}
 	for _, days := range []int{7, 30} {
-		medical, e := s.countRecent("medical_guideline_usage_logs", days-1)
+		medical, e := s.countRecent("historical_guideline_usage_logs", days-1)
 		if e != nil {
 			return OverviewResult{}, e
 		}
@@ -104,13 +104,13 @@ func (s LegacyAPIService) overviewUncached() (OverviewResult, error) {
 		return OverviewResult{}, err
 	}
 
-	if contentHealth["medicalGuidelinesTotal"], err = s.count("medical_guidelines", "deleted_at IS NULL"); err != nil {
+	if contentHealth["medicalGuidelinesTotal"], err = s.count("guideline_documents", "deleted_at IS NULL"); err != nil {
 		return OverviewResult{}, err
 	}
-	if contentHealth["medicalGuidelinesPublished"], err = s.count("medical_guidelines", "deleted_at IS NULL AND (is_published = ? OR status = ?)", true, "published"); err != nil {
+	if contentHealth["medicalGuidelinesPublished"], err = s.countPublishedGuidelineDocuments(); err != nil {
 		return OverviewResult{}, err
 	}
-	if contentHealth["medicalGuidelinesDraft"], err = s.count("medical_guidelines", "deleted_at IS NULL AND status = ?", "draft"); err != nil {
+	if contentHealth["medicalGuidelinesDraft"], err = s.count("guideline_documents", "deleted_at IS NULL AND NOT EXISTS (SELECT 1 FROM guideline_versions gv WHERE gv.id = guideline_documents.current_version_id AND gv.document_id = guideline_documents.id AND gv.deleted_at IS NULL AND LOWER(gv.status) = ?)", "published"); err != nil {
 		return OverviewResult{}, err
 	}
 	if contentHealth["faqsTotal"], err = s.count("faqs", "deleted_at IS NULL"); err != nil {
@@ -238,7 +238,7 @@ func (s LegacyAPIService) statsUncached(userID string) (StatsResult, error) {
 	res := StatsResult{Success: true, CachedAt: now}
 	var err error
 
-	if res.MedicalGuidelines, err = s.count("medical_guidelines", "deleted_at IS NULL AND status = ?", "published"); err != nil {
+	if res.MedicalGuidelines, err = s.countPublishedGuidelineDocuments(); err != nil {
 		return StatsResult{}, err
 	}
 	if res.Drugs, err = s.count("drugs", "deleted_at IS NULL AND status = ?", "active"); err != nil {
@@ -352,4 +352,10 @@ func (s LegacyAPIService) seriesCount(table string) ([]DayTotal, error) {
 	`, table)
 	err := s.DB.Raw(sql).Scan(&rows).Error
 	return rows, err
+}
+
+func (s LegacyAPIService) countPublishedGuidelineDocuments() (int64, error) {
+	var count int64
+	err := s.DB.Table("guideline_documents gd").Joins("JOIN guideline_versions gv ON gv.id = gd.current_version_id AND gv.document_id = gd.id").Where("gd.deleted_at IS NULL AND gv.deleted_at IS NULL AND LOWER(gv.status) = ?", "published").Count(&count).Error
+	return count, err
 }

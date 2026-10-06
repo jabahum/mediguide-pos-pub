@@ -1151,13 +1151,6 @@ definitions:
       success:
         type: boolean
     type: object
-  handlers.MedicalGuidelineEnvelope:
-    properties:
-      data:
-        $ref: '#/definitions/models.MedicalGuideline'
-      success:
-        type: boolean
-    type: object
   handlers.MessageEnvelope:
     properties:
       data:
@@ -1720,13 +1713,6 @@ definitions:
         $ref: '#/definitions/handlers.PaginatedMarkdownRevisions'
       success:
         example: true
-        type: boolean
-    type: object
-  handlers.PaginatedMedicalGuidelinesEnvelope:
-    properties:
-      data:
-        $ref: '#/definitions/services.PageResult-models_MedicalGuideline'
-      success:
         type: boolean
     type: object
   handlers.PaginatedMessagesEnvelope:
@@ -4141,93 +4127,6 @@ definitions:
         type: string
       version:
         type: number
-    type: object
-  models.MedicalGuideline:
-    properties:
-      categories:
-        items:
-          type: string
-        type: array
-      category_details:
-        items:
-          $ref: '#/definitions/models.GuidelineCategory'
-        type: array
-      causes:
-        type: string
-      classification_critical:
-        type: string
-      classification_mild:
-        type: string
-      classification_moderate:
-        type: string
-      classification_severe:
-        type: string
-      clinical_features:
-        type: string
-      condition_name:
-        type: string
-      contraindications:
-        type: string
-      created_at:
-        type: string
-      definition:
-        type: string
-      differential_diagnosis:
-        type: string
-      dosage_adult:
-        type: string
-      dosage_pediatric:
-        type: string
-      dosage_secondary_adult:
-        type: string
-      dosage_secondary_pediatric:
-        type: string
-      general_management:
-        type: string
-      healthcare_level_required:
-        type: string
-      icd10_code:
-        type: string
-      id:
-        type: string
-      index_item_id:
-        type: string
-      index_item_title:
-        type: string
-      is_published:
-        type: boolean
-      medication_primary:
-        type: string
-      medication_secondary:
-        type: string
-      monitoring_requirements:
-        type: string
-      prevention_measures:
-        type: string
-      priority:
-        type: string
-      route_administration:
-        type: string
-      special_notes:
-        type: string
-      status:
-        type: string
-      tag_details:
-        items:
-          $ref: '#/definitions/models.GuidelineTag'
-        type: array
-      tags:
-        items:
-          type: string
-        type: array
-      target_population:
-        type: string
-      updated_at:
-        type: string
-      usage_count:
-        type: integer
-      version:
-        type: string
     type: object
   models.MinistryDirectoryEntry:
     properties:
@@ -6844,75 +6743,6 @@ definitions:
       warnings:
         type: integer
     type: object
-  services.MedicalGuidelineInput:
-    properties:
-      categories:
-        items:
-          type: string
-        type: array
-      causes:
-        type: string
-      classification_critical:
-        type: string
-      classification_mild:
-        type: string
-      classification_moderate:
-        type: string
-      classification_severe:
-        type: string
-      clinical_features:
-        type: string
-      condition_name:
-        type: string
-      contraindications:
-        type: string
-      definition:
-        type: string
-      differential_diagnosis:
-        type: string
-      dosage_adult:
-        type: string
-      dosage_pediatric:
-        type: string
-      dosage_secondary_adult:
-        type: string
-      dosage_secondary_pediatric:
-        type: string
-      general_management:
-        type: string
-      healthcare_level_required:
-        type: string
-      icd10_code:
-        type: string
-      index_item_id:
-        type: string
-      is_published:
-        type: boolean
-      medication_primary:
-        type: string
-      medication_secondary:
-        type: string
-      monitoring_requirements:
-        type: string
-      prevention_measures:
-        type: string
-      priority:
-        type: string
-      route_administration:
-        type: string
-      special_notes:
-        type: string
-      status:
-        type: string
-      tags:
-        items:
-          type: string
-        type: array
-      target_population:
-        type: string
-      version:
-        type: string
-    type: object
   services.MergeGuidelineSectionInput:
     properties:
       target_section_id:
@@ -8040,21 +7870,6 @@ definitions:
       items:
         items:
           $ref: '#/definitions/models.GuidelineTag'
-        type: array
-      page:
-        type: integer
-      per_page:
-        type: integer
-      total_items:
-        type: integer
-      total_pages:
-        type: integer
-    type: object
-  services.PageResult-models_MedicalGuideline:
-    properties:
-      items:
-        items:
-          $ref: '#/definitions/models.MedicalGuideline'
         type: array
       page:
         type: integer
@@ -17810,131 +17625,6 @@ paths:
       summary: Change the current user's password
       tags:
       - auth
-  /api/v2/medical-guidelines:
-    get:
-      description: Readers see published guidelines only. Editors may query any publication
-        state.
-      parameters:
-      - description: Page number
-        in: query
-        name: page
-        type: integer
-      - description: Items per page
-        in: query
-        name: per_page
-        type: integer
-      - description: Condition, ICD-10 code, or population
-        in: query
-        name: search
-        type: string
-      - description: Status (editors only)
-        in: query
-        name: status
-        type: string
-      - description: Category UUID
-        in: query
-        name: category_id
-        type: string
-      - description: Tag UUID
-        in: query
-        name: tag_id
-        type: string
-      - description: Publication state (editors only)
-        in: query
-        name: is_published
-        type: boolean
-      - description: Allowlisted sort field
-        in: query
-        name: sort
-        type: string
-      - description: asc or desc
-        in: query
-        name: order
-        type: string
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.PaginatedMedicalGuidelinesEnvelope'
-      security:
-      - BearerAuth: []
-      summary: List medical guidelines
-      tags:
-      - guideline-content
-    post:
-      parameters:
-      - description: Guideline
-        in: body
-        name: payload
-        required: true
-        schema:
-          $ref: '#/definitions/services.MedicalGuidelineInput'
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/handlers.MedicalGuidelineEnvelope'
-      security:
-      - BearerAuth: []
-      summary: Create a medical guideline
-      tags:
-      - guideline-content
-  /api/v2/medical-guidelines/{id}:
-    delete:
-      parameters:
-      - description: Guideline UUID
-        in: path
-        name: id
-        required: true
-        type: string
-      responses:
-        "204":
-          description: No Content
-      security:
-      - BearerAuth: []
-      summary: Archive a medical guideline
-      tags:
-      - guideline-content
-    get:
-      parameters:
-      - description: Guideline UUID
-        in: path
-        name: id
-        required: true
-        type: string
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.MedicalGuidelineEnvelope'
-      security:
-      - BearerAuth: []
-      summary: Get a medical guideline
-      tags:
-      - guideline-content
-    patch:
-      parameters:
-      - description: Guideline UUID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Guideline changes
-        in: body
-        name: payload
-        required: true
-        schema:
-          $ref: '#/definitions/services.MedicalGuidelineInput'
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.MedicalGuidelineEnvelope'
-      security:
-      - BearerAuth: []
-      summary: Update a medical guideline
-      tags:
-      - guideline-content
   /api/v2/ministry-directory:
     get:
       responses:

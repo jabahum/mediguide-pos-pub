@@ -163,12 +163,6 @@ func (s ProgressUsageService) RecordUsage(userID uuid.UUID, eventType string, in
 	}
 	switch eventType {
 	case "guideline":
-		if in.ResourceType == "medical_guideline" {
-			if err := requireUsageResource(s.DB, &models.MedicalGuideline{}, resourceID); err != nil {
-				return nil, err
-			}
-			return createUsage(s.DB, models.MedicalGuidelineUsageLog{UserID: userID, MedicalGuidelineID: resourceID, IdempotencyKey: &key}, userID, key, "medical_guideline_id", resourceID, &models.MedicalGuideline{}, resourceID)
-		}
 		if in.ResourceType != "" && in.ResourceType != "guideline_document" {
 			return nil, ErrProgressUsageInvalid
 		}
@@ -249,7 +243,7 @@ func (s ProgressUsageService) UsageAggregates(since *time.Time) ([]UsageAggregat
 	rows := []UsageAggregate{}
 	query := `SELECT event_type, COUNT(*) AS count FROM (
 	SELECT 'guideline' event_type, created_at FROM guideline_usage_logs WHERE deleted_at IS NULL UNION ALL
- SELECT 'guideline', created_at FROM medical_guideline_usage_logs WHERE deleted_at IS NULL UNION ALL
+ SELECT 'guideline', created_at FROM historical_guideline_usage_logs WHERE deleted_at IS NULL UNION ALL
  SELECT 'drug', created_at FROM drug_usage_logs WHERE deleted_at IS NULL UNION ALL
  SELECT 'facility', created_at FROM facility_usage_logs WHERE deleted_at IS NULL UNION ALL
  SELECT 'feature_' || feature, created_at FROM feature_usage_logs WHERE deleted_at IS NULL UNION ALL

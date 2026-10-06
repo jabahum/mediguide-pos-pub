@@ -554,8 +554,6 @@ final class UsageRepository {
 
   Future<void> guideline(String id) =>
       _record('guidelines', resourceId: id, resourceType: 'guideline_document');
-  Future<void> medicalGuideline(String id) =>
-      _record('guidelines', resourceId: id, resourceType: 'medical_guideline');
   Future<void> abbreviation(String id) =>
       _record('abbreviations', resourceId: id);
   Future<void> ai({String? ownerId}) {
@@ -672,6 +670,19 @@ final class UsageRepository {
         );
         for (final event in events) {
           if (currentUserId() != userId) return;
+          // Queued events from the retired condition-card reader cannot be
+          // assigned to a document ID. Remove them during the client upgrade.
+          if ((event['body'] as Map?)?['resource_type'] ==
+              'medical_guideline') {
+            await _write(
+              () => _cache.tombstone(
+                type: _type,
+                id: event['id'] as String,
+                scope: 'user:$userId',
+              ),
+            );
+            continue;
+          }
           try {
             await _api.requestJson(
               event['path'] as String,
