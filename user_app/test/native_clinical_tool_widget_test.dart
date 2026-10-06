@@ -233,10 +233,12 @@ void main() {
     final notes = tester.widget<TextField>(
       find.descendant(of: fields.first, matching: find.byType(TextField)),
     );
-    expect(notes.minLines, 2);
-    expect(notes.maxLines, 4);
+    expect(notes.minLines, 3);
+    expect(notes.maxLines, 6);
     await tester.enterText(fields.first, 'Movement worsens pain\nRest helps');
     expect(saved?['notes'], 'Movement worsens pain\nRest helps');
+    await tester.ensureVisible(fields.last);
+    await tester.pumpAndSettle();
     await tester.tap(fields.last);
     await tester.pumpAndSettle();
     expect(find.byType(DatePickerDialog), findsOneWidget);

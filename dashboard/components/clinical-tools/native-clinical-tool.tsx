@@ -45,6 +45,10 @@ export function NativeClinicalTool({
     setResult(null);
     setError(null);
   }, [definition]);
+  const feedbackRef = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    if (result || error) feedbackRef.current?.scrollIntoView?.({ behavior: "smooth", block: "start" });
+  }, [result, error]);
   const setValue = (key: string, value: unknown) => {
     setInputs((current) => ({ ...current, [key]: value }));
     setResult(null);
@@ -76,8 +80,8 @@ export function NativeClinicalTool({
           if (field.control === "textarea")
             return (
               <div key={field.key} className="space-y-2">
-                <Label htmlFor={id}>{field.label}{field.required ? " *" : ""}</Label>
-                <Textarea id={id} rows={2} required={field.required}
+                <Label className="block leading-relaxed" htmlFor={id}>{field.label}{field.required ? " *" : ""}</Label>
+                <Textarea className="min-h-28 text-base" id={id} rows={3} required={field.required}
                   value={String(inputs[field.key] ?? "")}
                   onChange={(event) => setValue(field.key, event.target.value)} />
               </div>
@@ -85,10 +89,10 @@ export function NativeClinicalTool({
           if (field.control === "radio" && field.options?.length)
             return (
               <fieldset key={field.key} className="space-y-2">
-                <legend className="text-sm font-medium">{field.label}{field.required ? " *" : ""}</legend>
+                <legend className="text-sm font-semibold leading-relaxed">{field.label}{field.required ? " *" : ""}</legend>
                 {field.options.map((option, index) => (
-                  <label key={index} htmlFor={`${id}-${index}`} className="flex items-center gap-2">
-                    <input id={`${id}-${index}`} name={id} type="radio" required={field.required}
+                  <label key={index} htmlFor={`${id}-${index}`} className={`flex min-h-12 cursor-pointer items-start gap-3 rounded-xl border p-3 leading-relaxed transition-colors ${inputs[field.key] === option.value ? "border-primary bg-primary/5" : "border-input hover:bg-muted/50"}`}>
+                    <input id={`${id}-${index}`} name={id} className="mt-1 size-5 shrink-0 accent-primary" type="radio" required={field.required}
                       checked={inputs[field.key] === option.value}
                       onChange={() => setValue(field.key, option.value)} />
                     {option.label}
@@ -101,11 +105,12 @@ export function NativeClinicalTool({
               <label
                 key={field.key}
                 htmlFor={id}
-                className="flex items-start gap-3 rounded-lg border p-4"
+                className={`flex min-h-14 cursor-pointer items-start gap-3 rounded-xl border p-4 leading-relaxed transition-colors ${inputs[field.key] === true ? "border-primary bg-primary/5" : "border-input hover:bg-muted/50"}`}
               >
                 <input
                   id={id}
                   type="checkbox"
+                  className="mt-0.5 size-5 shrink-0 accent-primary"
                   checked={inputs[field.key] === true}
                   onChange={(event) =>
                     setValue(field.key, event.target.checked)
@@ -122,14 +127,14 @@ export function NativeClinicalTool({
           if (field.options?.length)
             return (
               <div key={field.key} className="space-y-2">
-                <Label htmlFor={id}>
+                <Label className="block leading-relaxed" htmlFor={id}>
                   {field.label}
                   {field.required ? " *" : ""}
                 </Label>
                 <select
                   id={id}
                   required={field.required}
-                  className="border-input bg-background h-9 w-full rounded-md border px-3 text-sm"
+                  className="border-input bg-background min-h-12 w-full min-w-0 rounded-xl border px-3 py-3 text-base focus-visible:outline-2 focus-visible:outline-ring"
                   value={String(inputs[field.key] ?? "")}
                   onChange={(event) => {
                     const option = field.options?.find(
@@ -155,13 +160,15 @@ export function NativeClinicalTool({
           );
           return (
             <div key={field.key} className="space-y-2">
-              <Label htmlFor={id}>
+              <Label className="block leading-relaxed" htmlFor={id}>
                 {field.label}
                 {field.required ? " *" : ""}
               </Label>
-              <div className="flex gap-2">
+              <div className="flex min-w-0 flex-wrap items-start gap-3">
                 <Input
                   id={id}
+                  className="h-12 min-w-0 flex-1 basis-40 rounded-xl text-base md:text-base"
+                  inputMode={numeric ? field.type === "integer" ? "numeric" : "decimal" : undefined}
                   required={field.required}
                   type={
                     field.type === "date" ? "date" : field.type === "time" ? "time" : numeric ? "number" : "text"
@@ -187,7 +194,7 @@ export function NativeClinicalTool({
                 {field.allowed_units?.length ? (
                   <select
                     aria-label={`${field.label} unit`}
-                    className="border-input bg-background h-9 rounded-md border px-3 text-sm"
+                    className="border-input bg-background min-h-12 max-w-full min-w-28 rounded-xl border px-3 py-3 text-base"
                     value={units[field.key]}
                     onChange={(event) => {
                       const unit = event.target.value;
@@ -208,7 +215,7 @@ export function NativeClinicalTool({
                     ))}
                   </select>
                 ) : field.default_unit ? (
-                  <span className="flex items-center rounded-md border px-3 text-sm text-muted-foreground">
+                  <span className="flex min-h-12 shrink-0 items-center rounded-xl border px-3 text-base text-muted-foreground">
                     {field.default_unit}
                   </span>
                 ) : null}
@@ -218,7 +225,7 @@ export function NativeClinicalTool({
   };
 
   return (
-    <div className="space-y-6" data-testid="native-clinical-tool">
+    <div className="min-w-0 space-y-5" data-testid="native-clinical-tool">
       {definition.warnings
         ?.filter((warning) => !warning.when)
         .map((warning) => (
@@ -232,27 +239,28 @@ export function NativeClinicalTool({
             <AlertDescription>{warning.text}</AlertDescription>
           </Alert>
         ))}
-      <form className="space-y-5" onSubmit={run} noValidate>
+      <p className="text-sm text-muted-foreground">Required fields are marked *</p>
+      <form className="min-w-0 space-y-5" onSubmit={run} noValidate>
         {groups.map((group) => (
-          <fieldset key={group.key} className="space-y-4">
-            {group.title ? <legend className="text-base font-semibold">{group.title}</legend> : null}
+          <fieldset key={group.key} className="min-w-0 space-y-5 rounded-2xl border bg-background p-4 shadow-sm sm:p-5">
+            {group.title ? <legend className="max-w-full px-2 text-base font-semibold leading-relaxed">{group.title}</legend> : null}
             {group.fields.map((field) => (
-              <div key={field.key}>
+              <div key={field.key} className="min-w-0 space-y-2">
                 {renderInput(field)}
                 {field.help_text ? <p className="text-sm text-muted-foreground">{field.help_text}</p> : null}
-                {field.clinical_warning ? <p className="text-sm font-medium">{field.clinical_warning}</p> : null}
+                {field.clinical_warning ? <p className="text-sm font-semibold leading-relaxed">{field.clinical_warning}</p> : null}
               </div>
             ))}
           </fieldset>
         ))}
         {error ? (
-          <Alert variant="destructive">
+          <div ref={feedbackRef} className="scroll-mt-24"><Alert variant="destructive">
             <AlertTitle>Unable to calculate</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
-          </Alert>
+          </Alert></div>
         ) : null}
-        <div className="flex gap-3">
-          <Button type="submit">
+        <div className="sticky bottom-0 z-10 grid grid-cols-1 gap-2 rounded-xl border bg-background p-3 shadow-sm sm:grid-cols-[1fr_auto]" style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
+          <Button className="h-auto min-h-12 whitespace-normal py-3 text-base" type="submit">
             {definition.tool_type === "checklist"
               ? "Review checklist"
               : "Calculate"}
@@ -260,6 +268,7 @@ export function NativeClinicalTool({
           <Button
             type="button"
             variant="outline"
+            className="h-auto min-h-12 py-3 text-base"
             onClick={() => {
               if (definition.completion.reset_confirmation && !window.confirm("Reset all responses?")) return;
               setInputs(clinicalToolInitialInputs(definition));
@@ -281,16 +290,17 @@ export function NativeClinicalTool({
       </form>
       {result ? (
         <section
-          className="space-y-4 rounded-lg border bg-muted/30 p-5"
+          ref={result ? feedbackRef : undefined}
+          className="min-w-0 space-y-4 rounded-2xl border bg-muted/30 p-4 sm:p-5"
           aria-live="polite"
         >
           <h3 className="text-lg font-semibold">Results</h3>
           {Object.entries(result.values).map(([key, value]) => {
             const output = definition.outputs.find((item) => item.key === key);
             return (
-              <div key={key}>
-                <span className="font-medium">{output?.label ?? key}: </span>
-                <span>
+              <div key={key} className="space-y-1 rounded-xl border bg-background p-3 break-words">
+                <span className="block text-sm font-medium text-muted-foreground">{output?.label ?? key}: </span>
+                <span className="block text-xl font-semibold tabular-nums">
                   {typeof value === "number" && output?.precision !== undefined ? value.toFixed(output.precision) : String(value ?? "—")}
                   {output?.unit ? ` ${output.unit}` : ""}
                 </span>
