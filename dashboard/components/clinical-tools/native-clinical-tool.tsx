@@ -3,6 +3,8 @@
 import * as React from "react";
 import {
   previewClinicalTool,
+  clinicalToolInitialInputs,
+  clinicalToolInputVisible,
   type ClinicalToolPreviewResult,
 } from "@/lib/clinical-tool-evaluator";
 import type { ClinicalToolDefinition } from "@/services/clinical-tool.service";
@@ -23,7 +25,7 @@ export function NativeClinicalTool({
 }: {
   definition: ClinicalToolDefinition;
 }) {
-  const [inputs, setInputs] = React.useState<Record<string, unknown>>({});
+  const [inputs, setInputs] = React.useState<Record<string, unknown>>(() => clinicalToolInitialInputs(definition));
   const [units, setUnits] = React.useState<Record<string, string>>(() =>
     Object.fromEntries(
       definition.inputs.map((field) => [
@@ -36,6 +38,12 @@ export function NativeClinicalTool({
     null,
   );
   const [error, setError] = React.useState<string | null>(null);
+  React.useEffect(() => {
+    setInputs(clinicalToolInitialInputs(definition));
+    setUnits(Object.fromEntries(definition.inputs.map((field) => [field.key, field.default_unit ?? field.allowed_units?.[0] ?? ""])));
+    setResult(null);
+    setError(null);
+  }, [definition]);
   const setValue = (key: string, value: unknown) => {
     setInputs((current) => ({ ...current, [key]: value }));
     setResult(null);
@@ -44,7 +52,8 @@ export function NativeClinicalTool({
   const run = (event: React.FormEvent) => {
     event.preventDefault();
     try {
-      setResult(previewClinicalTool(definition, inputs));
+      const submitted = Object.fromEntries(Object.entries(inputs).filter(([, value]) => value !== ""));
+      setResult(previewClinicalTool(definition, submitted));
       setError(null);
     } catch (cause) {
       setResult(null);
@@ -56,23 +65,12 @@ export function NativeClinicalTool({
     }
   };
 
-  return (
-    <div className="space-y-6" data-testid="native-clinical-tool">
-      {definition.warnings
-        ?.filter((warning) => !warning.when)
-        .map((warning) => (
-          <Alert
-            key={warning.key}
-            variant={
-              warning.severity === "critical" ? "destructive" : "default"
-            }
-          >
-            <AlertTitle>Clinical warning</AlertTitle>
-            <AlertDescription>{warning.text}</AlertDescription>
-          </Alert>
-        ))}
-      <form className="space-y-5" onSubmit={run}>
-        {definition.inputs.map((field) => {
+  const visibleFields = definition.inputs.filter((field) => clinicalToolInputVisible(definition, field.key, inputs));
+  const groups = [
+    ...[...definition.sections].sort((a, b) => a.order - b.order).map((section) => ({ ...section, fields: visibleFields.filter((field) => field.section_key === section.key) })),
+    { key: "ungrouped", title: "", fields: visibleFields.filter((field) => !definition.sections.some((section) => section.key === field.section_key)) },
+  ].filter((group) => group.fields.length > 0);
+  const renderInput = (field: ClinicalToolDefinition["inputs"][number]) => {
           const id = `clinical-tool-${field.key}`;
           if (field.type === "boolean" || field.type === "checklist_item")
             return (
@@ -144,8 +142,8 @@ export function NativeClinicalTool({
                   type={
                     field.type === "date" ? "date" : numeric ? "number" : "text"
                   }
-                  min={field.minimum}
-                  max={field.maximum}
+                  min={field.allowed_units?.length && units[field.key] !== field.default_unit ? undefined : field.minimum}
+                  max={field.allowed_units?.length && units[field.key] !== field.default_unit ? undefined : field.maximum}
                   step={field.type === "integer" ? 1 : "any"}
                   value={String(inputValue(inputs[field.key]) ?? "")}
                   onChange={(event) =>
@@ -193,7 +191,36 @@ export function NativeClinicalTool({
               </div>
             </div>
           );
-        })}
+  };
+
+  return (
+    <div className="space-y-6" data-testid="native-clinical-tool">
+      {definition.warnings
+        ?.filter((warning) => !warning.when)
+        .map((warning) => (
+          <Alert
+            key={warning.key}
+            variant={
+              warning.severity === "critical" ? "destructive" : "default"
+            }
+          >
+            <AlertTitle>Clinical warning</AlertTitle>
+            <AlertDescription>{warning.text}</AlertDescription>
+          </Alert>
+        ))}
+      <form className="space-y-5" onSubmit={run} noValidate>
+        {groups.map((group) => (
+          <fieldset key={group.key} className="space-y-4">
+            {group.title ? <legend className="text-base font-semibold">{group.title}</legend> : null}
+            {group.fields.map((field) => (
+              <div key={field.key}>
+                {renderInput(field)}
+                {field.help_text ? <p className="text-sm text-muted-foreground">{field.help_text}</p> : null}
+                {field.clinical_warning ? <p className="text-sm font-medium">{field.clinical_warning}</p> : null}
+              </div>
+            ))}
+          </fieldset>
+        ))}
         {error ? (
           <Alert variant="destructive">
             <AlertTitle>Unable to calculate</AlertTitle>
@@ -210,7 +237,8 @@ export function NativeClinicalTool({
             type="button"
             variant="outline"
             onClick={() => {
-              setInputs({});
+              if (definition.completion.reset_confirmation && !window.confirm("Reset all responses?")) return;
+              setInputs(clinicalToolInitialInputs(definition));
               setUnits(
                 Object.fromEntries(
                   definition.inputs.map((field) => [
@@ -239,7 +267,7 @@ export function NativeClinicalTool({
               <div key={key}>
                 <span className="font-medium">{output?.label ?? key}: </span>
                 <span>
-                  {String(value)}
+                  {typeof value === "number" && output?.precision !== undefined ? value.toFixed(output.precision) : String(value ?? "—")}
                   {output?.unit ? ` ${output.unit}` : ""}
                 </span>
               </div>

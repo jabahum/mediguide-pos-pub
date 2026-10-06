@@ -9,7 +9,7 @@
   "tolerance_matches": 0,
   "presentation_differences": [
     "Unsupported Framingham and ASCVD names are replaced with Legacy points estimate and Legacy coefficient estimate.",
-    "The native UI must retain named risk-factor selections and derive risk_factor_count rather than ask users for the count."
+    "All ten named risk-factor checkboxes are retained and risk_factor_count is derived from their selections."
   ],
   "logic_differences": [
     "Unused LDL and statin inputs are omitted from the definition; diastolic pressure remains required only to characterize legacy inputs although the formula does not use it."

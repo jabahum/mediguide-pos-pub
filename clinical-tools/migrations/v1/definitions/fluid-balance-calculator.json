@@ -2,13 +2,13 @@
   "legacy_id": "fluid-balance-calculator",
   "legacy_file": "fluid-balance-calculator.html",
   "source_checksum": "6aaf110ccee6d2032c0ada4a16e60c7247641372317e69f7bead65cb9269f090",
-  "change_summary": "Review draft: preserve 24-hour intake/output totals, balance thresholds, age-adjusted urine threshold, and condition selection. Age zero is rejected and clinical recommendations require approval.",
+  "change_summary": "Review draft: preserve 24-hour intake/output totals, balance thresholds, age-adjusted urine threshold, and condition selection. Age zero is rejected and clinical recommendations require approval. Assign every field to its declared form section. Supersedes engineering review.1; remains unapproved.",
   "definition": {
     "schema_version": "1.0",
     "tool_type": "calculator",
     "title": "Fluid Balance Calculator",
     "description": "Summarizes recorded 24-hour fluid intake and output. Review draft only; not approved for clinical publication.",
-    "version": "1.0.0-review.1",
+    "version": "1.0.0-review.2",
     "locale": "en",
     "supported_population": [],
     "exclusions": [
@@ -108,7 +108,8 @@
         "allowed_units": [
           "kg"
         ],
-        "default_unit": "kg"
+        "default_unit": "kg",
+        "section_key": "patient"
       },
       {
         "key": "age",
@@ -116,7 +117,8 @@
         "label": "Age",
         "required": true,
         "minimum": 1,
-        "maximum": 120
+        "maximum": 120,
+        "section_key": "patient"
       },
       {
         "key": "clinical_condition",
@@ -161,7 +163,8 @@
             "value": "pregnancy",
             "label": "Pregnancy"
           }
-        ]
+        ],
+        "section_key": "patient"
       },
       {
         "key": "oral_fluids",
@@ -170,7 +173,8 @@
         "required": false,
         "minimum": 0,
         "maximum": 10000,
-        "default": 0
+        "default": 0,
+        "section_key": "intake"
       },
       {
         "key": "iv_fluids",
@@ -179,7 +183,8 @@
         "required": false,
         "minimum": 0,
         "maximum": 5000,
-        "default": 0
+        "default": 0,
+        "section_key": "intake"
       },
       {
         "key": "tube_feeding",
@@ -188,7 +193,8 @@
         "required": false,
         "minimum": 0,
         "maximum": 3000,
-        "default": 0
+        "default": 0,
+        "section_key": "intake"
       },
       {
         "key": "food_moisture",
@@ -197,7 +203,8 @@
         "required": false,
         "minimum": 0,
         "maximum": 1500,
-        "default": 800
+        "default": 800,
+        "section_key": "intake"
       },
       {
         "key": "medications",
@@ -206,7 +213,8 @@
         "required": false,
         "minimum": 0,
         "maximum": 500,
-        "default": 0
+        "default": 0,
+        "section_key": "intake"
       },
       {
         "key": "urine_output",
@@ -215,7 +223,8 @@
         "required": false,
         "minimum": 0,
         "maximum": 5000,
-        "default": 0
+        "default": 0,
+        "section_key": "output"
       },
       {
         "key": "vomiting",
@@ -224,7 +233,8 @@
         "required": false,
         "minimum": 0,
         "maximum": 2000,
-        "default": 0
+        "default": 0,
+        "section_key": "output"
       },
       {
         "key": "diarrhea",
@@ -233,7 +243,8 @@
         "required": false,
         "minimum": 0,
         "maximum": 3000,
-        "default": 0
+        "default": 0,
+        "section_key": "output"
       },
       {
         "key": "drainage",
@@ -242,7 +253,8 @@
         "required": false,
         "minimum": 0,
         "maximum": 2000,
-        "default": 0
+        "default": 0,
+        "section_key": "output"
       },
       {
         "key": "insensible",
@@ -251,7 +263,8 @@
         "required": false,
         "minimum": 0,
         "maximum": 2000,
-        "default": 800
+        "default": 800,
+        "section_key": "output"
       },
       {
         "key": "other_losses",
@@ -260,7 +273,8 @@
         "required": false,
         "minimum": 0,
         "maximum": 1000,
-        "default": 0
+        "default": 0,
+        "section_key": "output"
       }
     ],
     "sections": [

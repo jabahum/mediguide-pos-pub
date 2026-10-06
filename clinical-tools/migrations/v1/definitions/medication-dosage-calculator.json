@@ -2,13 +2,13 @@
   "legacy_id": "medication-dosage-calculator",
   "legacy_file": "medication-dosage-calculator.html",
   "source_checksum": "0b97e86b8cf06fb99e090afa852dc824b6f19e296d032ce24516c178974850bb",
-  "change_summary": "Pharmacist review draft: preserve the legacy weight conversion, preset selection, single-dose caps, frequency, and daily-total calculation. No preset is approved for clinical use.",
+  "change_summary": "Pharmacist review draft: preserve the legacy weight conversion, preset selection, single-dose caps, frequency, and daily-total calculation. No preset is approved for clinical use. Assign every field to its declared form section. Supersedes engineering review.1; remains unapproved.",
   "definition": {
     "schema_version": "1.0",
     "tool_type": "calculator",
     "title": "Legacy Medication Dose Calculation (Unapproved)",
     "description": "Reproduces the legacy educational dose arithmetic for pharmacist review. It must not be published or used to prescribe or administer medication before approval.",
-    "version": "1.0.0-review.1",
+    "version": "1.0.0-review.2",
     "locale": "en",
     "supported_population": [],
     "exclusions": [
@@ -125,7 +125,8 @@
             "value": "custom",
             "label": "Custom arithmetic only"
           }
-        ]
+        ],
+        "section_key": "patient"
       },
       {
         "key": "weight",
@@ -138,7 +139,8 @@
           "kg",
           "lb"
         ],
-        "default_unit": "kg"
+        "default_unit": "kg",
+        "section_key": "patient"
       },
       {
         "key": "age_years",
@@ -146,7 +148,8 @@
         "label": "Age",
         "required": true,
         "minimum": 0,
-        "maximum": 120
+        "maximum": 120,
+        "section_key": "patient"
       },
       {
         "key": "custom_mg_per_kg",
@@ -167,7 +170,8 @@
               "value": "custom"
             }
           ]
-        }
+        },
+        "section_key": "patient"
       },
       {
         "key": "custom_frequency",
@@ -208,7 +212,8 @@
               "value": "custom"
             }
           ]
-        }
+        },
+        "section_key": "patient"
       }
     ],
     "sections": [

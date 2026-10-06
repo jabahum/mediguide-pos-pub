@@ -20,15 +20,24 @@ class _NativeClinicalToolState extends State<NativeClinicalTool> {
   final _formKey = GlobalKey<FormState>();
   final Map<String, Object?> _values = {};
   final Map<String, String> _units = {};
+  int _formRevision = 0;
   ClinicalToolResult? _result;
   String? _error;
 
   @override
   void initState() {
     super.initState();
-    _values.addAll(widget.initialValues);
+    _restoreInputs(widget.initialValues);
+  }
+
+  void _restoreInputs(Map<String, Object?> restoredValues) {
+    _values.clear();
     for (final input in widget.definition.inputs) {
-      final restored = widget.initialValues[input.key];
+      if (input.defaultValue != null) _values[input.key] = input.defaultValue;
+    }
+    _values.addAll(restoredValues);
+    for (final input in widget.definition.inputs) {
+      final restored = restoredValues[input.key];
       _units[input.key] = restored is Map
           ? restored['unit']?.toString() ?? input.defaultUnit
           : input.defaultUnit;
@@ -36,8 +45,21 @@ class _NativeClinicalToolState extends State<NativeClinicalTool> {
   }
 
   @override
+  void didUpdateWidget(covariant NativeClinicalTool oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.definition != widget.definition) {
+      _restoreInputs(widget.initialValues);
+      _formRevision++;
+      _result = null;
+      _error = null;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final definition = widget.definition;
+    final visible = definition.inputs.where((input) => const ClinicalToolEvaluator().inputVisible(definition, input, _values)).toList();
+    final sections = [...definition.sections]..sort((a, b) => a.order.compareTo(b.order));
     return Form(
       key: _formKey,
       child: ListView(
@@ -57,7 +79,12 @@ class _NativeClinicalToolState extends State<NativeClinicalTool> {
           ...definition.warnings
               .where((item) => item.when == null)
               .map((item) => _MessageCard(message: item)),
-          ...definition.inputs.map(_input),
+          for (final section in sections) ...[
+            if (visible.any((input) => input.sectionKey == section.key))
+              Padding(padding: const EdgeInsets.only(top: 16), child: Text(section.title, style: Theme.of(context).textTheme.titleMedium)),
+            ...visible.where((input) => input.sectionKey == section.key).map(_keyedInput),
+          ],
+          ...visible.where((input) => !sections.any((section) => section.key == input.sectionKey)).map(_keyedInput),
           const SizedBox(height: 16),
           FilledButton.icon(
             onPressed: _calculate,
@@ -98,6 +125,8 @@ class _NativeClinicalToolState extends State<NativeClinicalTool> {
       ),
     );
   }
+
+  Widget _keyedInput(ClinicalToolInput input) => KeyedSubtree(key: ValueKey('$_formRevision-${input.key}'), child: _input(input));
 
   Widget _input(ClinicalToolInput input) {
     if (input.type == 'boolean' || input.type == 'checklist_item') {
@@ -144,13 +173,14 @@ class _NativeClinicalToolState extends State<NativeClinicalTool> {
         ),
       );
     }
+    final numeric = ['number', 'integer', 'measurement'].contains(input.type);
     final textField = TextFormField(
       initialValue: _displayValue(_values[input.key]),
       decoration: InputDecoration(
         labelText: input.label,
         helperText: input.helpText.isEmpty ? input.defaultUnit : input.helpText,
       ),
-      keyboardType: input.type == 'number'
+      keyboardType: numeric
           ? const TextInputType.numberWithOptions(decimal: true)
           : TextInputType.text,
       validator: (value) =>
@@ -158,8 +188,8 @@ class _NativeClinicalToolState extends State<NativeClinicalTool> {
           ? '${input.label} is required'
           : null,
       onChanged: (value) {
-        final parsed = input.type == 'number' ? double.tryParse(value) : value;
-        _values[input.key] = input.allowedUnits.isEmpty
+        final Object? parsed = value.isEmpty ? null : numeric ? (double.tryParse(value) ?? value) : value;
+        _values[input.key] = parsed == null || input.allowedUnits.isEmpty
             ? parsed
             : {'value': parsed, 'unit': _units[input.key]};
         _changed();
@@ -190,7 +220,7 @@ class _NativeClinicalToolState extends State<NativeClinicalTool> {
                       _units[input.key] = unit;
                       final current = _values[input.key];
                       final raw = current is Map ? current['value'] : current;
-                      _values[input.key] = {'value': raw, 'unit': unit};
+                      if (raw != null) _values[input.key] = {'value': raw, 'unit': unit};
                       _changed();
                     },
                   ),
@@ -222,17 +252,30 @@ class _NativeClinicalToolState extends State<NativeClinicalTool> {
     }
   }
 
-  void _reset() {
-    _formKey.currentState?.reset();
+  Future<void> _reset() async {
+    if (widget.definition.completion.resetConfirmation) {
+      final confirmed = await showDialog<bool>(context: context, builder: (context) => AlertDialog(
+        title: const Text('Reset all responses?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Reset')),
+        ],
+      ));
+      if (!mounted || confirmed != true) return;
+    }
     setState(() {
-      _values.clear();
+      _restoreInputs(const {});
+      _formRevision++;
       _result = null;
       _error = null;
     });
     _changed();
   }
 
-  void _changed() => widget.onChanged?.call(Map<String, Object?>.from(_values));
+  void _changed() {
+    setState(() { _result = null; _error = null; });
+    widget.onChanged?.call(Map<String, Object?>.from(_values));
+  }
 }
 
 class _MessageCard extends StatelessWidget {
@@ -259,6 +302,8 @@ class _ResultView extends StatelessWidget {
   const _ResultView({required this.definition, required this.result});
   final ClinicalToolDefinition definition;
   final ClinicalToolResult result;
+  String _formatted(ClinicalToolOutput output, Object? value) => value is num && output.precision != null
+      ? value.toStringAsFixed(output.precision!) : (value?.toString() ?? '—');
   @override
   Widget build(BuildContext context) => Semantics(
     liveRegion: true,
@@ -273,7 +318,7 @@ class _ResultView extends StatelessWidget {
               (output) => Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
-                  '${output.label}: ${result.values[output.key] ?? '—'} ${output.unit}',
+                  '${output.label}: ${_formatted(output, result.values[output.key])} ${output.unit}',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
