@@ -199,7 +199,8 @@ func (s ProgressUsageService) UsageAggregates(since *time.Time) ([]UsageAggregat
 	query := `SELECT event_type, COUNT(*) AS count FROM (
 	SELECT 'guideline' event_type, created_at FROM guideline_usage_logs WHERE deleted_at IS NULL UNION ALL
 	SELECT 'abbreviation', created_at FROM abbreviation_usage_logs WHERE deleted_at IS NULL UNION ALL
-	SELECT 'ai', created_at FROM ai_usage_logs WHERE deleted_at IS NULL) usage_events`
+	SELECT 'ai', created_at FROM ai_usage_logs WHERE deleted_at IS NULL UNION ALL
+ SELECT calculator_type, created_at FROM calculator_usage_logs WHERE deleted_at IS NULL) usage_events`
 	args := []any{}
 	if since != nil {
 		query += " WHERE created_at >= ?"

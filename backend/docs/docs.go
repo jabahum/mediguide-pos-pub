@@ -21557,6 +21557,9 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
+                "idempotency_key": {
+                    "type": "string"
+                },
                 "session_end": {
                     "type": "string"
                 },
@@ -31782,6 +31785,12 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "calculator_type": {
+                    "type": "string"
+                },
+                "calculator_version_id": {
+                    "type": "string"
+                },
+                "idempotency_key": {
                     "type": "string"
                 },
                 "session_start": {

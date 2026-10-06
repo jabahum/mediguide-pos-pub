@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:user_app/features/calculators/data/repositories/calculator_usage_tracker.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -27,6 +28,7 @@ class MediGuideApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(authControllerProvider);
     ref.watch(backendReconnectProvider);
+    ref.watch(calculatorUsageSyncProvider);
     final router = ref.watch(appRouterProvider);
     ref.listen(outbreakBannerEnabledProvider, (_, next) {
       if (!next.hasValue) return;
