@@ -362,16 +362,19 @@ class _NativeClinicalToolState extends State<NativeClinicalTool> {
                             : colors.outlineVariant,
                       ),
                     ),
-                    child: RadioListTile<Object?>(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
+                    child: Material(
+                      type: MaterialType.transparency,
+                      child: RadioListTile<Object?>(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        title: Text(option.label),
+                        value: option.value,
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      title: Text(option.label),
-                      value: option.value,
                     ),
                   ),
                 ),
@@ -396,21 +399,24 @@ class _NativeClinicalToolState extends State<NativeClinicalTool> {
                 : colors.outlineVariant,
           ),
         ),
-        child: CheckboxListTile(
-          controlAffinity: ListTileControlAffinity.leading,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 8,
-            vertical: 4,
+        child: Material(
+          type: MaterialType.transparency,
+          child: CheckboxListTile(
+            controlAffinity: ListTileControlAffinity.leading,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 8,
+              vertical: 4,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            title: Text('${input.label}${input.required ? ' *' : ''}'),
+            value: _values[input.key] == true,
+            onChanged: (value) {
+              _values[input.key] = value ?? false;
+              _changed();
+            },
           ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          title: Text('${input.label}${input.required ? ' *' : ''}'),
-          value: _values[input.key] == true,
-          onChanged: (value) {
-            _values[input.key] = value ?? false;
-            _changed();
-          },
         ),
       );
     }

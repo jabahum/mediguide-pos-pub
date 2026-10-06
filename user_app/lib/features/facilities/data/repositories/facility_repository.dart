@@ -275,13 +275,6 @@ final class FacilityRepository {
     local: _local.ownershipTypes,
   );
 
-  Future<void> recordUsage(String facilityId) async {
-    await _api.requestJson(
-      '/api/v2/facilities/$facilityId/usage',
-      method: 'POST',
-    );
-  }
-
   Future<PaginatedResponse<T>> _referenceList<T>(
     String path,
     T Function(Map<String, dynamic>) fromJson, {

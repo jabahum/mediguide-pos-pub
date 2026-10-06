@@ -331,6 +331,8 @@ final class ClinicaltoolsInput {
 
   String? get clinicalWarning => value['clinical_warning']?.toString();
 
+  String? get control => value['control']?.toString();
+
   bool? get critical => value['critical'] as bool?;
 
   Map<String, dynamic> get defaultField => _jsonMap(value['default']);
@@ -2323,6 +2325,15 @@ final class HandlersLegacyOverviewResult {
   Map<String, dynamic> get coverage => _jsonMap(value['coverage']);
 
   Map<String, dynamic> get engagement => _jsonMap(value['engagement']);
+
+  List<ServicesFeatureUsageSummary> get featureusage {
+    final raw = value['featureUsage'];
+    if (raw is! List) return const [];
+    return raw
+        .whereType<Map>()
+        .map((item) => ServicesFeatureUsageSummary.fromJson(_jsonMap(item)))
+        .toList(growable: false);
+  }
 
   Map<String, dynamic> get metrics => _jsonMap(value['metrics']);
 
@@ -6206,6 +6217,8 @@ final class ModelsCalculatorUsageLog {
 
   String? get id => value['id']?.toString();
 
+  String? get idempotencyKey => value['idempotency_key']?.toString();
+
   String? get sessionEnd => value['session_end']?.toString();
 
   String? get sessionStart => value['session_start']?.toString();
@@ -6907,6 +6920,8 @@ final class ModelsDrugUsageLog {
 
   String? get id => value['id']?.toString();
 
+  String? get idempotencyKey => value['idempotency_key']?.toString();
+
   String? get updatedAt => value['updated_at']?.toString();
 
   String? get userId => value['user_id']?.toString();
@@ -7079,6 +7094,8 @@ final class ModelsFacilityUsageLog {
   String? get facilityId => value['facility_id']?.toString();
 
   String? get id => value['id']?.toString();
+
+  String? get idempotencyKey => value['idempotency_key']?.toString();
 
   String? get updatedAt => value['updated_at']?.toString();
 
@@ -10857,6 +10874,25 @@ final class ServicesFacilityView {
   String? get updatedAt => value['updated_at']?.toString();
 
   int? get usageCount => (value['usage_count'] as num?)?.toInt();
+
+  Map<String, dynamic> toJson() => Map.of(value);
+}
+
+final class ServicesFeatureUsageSummary {
+  ServicesFeatureUsageSummary(Map<String, dynamic> value)
+    : value = UnmodifiableMapView<String, dynamic>(Map.of(value));
+
+  factory ServicesFeatureUsageSummary.fromJson(Map<String, dynamic> json) =>
+      ServicesFeatureUsageSummary(json);
+
+  static const schemaName = 'services.FeatureUsageSummary';
+  final Map<String, dynamic> value;
+
+  String? get feature => value['feature']?.toString();
+
+  int? get last30 => (value['last30'] as num?)?.toInt();
+
+  int? get last7 => (value['last7'] as num?)?.toInt();
 
   Map<String, dynamic> toJson() => Map.of(value);
 }
@@ -16987,6 +17023,10 @@ final class ServicesStartCalculatorUsageInput {
 
   String? get calculatorType => value['calculator_type']?.toString();
 
+  String? get calculatorVersionId => value['calculator_version_id']?.toString();
+
+  String? get idempotencyKey => value['idempotency_key']?.toString();
+
   String? get sessionStart => value['session_start']?.toString();
 
   Map<String, dynamic> toJson() => Map.of(value);
@@ -17328,9 +17368,13 @@ final class ServicesUsageEventInput {
   static const schemaName = 'services.UsageEventInput';
   final Map<String, dynamic> value;
 
+  String? get feature => value['feature']?.toString();
+
   String? get idempotencyKey => value['idempotency_key']?.toString();
 
   String? get resourceId => value['resource_id']?.toString();
+
+  String? get resourceType => value['resource_type']?.toString();
 
   Map<String, dynamic> toJson() => Map.of(value);
 }

@@ -6180,6 +6180,14 @@ const docTemplate = `{
                 "summary": "Record authenticated drug usage",
                 "parameters": [
                     {
+                        "description": "Optional retry key",
+                        "name": "payload",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/services.UsageEventInput"
+                        }
+                    },
+                    {
                         "type": "string",
                         "format": "uuid",
                         "description": "Drug ID",
@@ -6708,6 +6716,14 @@ const docTemplate = `{
                 ],
                 "summary": "Record current-user facility usage",
                 "parameters": [
+                    {
+                        "description": "Optional retry key",
+                        "name": "payload",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/services.UsageEventInput"
+                        }
+                    },
                     {
                         "type": "string",
                         "description": "Facility UUID",
@@ -17116,6 +17132,38 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v2/usage/features": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "progress-usage"
+                ],
+                "summary": "Record a signed-in app feature visit",
+                "parameters": [
+                    {
+                        "description": "Feature visit",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/services.UsageEventInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.UsageEventEnvelope"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v2/usage/guidelines": {
             "post": {
                 "security": [
@@ -19020,6 +19068,12 @@ const docTemplate = `{
                     "additionalProperties": {
                         "type": "integer",
                         "format": "int64"
+                    }
+                },
+                "featureUsage": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/services.FeatureUsageSummary"
                     }
                 },
                 "metrics": {
@@ -22298,6 +22352,9 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
+                "idempotency_key": {
+                    "type": "string"
+                },
                 "updated_at": {
                     "type": "string"
                 },
@@ -22487,6 +22544,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
+                    "type": "string"
+                },
+                "idempotency_key": {
                     "type": "string"
                 },
                 "updated_at": {
@@ -26379,6 +26439,20 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "usage_count": {
+                    "type": "integer"
+                }
+            }
+        },
+        "services.FeatureUsageSummary": {
+            "type": "object",
+            "properties": {
+                "feature": {
+                    "type": "string"
+                },
+                "last30": {
+                    "type": "integer"
+                },
+                "last7": {
                     "type": "integer"
                 }
             }
@@ -32094,10 +32168,16 @@ const docTemplate = `{
         "services.UsageEventInput": {
             "type": "object",
             "properties": {
+                "feature": {
+                    "type": "string"
+                },
                 "idempotency_key": {
                     "type": "string"
                 },
                 "resource_id": {
+                    "type": "string"
+                },
+                "resource_type": {
                     "type": "string"
                 }
             }

@@ -1,3 +1,4 @@
+import 'package:user_app/features/guidelines/data/repositories/progress_usage_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -99,7 +100,12 @@ void main() {
     };
     final provider = healthInfrastructureControllerProvider(arguments);
     final container = ProviderContainer(
-      overrides: [facilityRepositoryProvider.overrideWithValue(repository)],
+      overrides: [
+        facilityRepositoryProvider.overrideWithValue(repository),
+        usageRepositoryProvider.overrideWithValue(
+          UsageRepository(DirectoryApi(), store.cache, () => null),
+        ),
+      ],
     );
     addTearDown(container.dispose);
     container.listen(provider, (_, _) {});
@@ -130,7 +136,9 @@ void main() {
     expect(api.lastQuery?['district_id'], 'district-1');
     expect(api.lastQuery?.containsKey('filter'), isFalse);
 
-    await repository.recordUsage('facility-1');
+    final usage = UsageRepository(api, store.cache, () => 'owner');
+    await usage.facility('facility-1');
+    await usage.sync();
     expect(api.lastPath, '/api/v2/facilities/facility-1/usage');
   });
 
@@ -147,7 +155,12 @@ void main() {
 
       await tester.pumpWidget(
         ProviderScope(
-          overrides: [facilityRepositoryProvider.overrideWithValue(repository)],
+          overrides: [
+            facilityRepositoryProvider.overrideWithValue(repository),
+            usageRepositoryProvider.overrideWithValue(
+              UsageRepository(api, store.cache, () => null),
+            ),
+          ],
           child: const MaterialApp(
             home: HealthFacilityDetailPage(facilityId: 'facility-1'),
           ),

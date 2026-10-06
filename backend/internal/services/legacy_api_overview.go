@@ -18,6 +18,7 @@ func (s LegacyAPIService) overviewUncached() (OverviewResult, error) {
 
 	var err error
 	if metrics["totalUsers"], err = s.count("users", "deleted_at IS NULL"); err != nil {
+
 		return OverviewResult{}, err
 	}
 	if metrics["activeUsers"], err = s.count("users", "deleted_at IS NULL AND status = ?", "active"); err != nil {
@@ -73,6 +74,18 @@ func (s LegacyAPIService) overviewUncached() (OverviewResult, error) {
 	engagement["guidelineUsage30d"], err = s.countRecent("guideline_usage_logs", 29)
 	if err != nil {
 		return OverviewResult{}, err
+	}
+	for _, days := range []int{7, 30} {
+		medical, e := s.countRecent("medical_guideline_usage_logs", days-1)
+		if e != nil {
+			return OverviewResult{}, e
+		}
+		engagement[fmt.Sprintf("guidelineUsage%dd", days)] += medical
+		abbreviations, e := s.countRecent("abbreviation_usage_logs", days-1)
+		if e != nil {
+			return OverviewResult{}, e
+		}
+		engagement[fmt.Sprintf("abbreviationUsage%dd", days)] = abbreviations
 	}
 	engagement["drugUsage7d"], err = s.countRecent("drug_usage_logs", 6)
 	if err != nil {
@@ -192,7 +205,16 @@ func (s LegacyAPIService) overviewUncached() (OverviewResult, error) {
 		return OverviewResult{}, err
 	}
 
+	featureUsage := []FeatureUsageSummary{}
+	if err := s.DB.Raw(`SELECT feature,
+ COUNT(CASE WHEN created_at::date >= CURRENT_DATE - 6 THEN 1 END) AS last7,
+ COUNT(CASE WHEN created_at::date >= CURRENT_DATE - 29 THEN 1 END) AS last30
+ FROM feature_usage_logs WHERE deleted_at IS NULL AND created_at::date >= CURRENT_DATE - 29
+ GROUP BY feature ORDER BY feature`).Scan(&featureUsage).Error; err != nil {
+		return OverviewResult{}, err
+	}
 	return OverviewResult{
+		FeatureUsage:  featureUsage,
 		Success:       true,
 		CachedAt:      now,
 		Metrics:       metrics,

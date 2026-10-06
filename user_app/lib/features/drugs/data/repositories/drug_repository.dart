@@ -218,26 +218,6 @@ final class DrugRepository {
   // USAGE
   // =========================================================
 
-  Future<void> recordUsage(String id) async {
-    final normalizedId = id.trim();
-
-    if (normalizedId.isEmpty) {
-      return;
-    }
-
-    try {
-      await _api.requestJson(
-        '/api/v2/drugs/'
-        '${Uri.encodeComponent(normalizedId)}'
-        '/usage',
-        method: 'POST',
-      );
-    } catch (_) {
-      // Usage telemetry is best effort.
-      // It must never prevent drug access while offline.
-    }
-  }
-
   // =========================================================
   // CACHE STATE
   // =========================================================

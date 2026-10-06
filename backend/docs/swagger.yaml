@@ -998,6 +998,10 @@ definitions:
           format: int64
           type: integer
         type: object
+      featureUsage:
+        items:
+          $ref: '#/definitions/services.FeatureUsageSummary'
+        type: array
       metrics:
         additionalProperties:
           format: int64
@@ -3166,6 +3170,8 @@ definitions:
         type: string
       id:
         type: string
+      idempotency_key:
+        type: string
       updated_at:
         type: string
       user_id:
@@ -3291,6 +3297,8 @@ definitions:
       facility_id:
         type: string
       id:
+        type: string
+      idempotency_key:
         type: string
       updated_at:
         type: string
@@ -5894,6 +5902,15 @@ definitions:
       updated_at:
         type: string
       usage_count:
+        type: integer
+    type: object
+  services.FeatureUsageSummary:
+    properties:
+      feature:
+        type: string
+      last7:
+        type: integer
+      last30:
         type: integer
     type: object
   services.FinishCalculatorUsageInput:
@@ -9654,9 +9671,13 @@ definitions:
     type: object
   services.UsageEventInput:
     properties:
+      feature:
+        type: string
       idempotency_key:
         type: string
       resource_id:
+        type: string
+      resource_type:
         type: string
     type: object
   services.UserCreateInput:
@@ -13711,6 +13732,11 @@ paths:
   /api/v2/drugs/{id}/usage:
     post:
       parameters:
+      - description: Optional retry key
+        in: body
+        name: payload
+        schema:
+          $ref: '#/definitions/services.UsageEventInput'
       - description: Drug ID
         format: uuid
         in: path
@@ -14043,6 +14069,11 @@ paths:
   /api/v2/facilities/{id}/usage:
     post:
       parameters:
+      - description: Optional retry key
+        in: body
+        name: payload
+        schema:
+          $ref: '#/definitions/services.UsageEventInput'
       - description: Facility UUID
         in: path
         name: id
@@ -20535,6 +20566,25 @@ paths:
       security:
       - BearerAuth: []
       summary: Record idempotent AI usage
+      tags:
+      - progress-usage
+  /api/v2/usage/features:
+    post:
+      parameters:
+      - description: Feature visit
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/services.UsageEventInput'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.UsageEventEnvelope'
+      security:
+      - BearerAuth: []
+      summary: Record a signed-in app feature visit
       tags:
       - progress-usage
   /api/v2/usage/guidelines:

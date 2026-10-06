@@ -333,7 +333,7 @@ class ReadGuidelineController extends _$ReadGuidelineController {
     }
 
     try {
-      await ref.read(usageRepositoryProvider).guideline(guidelineId);
+      await ref.read(usageRepositoryProvider).medicalGuideline(guidelineId);
     } catch (_) {
       // Analytics must never block guideline reading.
     }

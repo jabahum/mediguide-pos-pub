@@ -621,6 +621,7 @@ export interface HandlersLegacyOverviewResult {
   contentHealth?: Record<string, number>;
   coverage?: Record<string, number>;
   engagement?: Record<string, number>;
+  featureUsage?: ServicesFeatureUsageSummary[];
   metrics?: Record<string, number>;
   pipeline?: Record<string, number>;
   series?: Record<string, any>;
@@ -1724,6 +1725,7 @@ export interface ModelsCalculatorUsageLog {
   calculator_version_id?: string;
   created_at?: string;
   id?: string;
+  idempotency_key?: string;
   session_end?: string;
   session_start?: string;
   updated_at?: string;
@@ -1991,6 +1993,7 @@ export interface ModelsDrugUsageLog {
   created_at?: string;
   drug_id?: string;
   id?: string;
+  idempotency_key?: string;
   updated_at?: string;
   user_id?: string;
 }
@@ -2057,6 +2060,7 @@ export interface ModelsFacilityUsageLog {
   created_at?: string;
   facility_id?: string;
   id?: string;
+  idempotency_key?: string;
   updated_at?: string;
   user_id?: string;
 }
@@ -3458,6 +3462,12 @@ export interface ServicesFacilityView {
   subcounty_name?: string;
   updated_at?: string;
   usage_count?: number;
+}
+
+export interface ServicesFeatureUsageSummary {
+  last30?: number;
+  last7?: number;
+  feature?: string;
 }
 
 export interface ServicesFinishCalculatorUsageInput {
@@ -5375,6 +5385,8 @@ export interface ServicesSplitGuidelineSectionInput {
 
 export interface ServicesStartCalculatorUsageInput {
   calculator_type?: string;
+  calculator_version_id?: string;
+  idempotency_key?: string;
   session_start?: string;
 }
 
@@ -5494,8 +5506,10 @@ export interface ServicesUsageAggregate {
 }
 
 export interface ServicesUsageEventInput {
+  feature?: string;
   idempotency_key?: string;
   resource_id?: string;
+  resource_type?: string;
 }
 
 export interface ServicesUserCreateInput {

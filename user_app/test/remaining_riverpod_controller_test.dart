@@ -152,7 +152,9 @@ void main() {
     final container = ProviderContainer(
       overrides: [
         guidelineContentRepositoryProvider.overrideWithValue(repository),
-        usageRepositoryProvider.overrideWithValue(UsageRepository(api)),
+        usageRepositoryProvider.overrideWithValue(
+          UsageRepository(api, store.cache, () => null),
+        ),
       ],
     );
     addTearDown(container.dispose);
