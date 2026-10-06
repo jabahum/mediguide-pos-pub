@@ -93,12 +93,14 @@ final class GuidelineApi extends BackendApiService {
       };
     }
     if (path == '/api/v2/usage/guidelines') return {'data': {}};
-    if (path == '/api/v2/guideline-categories') {
+    if (path == '/api/public/guideline-categories') {
+      expect(includeAuth, isFalse);
       return {
         'data': {'items': <Map<String, dynamic>>[]},
       };
     }
-    if (path == '/api/v2/guideline-tags') {
+    if (path == '/api/public/guideline-tags') {
+      expect(includeAuth, isFalse);
       return {
         'data': {'items': <Map<String, dynamic>>[]},
       };

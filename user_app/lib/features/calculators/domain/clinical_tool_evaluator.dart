@@ -51,7 +51,11 @@ final class ClinicalToolEvaluator {
 
   final DateTime? fixedNow;
 
-  bool inputVisible(ClinicalToolDefinition definition, ClinicalToolInput field, Map<String, Object?> input) {
+  bool inputVisible(
+    ClinicalToolDefinition definition,
+    ClinicalToolInput field,
+    Map<String, Object?> input,
+  ) {
     if (field.visibleWhen == null) return true;
     final values = <String, Object?>{
       for (final item in definition.inputs) item.key: item.defaultValue,
@@ -60,7 +64,11 @@ final class ClinicalToolEvaluator {
     for (final item in definition.inputs) {
       final candidate = values[item.key];
       if (candidate is Map && candidate['value'] is num) {
-        values[item.key] = _convert((candidate['value'] as num).toDouble(), candidate['unit']?.toString() ?? item.defaultUnit, item.defaultUnit);
+        values[item.key] = _convert(
+          (candidate['value'] as num).toDouble(),
+          candidate['unit']?.toString() ?? item.defaultUnit,
+          item.defaultUnit,
+        );
       }
     }
     return _truth(_expression(field.visibleWhen!, values));
@@ -84,35 +92,63 @@ final class ClinicalToolEvaluator {
         if (field.type == 'measurement') {
           final raw = value is Map ? value['value'] : value;
           final unit = value is Map ? value['unit'] : field.defaultUnit;
-          if (raw is! num || !raw.isFinite || unit is! String || !field.allowedUnits.contains(unit)) {
+          if (raw is! num ||
+              !raw.isFinite ||
+              unit is! String ||
+              !field.allowedUnits.contains(unit)) {
             throw FormatException('Invalid measurement: ${field.label}');
           }
           value = _convert(raw.toDouble(), unit, field.defaultUnit);
-          normalizedInputs[field.key] = {'value': value, 'unit': field.defaultUnit};
+          normalizedInputs[field.key] = {
+            'value': value,
+            'unit': field.defaultUnit,
+          };
         }
-        if (value is! num || !value.isFinite || (field.type == 'integer' && value != value.truncateToDouble())) {
+        if (value is! num ||
+            !value.isFinite ||
+            (field.type == 'integer' && value != value.truncateToDouble())) {
           throw FormatException('Invalid numeric input: ${field.label}');
         }
-        if (field.minimum != null && value < field.minimum!) throw FormatException('${field.label} is below the minimum');
-        if (field.maximum != null && value > field.maximum!) throw FormatException('${field.label} exceeds the maximum');
+        if (field.minimum != null && value < field.minimum!) {
+          throw FormatException('${field.label} is below the minimum');
+        }
+        if (field.maximum != null && value > field.maximum!) {
+          throw FormatException('${field.label} exceeds the maximum');
+        }
       } else if (field.type == 'boolean' && value is! bool) {
         throw FormatException('Invalid boolean: ${field.label}');
-      } else if (field.type == 'single_selection' && !field.options.any((option) => option.value == value)) {
+      } else if (field.type == 'single_selection' &&
+          !field.options.any((option) => option.value == value)) {
         throw FormatException('Unsupported option: ${field.label}');
       } else if (['text', 'date', 'time'].contains(field.type)) {
-        if (value is! String) throw FormatException('Invalid text: ${field.label}');
+        if (value is! String) {
+          throw FormatException('Invalid text: ${field.label}');
+        }
         if (field.type == 'date') {
           final parsed = DateTime.tryParse(value);
-          if (!RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(value) || parsed == null || parsed.toIso8601String().substring(0, 10) != value) throw FormatException('Invalid date: ${field.label}');
+          if (!RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(value) ||
+              parsed == null ||
+              parsed.toIso8601String().substring(0, 10) != value) {
+            throw FormatException('Invalid date: ${field.label}');
+          }
         }
-        if (field.type == 'time' && !RegExp(r'^([01]\d|2[0-3]):[0-5]\d$').hasMatch(value)) throw FormatException('Invalid time: ${field.label}');
+        if (field.type == 'time' &&
+            !RegExp(r'^([01]\d|2[0-3]):[0-5]\d$').hasMatch(value)) {
+          throw FormatException('Invalid time: ${field.label}');
+        }
       }
       values[field.key] = value;
       normalizedInputs.putIfAbsent(field.key, () => value);
     }
     for (final field in definition.inputs) {
-      final visible = field.visibleWhen == null || _truth(_expression(field.visibleWhen!, values));
-      if (visible && field.required && (values[field.key] == null || values[field.key] == '')) throw FormatException('${field.label} is required');
+      final visible =
+          field.visibleWhen == null ||
+          _truth(_expression(field.visibleWhen!, values));
+      if (visible &&
+          field.required &&
+          (values[field.key] == null || values[field.key] == '')) {
+        throw FormatException('${field.label} is required');
+      }
     }
     for (final item in definition.calculations) {
       values[item.key] = _applyPrecision(

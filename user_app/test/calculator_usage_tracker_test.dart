@@ -27,8 +27,9 @@ class UsageApi extends BackendApiService {
   }) async {
     expect(includeAuth, isTrue);
     if (offline) throw const SocketException('offline');
-    if (path.contains('/bad-tool/'))
+    if (path.contains('/bad-tool/')) {
       throw const FormatException('rejected session');
+    }
     if (method == 'POST') {
       starts.add(Map.from(body!));
       startEntered?.complete();
