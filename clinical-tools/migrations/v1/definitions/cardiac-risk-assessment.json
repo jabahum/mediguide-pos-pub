@@ -2,13 +2,13 @@
   "legacy_id": "cardiac-risk-assessment",
   "legacy_file": "cardiac-risk-assessment.html",
   "source_checksum": "3f801e2205c368fdda49af1b428a6fc00bd9235cf3e59e62564fc4bf6e1e9f6a",
-  "change_summary": "Clinician review draft: reproduce the two simplified legacy calculations and overall categorization while removing unsupported Framingham and ASCVD branding. Named HTML controls and scored choices are preserved; aggregate counts/sign groups are derived from typed responses. Assign every field to its declared form section. Supersedes engineering review.1; remains unapproved.",
+  "change_summary": "Clinician review draft: reproduce the two simplified legacy calculations and overall categorization while removing unsupported Framingham and ASCVD branding. Named HTML controls and scored choices are preserved; aggregate counts/sign groups are derived from typed responses. Assign every field to its declared form section. Supersedes engineering review.1; remains unapproved. Complete HTML field and option coverage; preserve radio and multiline controls. Supersedes engineering review.2.",
   "definition": {
     "schema_version": "1.0",
     "tool_type": "calculator",
     "title": "Legacy Cardiac Risk Estimate (Unvalidated)",
     "description": "Reproduces two simplified local formulas for comparison and retirement review. These outputs are not validated Framingham or ASCVD scores.",
-    "version": "1.0.0-review.2",
+    "version": "1.0.0-review.3",
     "locale": "en",
     "supported_population": [],
     "exclusions": [
@@ -65,7 +65,8 @@
             "label": "Female"
           }
         ],
-        "section_key": "patient"
+        "section_key": "patient",
+        "control": "select"
       },
       {
         "key": "ethnicity",
@@ -80,11 +81,11 @@
           },
           {
             "value": "black",
-            "label": "Black"
+            "label": "Black/African American"
           },
           {
             "value": "hispanic",
-            "label": "Hispanic"
+            "label": "Hispanic/Latino"
           },
           {
             "value": "asian",
@@ -95,7 +96,8 @@
             "label": "Other"
           }
         ],
-        "section_key": "patient"
+        "section_key": "patient",
+        "control": "select"
       },
       {
         "key": "systolic_bp",
@@ -135,19 +137,41 @@
       },
       {
         "key": "bp_treatment",
-        "type": "boolean",
+        "type": "single_selection",
         "label": "Blood-pressure treatment",
         "required": false,
         "default": false,
-        "section_key": "risk"
+        "section_key": "risk",
+        "control": "select",
+        "options": [
+          {
+            "value": false,
+            "label": "No"
+          },
+          {
+            "value": true,
+            "label": "Yes"
+          }
+        ]
       },
       {
         "key": "family_history",
-        "type": "boolean",
+        "type": "single_selection",
         "label": "Strong family history",
         "required": false,
         "default": false,
-        "section_key": "risk"
+        "section_key": "risk",
+        "control": "select",
+        "options": [
+          {
+            "value": false,
+            "label": "No"
+          },
+          {
+            "value": true,
+            "label": "Yes (Male <55, Female <65)"
+          }
+        ]
       },
       {
         "key": "smoking",
@@ -228,6 +252,48 @@
         "required": false,
         "default": false,
         "section_key": "risk"
+      },
+      {
+        "key": "ldl_cholesterol",
+        "type": "integer",
+        "label": "LDL Cholesterol (mg/dL):",
+        "required": false,
+        "minimum": 50,
+        "maximum": 300,
+        "section_key": "patient",
+        "default_unit": "mg/dL",
+        "help_text": "Recorded as assessment context; does not change the calculated result."
+      },
+      {
+        "key": "triglycerides",
+        "type": "integer",
+        "label": "Triglycerides (mg/dL):",
+        "required": false,
+        "minimum": 50,
+        "maximum": 800,
+        "section_key": "patient",
+        "default_unit": "mg/dL",
+        "help_text": "Recorded as assessment context; does not change the calculated result."
+      },
+      {
+        "key": "statin_therapy",
+        "type": "single_selection",
+        "label": "Currently on Statin Therapy:",
+        "required": false,
+        "section_key": "patient",
+        "help_text": "Recorded as assessment context; does not change the calculated result.",
+        "control": "select",
+        "options": [
+          {
+            "value": "no",
+            "label": "No"
+          },
+          {
+            "value": "yes",
+            "label": "Yes"
+          }
+        ],
+        "default": "no"
       }
     ],
     "sections": [

@@ -17760,6 +17760,9 @@ const docTemplate = `{
                 "clinical_warning": {
                     "type": "string"
                 },
+                "control": {
+                    "type": "string"
+                },
                 "critical": {
                     "type": "boolean"
                 },

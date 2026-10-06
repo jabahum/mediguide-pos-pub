@@ -2,13 +2,13 @@
   "legacy_id": "wound-assessment-tool",
   "legacy_file": "wound-assessment-tool.html",
   "source_checksum": "5fa5f696c90a583d61e8363068b914e1e1d5fadc57af7b7389a2609aff511675",
-  "change_summary": "Review draft: preserve legacy severity, infection-risk, and healing-potential rules while requiring wound location/type and typed assessment values. Completeness and care guidance require clinician approval. Named HTML controls and scored choices are preserved; aggregate counts/sign groups are derived from typed responses. Assign every field to its declared form section. Supersedes engineering review.1; remains unapproved.",
+  "change_summary": "Review draft: preserve legacy severity, infection-risk, and healing-potential rules while requiring wound location/type and typed assessment values. Completeness and care guidance require clinician approval. Named HTML controls and scored choices are preserved; aggregate counts/sign groups are derived from typed responses. Assign every field to its declared form section. Supersedes engineering review.1; remains unapproved. Complete HTML field and option coverage; preserve radio and multiline controls. Supersedes engineering review.2.",
   "definition": {
     "schema_version": "1.0",
     "tool_type": "decision_tool",
     "title": "Wound Assessment",
     "description": "Classifies recorded wound characteristics using the legacy thresholds. Review draft only; not approved for clinical publication.",
-    "version": "1.0.0-review.2",
+    "version": "1.0.0-review.3",
     "locale": "en",
     "supported_population": [],
     "exclusions": [
@@ -88,7 +88,7 @@
         "options": [
           {
             "value": "head_neck",
-            "label": "Head or neck"
+            "label": "Head/Neck"
           },
           {
             "value": "chest",
@@ -103,19 +103,36 @@
             "label": "Back"
           },
           {
+            "value": "arm-upper",
+            "label": "Upper Arm"
+          },
+          {
+            "value": "arm-lower",
+            "label": "Lower Arm/Hand"
+          },
+          {
+            "value": "leg-upper",
+            "label": "Upper Leg/Thigh"
+          },
+          {
+            "value": "leg-lower",
+            "label": "Lower Leg/Foot"
+          },
+          {
+            "value": "genitals",
+            "label": "Genital Area"
+          },
+          {
             "value": "arm",
             "label": "Arm or hand"
           },
           {
             "value": "leg",
             "label": "Leg or foot"
-          },
-          {
-            "value": "genitals",
-            "label": "Genital area"
           }
         ],
-        "section_key": "wound"
+        "section_key": "wound",
+        "control": "select"
       },
       {
         "key": "wound_type",
@@ -148,7 +165,8 @@
             "label": "Surgical"
           }
         ],
-        "section_key": "wound"
+        "section_key": "wound",
+        "control": "radio"
       },
       {
         "key": "length",
@@ -161,7 +179,8 @@
           "cm"
         ],
         "default_unit": "cm",
-        "section_key": "wound"
+        "section_key": "wound",
+        "step": 0.1
       },
       {
         "key": "width",
@@ -174,7 +193,8 @@
           "cm"
         ],
         "default_unit": "cm",
-        "section_key": "wound"
+        "section_key": "wound",
+        "step": 0.1
       },
       {
         "key": "depth",
@@ -187,7 +207,8 @@
           "cm"
         ],
         "default_unit": "cm",
-        "section_key": "wound"
+        "section_key": "wound",
+        "step": 0.1
       },
       {
         "key": "has_necrotic",
@@ -236,7 +257,9 @@
             "label": "Heavy"
           }
         ],
-        "section_key": "wound"
+        "section_key": "wound",
+        "control": "select",
+        "default": "none"
       },
       {
         "key": "exudate_type",
@@ -246,22 +269,24 @@
         "options": [
           {
             "value": "serous",
-            "label": "Serous"
+            "label": "Serous (clear)"
           },
           {
             "value": "sanguineous",
-            "label": "Sanguineous"
+            "label": "Sanguineous (bloody)"
           },
           {
             "value": "purulent",
-            "label": "Purulent"
+            "label": "Purulent (pus)"
           },
           {
             "value": "malodorous",
             "label": "Malodorous"
           }
         ],
-        "section_key": "wound"
+        "section_key": "wound",
+        "control": "select",
+        "default": "serous"
       },
       {
         "key": "red_streaking",
@@ -283,22 +308,24 @@
           },
           {
             "value": "current",
-            "label": "Up to date"
+            "label": "Up to date (within 10 years)"
           },
           {
             "value": "dirty_current",
-            "label": "Up to date for dirty wounds"
+            "label": "Up to date for dirty wounds (within 5 years)"
           },
           {
             "value": "overdue",
-            "label": "Overdue"
+            "label": "Overdue (>10 years ago)"
           },
           {
             "value": "never",
             "label": "Never vaccinated"
           }
         ],
-        "section_key": "risk"
+        "section_key": "risk",
+        "control": "select",
+        "default": "unknown"
       },
       {
         "key": "tissue_healthy",
@@ -435,7 +462,8 @@
             "label": "Necrotic tissue present"
           }
         ],
-        "section_key": "wound"
+        "section_key": "wound",
+        "control": "radio"
       }
     ],
     "sections": [

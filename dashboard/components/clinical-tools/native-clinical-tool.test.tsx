@@ -51,3 +51,46 @@ describe('native clinical form', () => {
     expect(screen.getByLabelText('Weight *')).toHaveValue(null)
   })
 })
+
+it('renders descriptive radio choices and retains their typed scores', () => {
+  const definition = load('apgar-score-calculator')
+  render(<NativeClinicalTool definition={definition} />)
+  expect(screen.getAllByRole('radio')).toHaveLength(15)
+  for (const field of definition.inputs.filter((input) => input.control === 'radio')) {
+    const option = field.options!.find((item) => item.value === 2)!
+    const group = screen.getByRole('group', {name: `${field.label} *`})
+    fireEvent.click(group.querySelector('input[id$="-2"]')!)
+    expect(screen.getByLabelText(option.label)).toBeChecked()
+  }
+  fireEvent.click(screen.getByRole('button', {name: 'Calculate'}))
+  expect(screen.getByRole('heading', {name: 'Results'})).toBeInTheDocument()
+})
+
+it('shows all PQRST textareas and complete context dropdowns', () => {
+  const definition = load('pain-assessment-scale')
+  render(<NativeClinicalTool definition={definition} />)
+  expect(screen.getByLabelText('Cognitive or communication status').tagName).toBe('SELECT')
+  expect(screen.getByRole('option', {name: 'Acute on chronic'})).toBeInTheDocument()
+  expect(screen.queryByLabelText(/P - Provocation/)).toBeNull()
+  fireEvent.change(screen.getByLabelText('Pain scale *'), {target: {value: 'pqrst'}})
+  const context = screen.getByLabelText(/P - Provocation/)
+  expect(context.tagName).toBe('TEXTAREA')
+  fireEvent.change(context, {target: {value: 'Movement worsens pain\nRest helps'}})
+  expect(context).toHaveValue('Movement worsens pain\nRest helps')
+  expect(screen.getByLabelText(/Q - Quality/).tagName).toBe('SELECT')
+  expect(screen.getByLabelText(/R - Region/).tagName).toBe('TEXTAREA')
+  expect(screen.getByLabelText(/T - Timing/).tagName).toBe('TEXTAREA')
+})
+
+it('renders cardiac yes/no controls as dropdowns with boolean values', () => {
+  const definition = load('cardiac-risk-assessment')
+  render(<NativeClinicalTool definition={definition} />)
+  for (const key of ['bp_treatment', 'family_history']) {
+    const field = definition.inputs.find((item) => item.key === key)!
+    const control = screen.getByLabelText(field.label)
+    expect(control.tagName).toBe('SELECT')
+    expect(control).toHaveValue('false')
+    fireEvent.change(control, {target: {value: 'true'}})
+    expect(control).toHaveValue('true')
+  }
+})

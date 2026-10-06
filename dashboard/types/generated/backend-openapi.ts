@@ -93,6 +93,7 @@ export interface ClinicaltoolsInput {
   allowed_units?: string[];
   checklist_kind?: string;
   clinical_warning?: string;
+  control?: string;
   critical?: boolean;
   default?: object;
   default_unit?: string;

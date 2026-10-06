@@ -2,13 +2,13 @@
   "legacy_id": "apgar-score-calculator",
   "legacy_file": "apgar-score-calculator.html",
   "source_checksum": "4b4ba682704ce5a95e745117e459b8a76a9bb6bce0e960cee57ff7d72106a677",
-  "change_summary": "Review draft: preserve the five APGAR component scores and legacy thresholds while requiring every component. The optional 1-minute/5-minute comparison remains outside the calculation draft pending clinician workflow approval. Assign every field to its declared form section. Supersedes engineering review.1; remains unapproved.",
+  "change_summary": "Review draft: preserve the five APGAR component scores and legacy thresholds while requiring every component. The optional 1-minute/5-minute comparison remains outside the calculation draft pending clinician workflow approval. Assign every field to its declared form section. Supersedes engineering review.1; remains unapproved. Complete HTML field and option coverage; preserve radio and multiline controls. Supersedes engineering review.2.",
   "definition": {
     "schema_version": "1.0",
     "tool_type": "calculator",
     "title": "APGAR Score",
     "description": "Scores five newborn observations from 0 to 2 each. This migration draft is not approved for clinical publication.",
-    "version": "1.0.0-review.2",
+    "version": "1.0.0-review.3",
     "locale": "en",
     "supported_population": [
       "Newborns assessed by an appropriately trained clinician"
@@ -55,7 +55,8 @@
             "label": "2 - Active motion and well-flexed"
           }
         ],
-        "section_key": "assessment"
+        "section_key": "assessment",
+        "control": "radio"
       },
       {
         "key": "pulse",
@@ -76,7 +77,8 @@
             "label": "2 - Above 100 bpm"
           }
         ],
-        "section_key": "assessment"
+        "section_key": "assessment",
+        "control": "radio"
       },
       {
         "key": "grimace",
@@ -97,7 +99,8 @@
             "label": "2 - Vigorous cry or sneeze"
           }
         ],
-        "section_key": "assessment"
+        "section_key": "assessment",
+        "control": "radio"
       },
       {
         "key": "appearance",
@@ -118,7 +121,8 @@
             "label": "2 - Pink all over"
           }
         ],
-        "section_key": "assessment"
+        "section_key": "assessment",
+        "control": "radio"
       },
       {
         "key": "respiration",
@@ -139,7 +143,28 @@
             "label": "2 - Good and strong cry"
           }
         ],
-        "section_key": "assessment"
+        "section_key": "assessment",
+        "control": "radio"
+      },
+      {
+        "key": "score_1min",
+        "type": "integer",
+        "label": "1 Minute Score",
+        "required": false,
+        "minimum": 0,
+        "maximum": 10,
+        "section_key": "comparison",
+        "help_text": "Recorded as assessment context; does not change the calculated result."
+      },
+      {
+        "key": "score_5min",
+        "type": "integer",
+        "label": "5 Minutes Score",
+        "required": false,
+        "minimum": 0,
+        "maximum": 10,
+        "section_key": "comparison",
+        "help_text": "Recorded as assessment context; does not change the calculated result."
       }
     ],
     "sections": [
@@ -148,6 +173,11 @@
         "title": "Current Assessment",
         "order": 0,
         "review_before_completion": true
+      },
+      {
+        "key": "comparison",
+        "title": "Previous assessments",
+        "order": 1
       }
     ],
     "calculation": [

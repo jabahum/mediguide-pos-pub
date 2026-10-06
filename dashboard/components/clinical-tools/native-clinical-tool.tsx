@@ -11,6 +11,7 @@ import type { ClinicalToolDefinition } from "@/services/clinical-tool.service";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
 function inputValue(value: unknown): unknown {
@@ -72,6 +73,29 @@ export function NativeClinicalTool({
   ].filter((group) => group.fields.length > 0);
   const renderInput = (field: ClinicalToolDefinition["inputs"][number]) => {
           const id = `clinical-tool-${field.key}`;
+          if (field.control === "textarea")
+            return (
+              <div key={field.key} className="space-y-2">
+                <Label htmlFor={id}>{field.label}{field.required ? " *" : ""}</Label>
+                <Textarea id={id} rows={2} required={field.required}
+                  value={String(inputs[field.key] ?? "")}
+                  onChange={(event) => setValue(field.key, event.target.value)} />
+              </div>
+            );
+          if (field.control === "radio" && field.options?.length)
+            return (
+              <fieldset key={field.key} className="space-y-2">
+                <legend className="text-sm font-medium">{field.label}{field.required ? " *" : ""}</legend>
+                {field.options.map((option, index) => (
+                  <label key={index} htmlFor={`${id}-${index}`} className="flex items-center gap-2">
+                    <input id={`${id}-${index}`} name={id} type="radio" required={field.required}
+                      checked={inputs[field.key] === option.value}
+                      onChange={() => setValue(field.key, option.value)} />
+                    {option.label}
+                  </label>
+                ))}
+              </fieldset>
+            );
           if (field.type === "boolean" || field.type === "checklist_item")
             return (
               <label
@@ -140,11 +164,11 @@ export function NativeClinicalTool({
                   id={id}
                   required={field.required}
                   type={
-                    field.type === "date" ? "date" : numeric ? "number" : "text"
+                    field.type === "date" ? "date" : field.type === "time" ? "time" : numeric ? "number" : "text"
                   }
                   min={field.allowed_units?.length && units[field.key] !== field.default_unit ? undefined : field.minimum}
                   max={field.allowed_units?.length && units[field.key] !== field.default_unit ? undefined : field.maximum}
-                  step={field.type === "integer" ? 1 : "any"}
+                  step={field.step ?? (field.type === "integer" ? 1 : "any")}
                   value={String(inputValue(inputs[field.key]) ?? "")}
                   onChange={(event) =>
                     setValue(

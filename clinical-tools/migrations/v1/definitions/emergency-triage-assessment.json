@@ -2,13 +2,13 @@
   "legacy_id": "emergency-triage-assessment",
   "legacy_file": "emergency-triage-assessment.html",
   "source_checksum": "086efb599f8c535faa94f589d19b477e0bef3afd635ca0a0ccb7ee3c061c7420",
-  "change_summary": "Clinician review draft: preserve the legacy minimum-priority calculation, age conversion, vital thresholds, and pain escalation while requiring age and representing named signs as explicit priority groups. Named HTML controls and scored choices are preserved; aggregate counts/sign groups are derived from typed responses. Assign every field to its declared form section. Supersedes engineering review.1; remains unapproved.",
+  "change_summary": "Clinician review draft: preserve the legacy minimum-priority calculation, age conversion, vital thresholds, and pain escalation while requiring age and representing named signs as explicit priority groups. Named HTML controls and scored choices are preserved; aggregate counts/sign groups are derived from typed responses. Assign every field to its declared form section. Supersedes engineering review.1; remains unapproved. Complete HTML field and option coverage; preserve radio and multiline controls. Supersedes engineering review.2.",
   "definition": {
     "schema_version": "1.0",
     "tool_type": "decision_tool",
     "title": "Legacy Emergency Triage Classification (Unapproved)",
     "description": "Reproduces the legacy priority matrix for clinical review. It is not a validated Manchester Triage System implementation and must not delay emergency care.",
-    "version": "1.0.0-review.2",
+    "version": "1.0.0-review.3",
     "locale": "en",
     "supported_population": [],
     "exclusions": [
@@ -70,7 +70,8 @@
             "label": "Days"
           }
         ],
-        "section_key": "patient"
+        "section_key": "patient",
+        "control": "select"
       },
       {
         "key": "heart_rate",
@@ -120,7 +121,8 @@
         "minimum": 30,
         "maximum": 45,
         "default": 37,
-        "section_key": "patient"
+        "section_key": "patient",
+        "step": 0.1
       },
       {
         "key": "oxygen_saturation",
@@ -293,6 +295,14 @@
         "required": false,
         "default": false,
         "section_key": "signs"
+      },
+      {
+        "key": "chief_complaint",
+        "type": "text",
+        "label": "Chief Complaint:",
+        "required": false,
+        "section_key": "patient",
+        "help_text": "Recorded as assessment context; does not change the calculated result."
       }
     ],
     "sections": [

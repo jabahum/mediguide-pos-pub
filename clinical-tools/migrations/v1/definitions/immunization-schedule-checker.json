@@ -2,13 +2,13 @@
   "legacy_id": "immunization-schedule-checker",
   "legacy_file": "immunization-schedule-checker.html",
   "source_checksum": "6a5bf25184ccc0c9df9b666d1a50346851ff36d755cff146180536a7dac54030",
-  "change_summary": "Clinician review draft: deterministically reproduce legacy age derivation and candidate-row count while blocking dose-status and catch-up recommendations until a jurisdiction-owned versioned schedule model is approved. Named HTML controls and scored choices are preserved; aggregate counts/sign groups are derived from typed responses. Assign every field to its declared form section. Supersedes engineering review.1; remains unapproved.",
+  "change_summary": "Clinician review draft: deterministically reproduce legacy age derivation and candidate-row count while blocking dose-status and catch-up recommendations until a jurisdiction-owned versioned schedule model is approved. Named HTML controls and scored choices are preserved; aggregate counts/sign groups are derived from typed responses. Assign every field to its declared form section. Supersedes engineering review.1; remains unapproved. Complete HTML field and option coverage; preserve radio and multiline controls. Supersedes engineering review.2.",
   "definition": {
     "schema_version": "1.0",
     "tool_type": "decision_tool",
     "title": "Immunization Schedule Intake (Clinical Review Required)",
     "description": "Captures the patient and jurisdiction inputs used by the legacy page and exposes its candidate-row count for parity review. It intentionally does not issue vaccine-due or catch-up advice.",
-    "version": "1.0.0-review.2",
+    "version": "1.0.0-review.3",
     "locale": "en",
     "supported_population": [],
     "exclusions": [
@@ -87,10 +87,11 @@
           },
           {
             "value": "other",
-            "label": "Other or unknown"
+            "label": "Other/Unknown"
           }
         ],
-        "section_key": "patient"
+        "section_key": "patient",
+        "control": "select"
       },
       {
         "key": "jurisdiction",
@@ -100,11 +101,11 @@
         "options": [
           {
             "value": "usa",
-            "label": "United States"
+            "label": "United States (CDC schedule)"
           },
           {
             "value": "who",
-            "label": "WHO global"
+            "label": "WHO Global Recommendations"
           },
           {
             "value": "canada",
@@ -119,7 +120,9 @@
             "label": "Australia"
           }
         ],
-        "section_key": "patient"
+        "section_key": "patient",
+        "control": "select",
+        "default": "usa"
       },
       {
         "key": "risk_category",
@@ -130,7 +133,7 @@
         "options": [
           {
             "value": "standard",
-            "label": "Standard risk"
+            "label": "Standard Risk"
           },
           {
             "value": "immunocompromised",
@@ -138,18 +141,19 @@
           },
           {
             "value": "chronic_conditions",
-            "label": "Chronic conditions"
+            "label": "Chronic Medical Conditions"
           },
           {
             "value": "healthcare_worker",
-            "label": "Healthcare worker"
+            "label": "Healthcare Worker"
           },
           {
             "value": "travel",
-            "label": "International travel"
+            "label": "International Travel"
           }
         ],
-        "section_key": "patient"
+        "section_key": "patient",
+        "control": "select"
       },
       {
         "key": "pregnancy",

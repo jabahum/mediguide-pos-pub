@@ -58,8 +58,17 @@ class _NativeClinicalToolState extends State<NativeClinicalTool> {
   @override
   Widget build(BuildContext context) {
     final definition = widget.definition;
-    final visible = definition.inputs.where((input) => const ClinicalToolEvaluator().inputVisible(definition, input, _values)).toList();
-    final sections = [...definition.sections]..sort((a, b) => a.order.compareTo(b.order));
+    final visible = definition.inputs
+        .where(
+          (input) => const ClinicalToolEvaluator().inputVisible(
+            definition,
+            input,
+            _values,
+          ),
+        )
+        .toList();
+    final sections = [...definition.sections]
+      ..sort((a, b) => a.order.compareTo(b.order));
     return Form(
       key: _formKey,
       child: ListView(
@@ -81,10 +90,23 @@ class _NativeClinicalToolState extends State<NativeClinicalTool> {
               .map((item) => _MessageCard(message: item)),
           for (final section in sections) ...[
             if (visible.any((input) => input.sectionKey == section.key))
-              Padding(padding: const EdgeInsets.only(top: 16), child: Text(section.title, style: Theme.of(context).textTheme.titleMedium)),
-            ...visible.where((input) => input.sectionKey == section.key).map(_keyedInput),
+              Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: Text(
+                  section.title,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+            ...visible
+                .where((input) => input.sectionKey == section.key)
+                .map(_keyedInput),
           ],
-          ...visible.where((input) => !sections.any((section) => section.key == input.sectionKey)).map(_keyedInput),
+          ...visible
+              .where(
+                (input) =>
+                    !sections.any((section) => section.key == input.sectionKey),
+              )
+              .map(_keyedInput),
           const SizedBox(height: 16),
           FilledButton.icon(
             onPressed: _calculate,
@@ -126,9 +148,51 @@ class _NativeClinicalToolState extends State<NativeClinicalTool> {
     );
   }
 
-  Widget _keyedInput(ClinicalToolInput input) => KeyedSubtree(key: ValueKey('$_formRevision-${input.key}'), child: _input(input));
+  Widget _keyedInput(ClinicalToolInput input) => KeyedSubtree(
+    key: ValueKey('$_formRevision-${input.key}'),
+    child: _input(input),
+  );
 
   Widget _input(ClinicalToolInput input) {
+    if (input.control == 'radio' && input.options.isNotEmpty) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 12),
+        child: FormField<Object?>(
+          initialValue: _values[input.key],
+          validator: (_) => input.required && _values[input.key] == null
+              ? '${input.label} is required'
+              : null,
+          builder: (state) => RadioGroup<Object?>(
+            groupValue: _values[input.key],
+            onChanged: (value) {
+              _values[input.key] = value;
+              state.didChange(value);
+              _changed();
+            },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(input.label),
+                ...input.options.map(
+                  (option) => RadioListTile<Object?>(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(option.label),
+                    value: option.value,
+                  ),
+                ),
+                if (state.hasError)
+                  Text(
+                    state.errorText!,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
     if (input.type == 'boolean' || input.type == 'checklist_item') {
       return Semantics(
         label: input.label,
@@ -150,6 +214,7 @@ class _NativeClinicalToolState extends State<NativeClinicalTool> {
       return Padding(
         padding: const EdgeInsets.only(top: 12),
         child: DropdownButtonFormField<Object?>(
+          isExpanded: true,
           initialValue: _values[input.key],
           decoration: InputDecoration(
             labelText: input.label,
@@ -174,21 +239,37 @@ class _NativeClinicalToolState extends State<NativeClinicalTool> {
       );
     }
     final numeric = ['number', 'integer', 'measurement'].contains(input.type);
+    final calendar = input.type == 'date' || input.type == 'time';
     final textField = TextFormField(
       initialValue: _displayValue(_values[input.key]),
       decoration: InputDecoration(
         labelText: input.label,
         helperText: input.helpText.isEmpty ? input.defaultUnit : input.helpText,
+        suffixIcon: calendar
+            ? Icon(
+                input.type == 'date' ? Icons.calendar_today : Icons.access_time,
+              )
+            : null,
       ),
+      readOnly: calendar,
+      onTap: calendar ? () => _pickDateOrTime(input) : null,
+      minLines: input.control == 'textarea' ? 2 : 1,
+      maxLines: input.control == 'textarea' ? 4 : 1,
       keyboardType: numeric
-          ? const TextInputType.numberWithOptions(decimal: true)
+          ? TextInputType.numberWithOptions(decimal: input.type != 'integer')
+          : input.control == 'textarea'
+          ? TextInputType.multiline
           : TextInputType.text,
       validator: (value) =>
           input.required && (value == null || value.trim().isEmpty)
           ? '${input.label} is required'
           : null,
       onChanged: (value) {
-        final Object? parsed = value.isEmpty ? null : numeric ? (double.tryParse(value) ?? value) : value;
+        final Object? parsed = value.isEmpty
+            ? null
+            : numeric
+            ? (double.tryParse(value) ?? value)
+            : value;
         _values[input.key] = parsed == null || input.allowedUnits.isEmpty
             ? parsed
             : {'value': parsed, 'unit': _units[input.key]};
@@ -220,7 +301,8 @@ class _NativeClinicalToolState extends State<NativeClinicalTool> {
                       _units[input.key] = unit;
                       final current = _values[input.key];
                       final raw = current is Map ? current['value'] : current;
-                      if (raw != null) _values[input.key] = {'value': raw, 'unit': unit};
+                      if (raw != null)
+                        _values[input.key] = {'value': raw, 'unit': unit};
                       _changed();
                     },
                   ),
@@ -232,6 +314,52 @@ class _NativeClinicalToolState extends State<NativeClinicalTool> {
 
   String? _displayValue(Object? value) =>
       value is Map ? value['value']?.toString() : value?.toString();
+
+  Future<void> _pickDateOrTime(ClinicalToolInput input) async {
+    String? selected;
+    if (input.type == 'date') {
+      final first = DateTime(1900), last = DateTime(2100, 12, 31);
+      final restored =
+          DateTime.tryParse(_values[input.key]?.toString() ?? '') ??
+          DateTime.now();
+      final date = await showDatePicker(
+        context: context,
+        initialDate: restored.isBefore(first)
+            ? first
+            : restored.isAfter(last)
+            ? last
+            : restored,
+        firstDate: first,
+        lastDate: last,
+      );
+      selected = date?.toIso8601String().substring(0, 10);
+    } else {
+      final parts = (_values[input.key]?.toString() ?? '').split(':');
+      final hour = parts.length == 2 ? int.tryParse(parts[0]) : null;
+      final minute = parts.length == 2 ? int.tryParse(parts[1]) : null;
+      final time = await showTimePicker(
+        context: context,
+        initialTime:
+            hour != null &&
+                minute != null &&
+                hour >= 0 &&
+                hour < 24 &&
+                minute >= 0 &&
+                minute < 60
+            ? TimeOfDay(hour: hour, minute: minute)
+            : TimeOfDay.now(),
+      );
+      if (time != null)
+        selected =
+            '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+    }
+    if (!mounted || selected == null) return;
+    setState(() {
+      _values[input.key] = selected;
+      _formRevision++;
+    });
+    _changed();
+  }
 
   void _calculate() {
     if (!(_formKey.currentState?.validate() ?? false)) return;
@@ -254,13 +382,22 @@ class _NativeClinicalToolState extends State<NativeClinicalTool> {
 
   Future<void> _reset() async {
     if (widget.definition.completion.resetConfirmation) {
-      final confirmed = await showDialog<bool>(context: context, builder: (context) => AlertDialog(
-        title: const Text('Reset all responses?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Reset')),
-        ],
-      ));
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Reset all responses?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Reset'),
+            ),
+          ],
+        ),
+      );
       if (!mounted || confirmed != true) return;
     }
     setState(() {
@@ -273,7 +410,10 @@ class _NativeClinicalToolState extends State<NativeClinicalTool> {
   }
 
   void _changed() {
-    setState(() { _result = null; _error = null; });
+    setState(() {
+      _result = null;
+      _error = null;
+    });
     widget.onChanged?.call(Map<String, Object?>.from(_values));
   }
 }
@@ -302,8 +442,10 @@ class _ResultView extends StatelessWidget {
   const _ResultView({required this.definition, required this.result});
   final ClinicalToolDefinition definition;
   final ClinicalToolResult result;
-  String _formatted(ClinicalToolOutput output, Object? value) => value is num && output.precision != null
-      ? value.toStringAsFixed(output.precision!) : (value?.toString() ?? '—');
+  String _formatted(ClinicalToolOutput output, Object? value) =>
+      value is num && output.precision != null
+      ? value.toStringAsFixed(output.precision!)
+      : (value?.toString() ?? '—');
   @override
   Widget build(BuildContext context) => Semantics(
     liveRegion: true,

@@ -80,3 +80,69 @@ describe('dynamic form contract', () => {
     expect(() => previewClinicalTool(load('pregnancy-due-date-calculator'),{lmp_date:'2026-02-30'})).toThrow('date')
   })
 })
+
+const fieldBindings = JSON.parse(readFileSync(join(directory, 'html-field-bindings.json'), 'utf8')) as Record<string, Array<{
+  html_id: string; input_key: string; value?: unknown;
+  option_values?: Record<string, unknown>; unit_values?: Record<string, string>;
+}>>
+
+describe('complete HTML field coverage', () => {
+  it('covers every sample, including tools with no checkbox controls', () => {
+    const catalog = JSON.parse(readFileSync(join(directory, 'catalog.json'), 'utf8'))
+    expect(Object.keys(fieldBindings).sort()).toEqual(catalog.tools.map((tool: { legacy_id: string }) => tool.legacy_id).sort())
+  })
+  for (const [name, controls] of Object.entries(fieldBindings)) it(`${name}: every HTML field and option has a typed binding`, () => {
+    const definition = load(name)
+    const dom = new JSDOM(readFileSync(join(process.cwd(), 'samples', `${name}.html`), 'utf8'))
+    try {
+      const elements = [...dom.window.document.querySelectorAll('input, select, textarea')]
+      expect(controls.map((binding) => binding.html_id).sort()).toEqual(elements.map((element) => element.id).sort())
+      for (const element of elements) {
+        const binding = controls.find((item) => item.html_id === element.id)!
+        const field = definition.inputs.find((item) => item.key === binding.input_key)!
+        expect(field, element.id).toBeDefined()
+        expect(definition.sections.some((section) => section.key === field.section_key), field.key).toBe(true)
+        if (element.type === 'checkbox') expect(field.type).toBe('boolean')
+        else if (element.type === 'radio') {
+          expect(field.type).toBe('single_selection')
+          expect(field.control).toBe('radio')
+          expect(field.options!.some((option) => option.value === binding.value), element.id).toBe(true)
+          expect(String(binding.value)).toBe(element.value)
+        } else if (element.tagName === 'TEXTAREA') {
+          expect(field.type).toBe('text'); expect(field.control).toBe('textarea')
+        } else if (element.tagName === 'SELECT') {
+          const options = [...element.options].filter((option) => option.value !== '')
+          if (binding.unit_values) {
+            expect(Object.keys(binding.unit_values)).toEqual(options.map((option) => option.value))
+            for (const option of options) expect(field.allowed_units).toContain(binding.unit_values[option.value])
+          } else {
+            expect(field.type).toBe('single_selection'); expect(field.control).toBe('select')
+            expect(Object.keys(binding.option_values!)).toEqual(options.map((option) => option.value))
+            for (const option of options) {
+              const mapped = field.options!.find((item) => item.value === binding.option_values![option.value])!
+              expect(mapped, option.value).toBeDefined()
+              expect(normalize(mapped.label)).toBe(normalize(option.textContent))
+            }
+          }
+        } else if (element.type === 'number') {
+          expect(['integer', 'number', 'measurement']).toContain(field.type)
+          if (element.step) expect(field.step).toBe(Number(element.step))
+        } else expect(field.type).toBe(element.type)
+      }
+    } finally { dom.window.close() }
+  })
+  it('records optional context without changing calculated results', () => {
+    const contexts: Record<string, Record<string, unknown>> = {
+      'apgar-score-calculator': {score_1min: 3, score_5min: 8},
+      'cardiac-risk-assessment': {ldl_cholesterol: 110, triglycerides: 150, statin_therapy: 'yes'},
+      'emergency-triage-assessment': {chief_complaint: 'Headache'},
+      'fluid-balance-calculator': {hour_1_4: 100, hour_5_8: 200, hour_9_12: 100, hour_13_16: 200, hour_17_20: 100, hour_21_24: 200},
+      'pain-assessment-scale': {pqrst_provocation: 'Movement', pqrst_quality: 'sharp', pqrst_region: 'Lower back', pqrst_timing: 'Intermittent'},
+    }
+    for (const [name, context] of Object.entries(contexts)) {
+      const definition = load(name), fixture = definition.test_cases[0]
+      const inputs = name === 'pain-assessment-scale' ? {...fixture.inputs, scale: 'pqrst', direct_score: 3} : fixture.inputs
+      expect(previewClinicalTool(definition, {...inputs, ...context}, {fixedNow: fixture.fixed_now}).values).toEqual(previewClinicalTool(definition, inputs, {fixedNow: fixture.fixed_now}).values)
+    }
+  })
+})

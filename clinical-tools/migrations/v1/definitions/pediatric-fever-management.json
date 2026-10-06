@@ -2,13 +2,13 @@
   "legacy_id": "pediatric-fever-management",
   "legacy_file": "pediatric-fever-management.html",
   "source_checksum": "db1ae667c44ebe12a1cd6227e9faa033e2cd04e07d56b1d02f96cdf7f244e39d",
-  "change_summary": "Review draft: preserve age/temperature conversion and risk thresholds while requiring measured weight for any dose output and accepting an explicit age of zero months. All thresholds, danger signs, and doses require clinician/pharmacist approval. Named HTML controls and scored choices are preserved; aggregate counts/sign groups are derived from typed responses. Assign every field to its declared form section. Supersedes engineering review.1; remains unapproved.",
+  "change_summary": "Review draft: preserve age/temperature conversion and risk thresholds while requiring measured weight for any dose output and accepting an explicit age of zero months. All thresholds, danger signs, and doses require clinician/pharmacist approval. Named HTML controls and scored choices are preserved; aggregate counts/sign groups are derived from typed responses. Assign every field to its declared form section. Supersedes engineering review.1; remains unapproved. Complete HTML field and option coverage; preserve radio and multiline controls. Supersedes engineering review.2.",
   "definition": {
     "schema_version": "1.0",
     "tool_type": "decision_tool",
     "title": "Pediatric Fever Assessment",
     "description": "Classifies pediatric fever using age, temperature, and recorded danger signs. Review draft only; not approved for clinical publication.",
-    "version": "1.0.0-review.2",
+    "version": "1.0.0-review.3",
     "locale": "en",
     "supported_population": [
       "Children from birth through 18 years, subject to clinician confirmation"
@@ -99,7 +99,8 @@
             "label": "Years"
           }
         ],
-        "section_key": "patient"
+        "section_key": "patient",
+        "control": "select"
       },
       {
         "key": "weight",
@@ -112,7 +113,8 @@
           "kg"
         ],
         "default_unit": "kg",
-        "section_key": "patient"
+        "section_key": "patient",
+        "step": 0.1
       },
       {
         "key": "temperature",
@@ -126,7 +128,8 @@
           "fahrenheit"
         ],
         "default_unit": "celsius",
-        "section_key": "patient"
+        "section_key": "patient",
+        "step": 0.1
       },
       {
         "key": "difficulty_breathing",
