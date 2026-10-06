@@ -17,6 +17,7 @@ class FakeGuidelineContentApi extends BackendApiService {
     Map<String, String>? query,
     bool includeAuth = true,
   }) async {
+    if (path.startsWith('/api/public/')) expect(includeAuth, isFalse);
     this.path = path;
     this.query = query;
     return {
@@ -79,7 +80,7 @@ void main() {
       AbbreviationLocalRepository(store.cache),
     );
     await repository.categories(parentId: 'parent-1');
-    expect(api.path, '/api/v2/guideline-categories');
+    expect(api.path, '/api/public/guideline-categories');
     expect(api.query?['parent_id'], 'parent-1');
     expect(api.query?.containsKey('filter'), isFalse);
   });

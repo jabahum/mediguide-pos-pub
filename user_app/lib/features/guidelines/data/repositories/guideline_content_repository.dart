@@ -131,7 +131,7 @@ final class GuidelineContentRepository {
 
     try {
       final response = await _typedList<GuidelineCategory>(
-        '/api/v2/guideline-categories',
+        '/api/public/guideline-categories',
         GuidelineCategory.fromJson,
         page: safePage,
         perPage: safePerPage,
@@ -182,7 +182,7 @@ final class GuidelineContentRepository {
 
     try {
       final response = await _typedList<GuidelineTag>(
-        '/api/v2/guideline-tags',
+        '/api/public/guideline-tags',
         GuidelineTag.fromJson,
         page: safePage,
         perPage: safePerPage,
@@ -327,7 +327,7 @@ final class GuidelineContentRepository {
 
     try {
       final response = await _typedList<Abbreviation>(
-        '/api/v2/abbreviations',
+        '/api/public/abbreviations',
         Abbreviation.fromJson,
         page: safePage,
         perPage: safePerPage,
@@ -400,7 +400,7 @@ final class GuidelineContentRepository {
 
     try {
       final abbreviation = await _get<Abbreviation>(
-        '/api/v2/abbreviations/$normalizedId',
+        '/api/public/abbreviations/$normalizedId',
         Abbreviation.fromJson,
       );
 
@@ -456,6 +456,7 @@ final class GuidelineContentRepository {
     final response = await _api.requestJson(
       path,
       method: 'GET',
+      includeAuth: !path.startsWith('/api/public/'),
       query: {'page': '$page', 'per_page': '$perPage', ...query},
     );
 
@@ -485,7 +486,11 @@ final class GuidelineContentRepository {
     String path,
     T Function(Map<String, dynamic>) fromJson,
   ) async {
-    final response = await _api.requestJson(path, method: 'GET');
+    final response = await _api.requestJson(
+      path,
+      method: 'GET',
+      includeAuth: !path.startsWith('/api/public/'),
+    );
 
     return fromJson(_data(response));
   }

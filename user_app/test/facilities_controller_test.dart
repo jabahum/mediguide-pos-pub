@@ -22,10 +22,11 @@ final class DirectoryApi extends BackendApiService {
     Map<String, String>? query,
     bool includeAuth = true,
   }) async {
+    if (path.startsWith('/api/public/')) expect(includeAuth, isFalse);
     lastPath = path;
     lastQuery = query;
     if (method == 'POST') return {'data': {}};
-    if (path == '/api/v2/regions') {
+    if (path == '/api/public/regions') {
       return {
         'data': {
           'items': [
@@ -34,7 +35,7 @@ final class DirectoryApi extends BackendApiService {
         },
       };
     }
-    if (path == '/api/v2/facility-levels') {
+    if (path == '/api/public/facility-levels') {
       return {
         'data': {
           'items': [
@@ -43,7 +44,7 @@ final class DirectoryApi extends BackendApiService {
         },
       };
     }
-    if (path == '/api/v2/ownership-types') {
+    if (path == '/api/public/ownership-types') {
       return {
         'data': {
           'items': [
@@ -52,7 +53,7 @@ final class DirectoryApi extends BackendApiService {
         },
       };
     }
-    if (path == '/api/v2/districts') {
+    if (path == '/api/public/districts') {
       return {
         'data': {
           'items': [
@@ -61,7 +62,7 @@ final class DirectoryApi extends BackendApiService {
         },
       };
     }
-    if (path == '/api/v2/facilities') {
+    if (path == '/api/public/facilities') {
       return {
         'data': {
           'items': [
@@ -70,7 +71,7 @@ final class DirectoryApi extends BackendApiService {
         },
       };
     }
-    if (path == '/api/v2/facilities/facility-1') {
+    if (path == '/api/public/facilities/facility-1') {
       return {
         'data': {
           'id': 'facility-1',
@@ -131,7 +132,7 @@ void main() {
       regionId: 'region-1',
       districtId: 'district-1',
     );
-    expect(api.lastPath, '/api/v2/facilities');
+    expect(api.lastPath, '/api/public/facilities');
     expect(api.lastQuery?['region_id'], 'region-1');
     expect(api.lastQuery?['district_id'], 'district-1');
     expect(api.lastQuery?.containsKey('filter'), isFalse);
@@ -168,7 +169,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(api.lastPath, '/api/v2/facilities/facility-1');
+      expect(api.lastPath, '/api/public/facilities/facility-1');
       expect(find.text('City Hospital'), findsWidgets);
       expect(find.text('Facility unavailable'), findsNothing);
     },
