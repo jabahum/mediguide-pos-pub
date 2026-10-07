@@ -132,33 +132,47 @@ class _DiscoveryTopicTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Card(
+      margin: const EdgeInsets.only(bottom: 10),
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(color: colors.outlineVariant),
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.all(16),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        minVerticalPadding: 10,
+        horizontalTitleGap: 12,
         leading: Container(
-          width: 42,
-          height: 42,
+          width: 36,
+          height: 36,
           decoration: BoxDecoration(
             color: colors.primaryContainer,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, color: colors.primary, size: 21),
+          child: Icon(icon, color: colors.primary, size: 19),
         ),
         title: Text(
           title,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
           style: Theme.of(
             context,
           ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
         ),
         subtitle: subtitle.isEmpty
             ? null
-            : Text(subtitle, maxLines: 3, overflow: TextOverflow.ellipsis),
+            : Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  subtitle,
+                  maxLines: MediaQuery.textScalerOf(context).scale(14) > 20
+                      ? null
+                      : 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colors.onSurfaceVariant,
+                    height: 1.4,
+                  ),
+                ),
+              ),
         trailing: Icon(
           LucideIcons.chevronRight,
           color: colors.onSurfaceVariant,

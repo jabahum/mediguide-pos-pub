@@ -192,7 +192,7 @@ class _DiseaseDirectoryPageState extends ConsumerState<DiseaseDirectoryPage> {
     return DiscoveryDirectoryScaffold(
       title: 'Diseases & conditions',
       subtitle: 'Clinical guidance by condition',
-      searchHint: 'Search official names or aliases',
+      searchHint: 'Search conditions',
       search: search,
       onChanged: searchChanged,
       onSubmitted: submit,

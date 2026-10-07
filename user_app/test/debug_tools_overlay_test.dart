@@ -76,31 +76,47 @@ void main() {
   });
 
   testWidgets(
-    'debug footer reserves space instead of covering application controls',
+    'red badge stays on the right and only moves vertically within safe bounds',
     (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
       await tester.pumpWidget(
         const MaterialApp(
-          home: DebugToolsOverlay(
-            child: Scaffold(
-              body: Align(
-                alignment: Alignment.bottomCenter,
-                child: SizedBox(
-                  key: ValueKey('application-control'),
-                  height: 48,
-                  width: 200,
-                  child: Text('Application action'),
-                ),
-              ),
+          home: MediaQuery(
+            data: MediaQueryData(
+              size: Size(390, 844),
+              padding: EdgeInsets.only(top: 44, bottom: 34),
+            ),
+            child: DebugToolsOverlay(
+              child: Scaffold(body: Text('Application')),
             ),
           ),
         ),
       );
       await tester.pumpAndSettle();
-      final control = tester.getRect(
-        find.byKey(const ValueKey('application-control')),
+      final badge = find.byKey(const ValueKey('debug-tools-badge'));
+      final initial = tester.getRect(badge);
+      expect(initial.right, 386);
+      final material = tester.widget<Material>(
+        find.descendant(of: badge, matching: find.byType(Material)),
       );
-      final footer = tester.getRect(find.byType(InkWell).last);
-      expect(control.bottom, lessThanOrEqualTo(footer.top));
+      expect(material.color, const Color(0xffef3838));
+      await tester.drag(badge, const Offset(-100, 120));
+      await tester.pumpAndSettle();
+      expect(tester.getRect(badge).right, initial.right);
+      expect(tester.getRect(badge).top, greaterThan(initial.top));
+      await tester.drag(badge, const Offset(0, -2000));
+      await tester.pumpAndSettle();
+      expect(tester.getRect(badge).top, 52);
+      await tester.drag(badge, const Offset(0, 2000));
+      await tester.pumpAndSettle();
+      expect(tester.getRect(badge).bottom, 802);
+      await tester.drag(badge, const Offset(-180, 0));
+      await tester.pumpAndSettle();
+      expect(tester.getRect(badge).right, initial.right);
+      expect(tester.getRect(badge).bottom, 802);
       expect(tester.takeException(), isNull);
     },
   );

@@ -23,6 +23,7 @@ final class DebugToolsOverlay extends ConsumerStatefulWidget {
 }
 
 final class _DebugToolsOverlayState extends ConsumerState<DebugToolsOverlay> {
+  double? _top;
   String _version = '';
 
   @override
@@ -39,79 +40,84 @@ final class _DebugToolsOverlayState extends ConsumerState<DebugToolsOverlay> {
   Widget build(BuildContext context) {
     if (!AppConfig.current.debugToolsEnabled) return widget.child;
     if (MediaQuery.viewInsetsOf(context).bottom > 0) return widget.child;
-    final colors = Theme.of(context).colorScheme;
-    return Column(
-      children: [
-        Expanded(
-          child: MediaQuery.removePadding(
-            context: context,
-            removeBottom: true,
-            child: widget.child,
-          ),
-        ),
-        Material(
-          color: colors.surfaceContainerLow,
-          child: SafeArea(
-            top: false,
-            child: InkWell(
-              onTap: () => _showDebugTools(context),
-              child: Semantics(
-                button: true,
-                label: 'Open ${AppConfig.current.flavor.label} debug tools',
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(minHeight: 44),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.bug_report_outlined,
-                          size: 16,
-                          color: colors.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const badgeWidth = 96.0;
+        const badgeHeight = 58.0;
+        final safeTop = (MediaQuery.paddingOf(context).top + 8).clamp(
+          0.0,
+          (constraints.maxHeight - badgeHeight).clamp(0.0, double.infinity),
+        );
+        final safeBottom = MediaQuery.paddingOf(context).bottom + 8;
+        final maxTop = (constraints.maxHeight - badgeHeight - safeBottom).clamp(
+          safeTop,
+          double.infinity,
+        );
+        final top = (_top ?? (constraints.maxHeight - badgeHeight) * .48).clamp(
+          safeTop,
+          maxTop,
+        );
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            widget.child,
+            Positioned(
+              right: 4,
+              top: top,
+              width: badgeWidth,
+              key: const ValueKey('debug-tools-badge'),
+              height: badgeHeight,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onVerticalDragUpdate: (details) => setState(() {
+                  _top = (top + details.delta.dy).clamp(safeTop, maxTop);
+                }),
+                onTap: () => _showDebugTools(context),
+                child: Material(
+                  elevation: 8,
+                  color: const Color(0xffef3838),
+                  borderRadius: const BorderRadius.horizontal(
+                    left: Radius.circular(28),
+                    right: Radius.circular(12),
+                  ),
+                  child: Semantics(
+                    button: true,
+                    label: 'Open ${AppConfig.current.flavor.label} debug tools',
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
                             AppConfig.current.flavor.label.toUpperCase(),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: colors.onSurfaceVariant,
+                            style: const TextStyle(
+                              color: Colors.white,
                               fontSize: 11,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: .4,
                             ),
                           ),
-                        ),
-                        if (_version.isNotEmpty)
-                          Flexible(
-                            child: Text(
+                          if (_version.isNotEmpty)
+                            Text(
                               _version,
                               maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: colors.onSurfaceVariant,
-                                fontSize: 11,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
                               ),
                             ),
-                          ),
-                        const SizedBox(width: 8),
-                        Icon(
-                          Icons.chevron_right,
-                          size: 16,
-                          color: colors.onSurfaceVariant,
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 
