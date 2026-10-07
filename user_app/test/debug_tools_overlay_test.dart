@@ -75,6 +75,36 @@ void main() {
     expect(find.text('Network Inspector'), findsOneWidget);
   });
 
+  testWidgets(
+    'debug footer reserves space instead of covering application controls',
+    (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: DebugToolsOverlay(
+            child: Scaffold(
+              body: Align(
+                alignment: Alignment.bottomCenter,
+                child: SizedBox(
+                  key: ValueKey('application-control'),
+                  height: 48,
+                  width: 200,
+                  child: Text('Application action'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final control = tester.getRect(
+        find.byKey(const ValueKey('application-control')),
+      );
+      final footer = tester.getRect(find.byType(InkWell).last);
+      expect(control.bottom, lessThanOrEqualTo(footer.top));
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets('production never renders the debug badge', (tester) async {
     AppConfig.configure(Flavor.production, debugToolsEnabled: true);
     await tester.pumpWidget(

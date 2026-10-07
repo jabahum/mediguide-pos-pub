@@ -23,7 +23,6 @@ final class DebugToolsOverlay extends ConsumerStatefulWidget {
 }
 
 final class _DebugToolsOverlayState extends ConsumerState<DebugToolsOverlay> {
-  Offset? _position;
   String _version = '';
 
   @override
@@ -39,84 +38,80 @@ final class _DebugToolsOverlayState extends ConsumerState<DebugToolsOverlay> {
   @override
   Widget build(BuildContext context) {
     if (!AppConfig.current.debugToolsEnabled) return widget.child;
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        const badgeWidth = 96.0;
-        const badgeHeight = 58.0;
-        final safeTop = MediaQuery.paddingOf(context).top + 8;
-        final safeBottom = MediaQuery.paddingOf(context).bottom + 8;
-        final initial = Offset(
-          constraints.maxWidth - badgeWidth - 4,
-          (constraints.maxHeight - badgeHeight) * .48,
-        );
-        final current = _position ?? initial;
-        final position = Offset(
-          current.dx.clamp(4, constraints.maxWidth - badgeWidth - 4),
-          current.dy.clamp(
-            safeTop,
-            constraints.maxHeight - badgeHeight - safeBottom,
+    if (MediaQuery.viewInsetsOf(context).bottom > 0) return widget.child;
+    final colors = Theme.of(context).colorScheme;
+    return Column(
+      children: [
+        Expanded(
+          child: MediaQuery.removePadding(
+            context: context,
+            removeBottom: true,
+            child: widget.child,
           ),
-        );
-        return Stack(
-          fit: StackFit.expand,
-          children: [
-            widget.child,
-            Positioned(
-              left: position.dx,
-              top: position.dy,
-              width: badgeWidth,
-              height: badgeHeight,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onPanUpdate: (details) => setState(() {
-                  _position = position + details.delta;
-                }),
-                onTap: () => _showDebugTools(context),
-                child: Material(
-                  elevation: 8,
-                  color: const Color(0xffef3838),
-                  borderRadius: const BorderRadius.horizontal(
-                    left: Radius.circular(28),
-                    right: Radius.circular(12),
-                  ),
-                  child: Semantics(
-                    button: true,
-                    label: 'Open ${AppConfig.current.flavor.label} debug tools',
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
+        ),
+        Material(
+          color: colors.surfaceContainerLow,
+          child: SafeArea(
+            top: false,
+            child: InkWell(
+              onTap: () => _showDebugTools(context),
+              child: Semantics(
+                button: true,
+                label: 'Open ${AppConfig.current.flavor.label} debug tools',
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 44),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.bug_report_outlined,
+                          size: 16,
+                          color: colors.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
                             AppConfig.current.flavor.label.toUpperCase(),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: colors.onSurfaceVariant,
                               fontSize: 11,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: .4,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
-                          if (_version.isNotEmpty)
-                            Text(
+                        ),
+                        if (_version.isNotEmpty)
+                          Flexible(
+                            child: Text(
                               _version,
                               maxLines: 1,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: colors.onSurfaceVariant,
+                                fontSize: 11,
                               ),
                             ),
-                        ],
-                      ),
+                          ),
+                        const SizedBox(width: 8),
+                        Icon(
+                          Icons.chevron_right,
+                          size: 16,
+                          color: colors.onSurfaceVariant,
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
             ),
-          ],
-        );
-      },
+          ),
+        ),
+      ],
     );
   }
 

@@ -8,6 +8,7 @@ import 'package:user_app/core/network/api_client.dart';
 import 'package:user_app/core/storage/local_cache_service.dart';
 import 'package:user_app/features/discovery/data/repositories/discovery_repository.dart';
 import 'package:user_app/features/discovery/presentation/screens/discovery_pages.dart';
+import 'package:go_router/go_router.dart';
 import 'package:user_app/features/discovery/presentation/widgets/discovery_widgets.dart';
 import 'helpers/test_local_store.dart';
 
@@ -70,6 +71,46 @@ class _Api extends BackendApiService {
   }
 }
 
+class _HubApi extends BackendApiService {
+  @override
+  Future<Map<String, dynamic>> requestJson(
+    String path, {
+    required String method,
+    Map<String, dynamic>? body,
+    Map<String, String>? query,
+    bool includeAuth = true,
+  }) async => {
+    'data': {
+      'id': 'hub',
+      'name': 'Malaria Care Hub',
+      'slug': 'malaria',
+      'description': 'Approved guidance for diagnosis and care.',
+      'pillars': [
+        {'id': 'empty', 'name': 'Case Definition', 'slug': 'case-definition'},
+        {
+          'id': 'care',
+          'name': 'Clinical Management',
+          'slug': 'care',
+          'items': [
+            {
+              'featured': true,
+              'resource': {
+                'id': 'guideline',
+                'content_type': 'guideline',
+                'title': 'Malaria in Adults',
+                'source_organization': 'Ministry of Health',
+                'publication_date': '2026-05-21',
+                'review_at': '2028-05-21',
+                'provenance': 'Approved publication',
+              },
+            },
+          ],
+        },
+      ],
+    },
+  };
+}
+
 Widget _host(
   Widget page,
   DiscoveryRepository repository, {
@@ -80,6 +121,7 @@ Widget _host(
     diseaseTaxonomyEnabledProvider.overrideWithValue(true),
     diseaseHubsEnabledProvider.overrideWithValue(true),
     genericHubsEnabledProvider.overrideWithValue(true),
+    pillarRagMetadataEnabledProvider.overrideWithValue(true),
   ],
   child: MaterialApp(
     builder: (context, child) => ResponsiveBreakpoints.builder(
@@ -204,6 +246,82 @@ void main() {
       },
     );
   }
+
+  testWidgets(
+    'hub offers compact populated sections, hides empty destinations and opens a section',
+    (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final store = TestLocalStore();
+      addTearDown(store.close);
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) => const ContentHubPage(slug: 'malaria'),
+          ),
+          GoRoute(
+            path: '/hubs/:hub/pillars/:section',
+            builder: (_, state) => ContentPillarPage(
+              hubSlug: state.pathParameters['hub']!,
+              pillarSlug: state.pathParameters['section']!,
+            ),
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            discoveryRepositoryProvider.overrideWithValue(
+              DiscoveryRepository(_HubApi(), _Cache(store.database)),
+            ),
+            genericHubsEnabledProvider.overrideWithValue(true),
+            pillarRagMetadataEnabledProvider.overrideWithValue(true),
+          ],
+          child: MaterialApp.router(
+            routerConfig: router,
+            builder: (context, child) => ResponsiveBreakpoints.builder(
+              child: child!,
+              breakpoints: const [
+                Breakpoint(start: 0, end: 450, name: MOBILE),
+                Breakpoint(start: 451, end: double.infinity, name: TABLET),
+              ],
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(GridView), findsNothing);
+      expect(find.text('Case Definition'), findsNothing);
+      expect(find.text('1 resource'), findsOneWidget);
+      expect(
+        tester
+            .getSize(
+              find.ancestor(
+                of: find.text('Clinical Management'),
+                matching: find.byType(ListTile),
+              ),
+            )
+            .height,
+        lessThan(140),
+      );
+      expect(find.text('Malaria in Adults'), findsOneWidget);
+      expect(find.byType(FloatingActionButton), findsNothing);
+      await tester.tap(find.text('Clinical Management'));
+      await tester.pumpAndSettle();
+      expect(find.byType(ContentPillarPage), findsOneWidget);
+      expect(find.byType(DropdownButtonFormField<String>), findsNothing);
+      expect(find.text('Published 21 May 2026'), findsOneWidget);
+      expect(find.textContaining('Review due'), findsNothing);
+      await tester.tap(find.text('Source and review details'));
+      await tester.pumpAndSettle();
+      expect(find.text('Review due 21 May 2028'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets(
     'a failed cold load shows an error and retry restores the directory',

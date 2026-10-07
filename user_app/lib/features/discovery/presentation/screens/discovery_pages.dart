@@ -10,6 +10,7 @@ import 'package:user_app/features/ai_assistant/data/models/ai_context.dart';
 import 'package:user_app/features/discovery/data/models/discovery_models.dart';
 import 'package:user_app/features/discovery/presentation/widgets/discovery_widgets.dart';
 import 'package:user_app/features/discovery/presentation/widgets/discovery_directory_scaffold.dart';
+import 'package:user_app/features/discovery/presentation/widgets/discovery_detail_widgets.dart';
 
 class ContentHubDirectoryPage extends ConsumerStatefulWidget {
   const ContentHubDirectoryPage({super.key});
@@ -378,8 +379,8 @@ class _ContentHubPageState extends ConsumerState<ContentHubPage> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('Content hub')),
-    floatingActionButton: ref.watch(pillarRagMetadataEnabledProvider)
-        ? FloatingActionButton.extended(
+    bottomNavigationBar: ref.watch(pillarRagMetadataEnabledProvider)
+        ? DiscoveryAiBar(
             onPressed: () => context.push(
               AppRoutes.aiAssistant,
               extra: AiContext.genericPage(
@@ -388,8 +389,6 @@ class _ContentHubPageState extends ConsumerState<ContentHubPage> {
                 metadata: {'hub_slug': widget.slug},
               ),
             ),
-            icon: const Icon(LucideIcons.sparkles),
-            label: const Text('Ask AI'),
           )
         : null,
     body: FutureBuilder<DiscoveryValue<DiscoveryHub>>(
@@ -408,28 +407,50 @@ class _ContentHubPageState extends ConsumerState<ContentHubPage> {
         if (!enabled) {
           return const EmptyState('This content hub is not enabled yet.');
         }
+        final all = hubResources(hub);
+        final featured = hubResources(hub, featuredOnly: true);
+        final featuredKeys = featured
+            .map((item) => '${item.contentType}:${item.id}')
+            .toSet();
+        final reports = all
+            .where(
+              (item) =>
+                  item.contentType == 'situation_report' &&
+                  !featuredKeys.contains('${item.contentType}:${item.id}'),
+            )
+            .toList();
+        final latest = all
+            .where(
+              (item) =>
+                  !featuredKeys.contains('${item.contentType}:${item.id}') &&
+                  item.contentType != 'situation_report',
+            )
+            .take(5)
+            .toList();
         return ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
           children: [
-            Text(
-              hub.name,
-              style: Theme.of(
-                context,
-              ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800),
+            DiscoveryDetailHeader(
+              title: hub.name,
+              description: hub.description,
+              label: 'Clinical resources',
             ),
-            if (hub.description.isNotEmpty) Text(hub.description),
             if (hub.diseases.isNotEmpty)
-              Wrap(
-                spacing: 8,
-                children: hub.diseases
-                    .map(
-                      (disease) => ActionChip(
-                        label: Text(disease.name),
-                        onPressed: () =>
-                            context.push(AppRoutes.disease(disease.slug)),
-                      ),
-                    )
-                    .toList(),
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: hub.diseases
+                      .map(
+                        (disease) => ActionChip(
+                          label: Text(disease.name),
+                          onPressed: () =>
+                              context.push(AppRoutes.disease(disease.slug)),
+                        ),
+                      )
+                      .toList(),
+                ),
               ),
             if (snapshot.data!.offline)
               const Card(
@@ -438,73 +459,35 @@ class _ContentHubPageState extends ConsumerState<ContentHubPage> {
                   title: Text('Showing saved hub content'),
                 ),
               ),
-            if (hub.outbreak != null) OutbreakBanner(hub.outbreak!),
-            const SectionHeading('Quick access'),
+            if (hub.outbreak != null) ...[
+              const SizedBox(height: 16),
+              OutbreakBanner(hub.outbreak!),
+            ],
+            const SectionHeading('Browse sections'),
             if (hub.pillars.isEmpty)
-              const EmptyState('This hub has no published sections yet.')
+              const EmptyState(
+                'Published sections will appear here.',
+                title: 'No sections yet',
+              )
             else
-              GridView.count(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisCount: MediaQuery.sizeOf(context).width > 650 ? 4 : 2,
-                children: hub.pillars
-                    .map(
-                      (pillar) => InkWell(
-                        onTap: () => context.push(
-                          AppRoutes.hubPillar(hub.slug, pillar.slug),
-                        ),
-                        child: Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(10),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(LucideIcons.folderOpen),
-                                Text(
-                                  pillar.name,
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                Text('${pillar.resourceCount} resources'),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    )
-                    .toList(),
+              HubSectionList(hubSlug: hub.slug, pillars: hub.pillars),
+            if (featured.isNotEmpty) ...[
+              const SectionHeading('Featured resources'),
+              ...featured.map(ResourceTile.new),
+            ],
+            if (reports.isNotEmpty) ...[
+              const SectionHeading('Situation reports'),
+              ...reports.map(ResourceTile.new),
+            ],
+            if (latest.isNotEmpty) ...[
+              const SectionHeading('Latest resources'),
+              ...latest.map(ResourceTile.new),
+            ],
+            if (all.isEmpty)
+              const EmptyState(
+                'Published resources will appear here when they are available.',
+                title: 'No resources yet',
               ),
-            ...hubResources(hub, featuredOnly: true).isEmpty
-                ? const <Widget>[]
-                : <Widget>[
-                    const SectionHeading('Featured resources'),
-                    ...hubResources(
-                      hub,
-                      featuredOnly: true,
-                    ).map(ResourceTile.new),
-                  ],
-            ...hubResources(hub, contentType: 'situation_report').isEmpty
-                ? const <Widget>[]
-                : <Widget>[
-                    const SectionHeading('Situation reports'),
-                    ...hubResources(
-                      hub,
-                      contentType: 'situation_report',
-                    ).map(ResourceTile.new),
-                  ],
-            ...hubResources(hub).isEmpty
-                ? const <Widget>[
-                    EmptyState(
-                      'Published resources will appear here when they are available.',
-                      title: 'No resources yet',
-                    ),
-                  ]
-                : <Widget>[
-                    const SectionHeading('Latest updates'),
-                    ...hubResources(hub).take(5).map(ResourceTile.new),
-                  ],
           ],
         );
       },
@@ -547,8 +530,8 @@ class _ContentPillarPageState extends ConsumerState<ContentPillarPage> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('Hub section')),
-    floatingActionButton: ref.watch(pillarRagMetadataEnabledProvider)
-        ? FloatingActionButton.extended(
+    bottomNavigationBar: ref.watch(pillarRagMetadataEnabledProvider)
+        ? DiscoveryAiBar(
             onPressed: () => context.push(
               AppRoutes.aiAssistant,
               extra: AiContext.genericPage(
@@ -560,8 +543,6 @@ class _ContentPillarPageState extends ConsumerState<ContentPillarPage> {
                 },
               ),
             ),
-            icon: const Icon(LucideIcons.sparkles),
-            label: const Text('Ask AI'),
           )
         : null,
     body: FutureBuilder<DiscoveryValue<DiscoveryHub>>(
@@ -612,58 +593,65 @@ class _ContentPillarPageState extends ConsumerState<ContentPillarPage> {
                   title: Text('Showing saved hub content'),
                 ),
               ),
-            Text(
-              pillar.name,
-              style: Theme.of(
-                context,
-              ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800),
+            DiscoveryDetailHeader(
+              title: pillar.name,
+              description: pillar.description,
+              label: hub!.name,
             ),
-            if (pillar.description.isNotEmpty) Text(pillar.description),
             if (pillar.children.isNotEmpty) ...[
-              const SectionHeading('Sections'),
-              ...pillar.children.map(
-                (child) => Card(
-                  child: ListTile(
-                    leading: const Icon(LucideIcons.folderOpen),
-                    title: Text(child.name),
-                    subtitle: Text('${child.resourceCount} resources'),
-                    trailing: const Icon(LucideIcons.chevronRight),
-                    onTap: () => context.push(
-                      AppRoutes.hubPillar(widget.hubSlug, child.slug),
-                    ),
-                  ),
-                ),
-              ),
+              const SectionHeading('Browse subsections'),
+              HubSectionList(hubSlug: widget.hubSlug, pillars: pillar.children),
             ],
             const SizedBox(height: 16),
             TextField(
               controller: searchController,
-              decoration: const InputDecoration(
-                prefixIcon: Icon(LucideIcons.search),
-                hintText: 'Search this section',
+              textInputAction: TextInputAction.search,
+              decoration: InputDecoration(
+                prefixIcon: const Icon(LucideIcons.search),
+                hintText: 'Search resources',
+                suffixIcon: query.isEmpty
+                    ? null
+                    : IconButton(
+                        tooltip: 'Clear search',
+                        icon: const Icon(LucideIcons.x),
+                        onPressed: () => setState(() {
+                          searchController.clear();
+                          query = '';
+                        }),
+                      ),
               ),
               onChanged: (value) => setState(() => query = value),
             ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              key: ValueKey(kind),
-              initialValue: kind,
-              decoration: const InputDecoration(labelText: 'Content type'),
-              items: [
-                const DropdownMenuItem(
-                  value: '',
-                  child: Text('All content types'),
-                ),
-                ...kinds.map(
-                  (value) => DropdownMenuItem(
-                    value: value,
-                    child: Text(value.replaceAll('_', ' ')),
+            if (kinds.length > 1) ...[
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                key: ValueKey(kind),
+                initialValue: kind,
+                decoration: const InputDecoration(labelText: 'Content type'),
+                items: [
+                  const DropdownMenuItem(
+                    value: '',
+                    child: Text('All content types'),
                   ),
-                ),
-              ],
-              onChanged: (value) => setState(() => kind = value ?? ''),
+                  ...kinds.map(
+                    (value) => DropdownMenuItem(
+                      value: value,
+                      child: Text(resourceTypeLabel(value)),
+                    ),
+                  ),
+                ],
+                isExpanded: true,
+                onChanged: (value) => setState(() => kind = value ?? ''),
+              ),
+            ],
+            const SizedBox(height: 20),
+            Text(
+              '${shown.length} ${shown.length == 1 ? 'resource' : 'resources'}',
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
             ),
-            Text('${shown.length} public resources'),
+            const SizedBox(height: 8),
             if (shown.isEmpty)
               EmptyState(
                 query.trim().isNotEmpty || kind.isNotEmpty
