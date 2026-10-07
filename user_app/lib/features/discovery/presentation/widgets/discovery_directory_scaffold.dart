@@ -8,9 +8,6 @@ class DiscoveryDirectoryScaffold extends StatelessWidget {
     super.key,
     required this.title,
     required this.subtitle,
-    required this.icon,
-    required this.browseTitle,
-    required this.description,
     required this.searchHint,
     required this.search,
     required this.onChanged,
@@ -20,8 +17,7 @@ class DiscoveryDirectoryScaffold extends StatelessWidget {
     required this.child,
   });
 
-  final String title, subtitle, browseTitle, description, searchHint;
-  final IconData icon;
+  final String title, subtitle, searchHint;
   final TextEditingController search;
   final ValueChanged<String> onChanged;
   final VoidCallback onSubmitted, onClear;
@@ -71,78 +67,31 @@ class DiscoveryDirectoryScaffold extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(AppSpacing.md),
-                      decoration: BoxDecoration(
-                        color: colors.surfaceContainerLow,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: colors.outlineVariant),
-                      ),
-                      child: Column(
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                width: 42,
-                                height: 42,
-                                decoration: BoxDecoration(
-                                  color: colors.primaryContainer,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Icon(
-                                  icon,
-                                  color: colors.primary,
-                                  size: 21,
-                                ),
+                    TextField(
+                      controller: search,
+                      textInputAction: TextInputAction.search,
+                      onChanged: onChanged,
+                      onSubmitted: (_) => onSubmitted(),
+                      decoration: InputDecoration(
+                        hintText: searchHint,
+                        prefixIcon: const Icon(LucideIcons.search, size: 20),
+                        suffixIcon: search.text.isEmpty
+                            ? null
+                            : IconButton(
+                                tooltip: 'Clear search',
+                                onPressed: onClear,
+                                icon: const Icon(LucideIcons.x),
                               ),
-                              AppSpacing.hGapMd,
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      browseTitle,
-                                      style: text.titleSmall?.copyWith(
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 3),
-                                    Text(
-                                      description,
-                                      style: text.bodySmall?.copyWith(
-                                        color: colors.onSurfaceVariant,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          AppSpacing.gapMd,
-                          TextField(
-                            controller: search,
-                            textInputAction: TextInputAction.search,
-                            onChanged: onChanged,
-                            onSubmitted: (_) => onSubmitted(),
-                            decoration: InputDecoration(
-                              hintText: searchHint,
-                              prefixIcon: const Icon(LucideIcons.search),
-                              suffixIcon: search.text.isEmpty
-                                  ? null
-                                  : IconButton(
-                                      tooltip: 'Clear search',
-                                      onPressed: onClear,
-                                      icon: const Icon(LucideIcons.x),
-                                    ),
-                              filled: true,
-                              fillColor: colors.surface,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                          ),
-                        ],
+                        filled: true,
+                        fillColor: colors.surfaceContainerLow,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(color: colors.outlineVariant),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(color: colors.outlineVariant),
+                        ),
                       ),
                     ),
                     AppSpacing.gapLg,
@@ -197,7 +146,17 @@ class DiscoveryDirectoryResults extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          Text('$count', style: Theme.of(context).textTheme.labelLarge),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              '$count',
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
+          ),
         ],
       ),
       AppSpacing.gapSm,

@@ -77,11 +77,8 @@ class _ContentHubDirectoryPageState
     final hasSearch = search.text.trim().isNotEmpty;
     return DiscoveryDirectoryScaffold(
       title: 'Content hubs',
-      subtitle: 'Disease and clinical resource collections',
-      icon: LucideIcons.layoutGrid,
-      browseTitle: 'Find a content hub',
-      description: 'Explore approved guidance and resources grouped by topic.',
-      searchHint: 'Search disease and clinical hubs',
+      subtitle: 'Guidance and resources by topic',
+      searchHint: 'Search hubs',
       search: search,
       onChanged: searchChanged,
       onSubmitted: submit,
@@ -195,10 +192,6 @@ class _DiseaseDirectoryPageState extends ConsumerState<DiseaseDirectoryPage> {
     return DiscoveryDirectoryScaffold(
       title: 'Diseases & conditions',
       subtitle: 'Clinical guidance by condition',
-      icon: LucideIcons.activity,
-      browseTitle: 'Find a disease or condition',
-      description:
-          'Browse conditions and open their approved clinical resources.',
       searchHint: 'Search official names or aliases',
       search: search,
       onChanged: searchChanged,

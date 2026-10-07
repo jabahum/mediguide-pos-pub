@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:user_app/features/discovery/data/models/discovery_models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -141,6 +142,68 @@ Widget _host(
 );
 
 void main() {
+  for (final scale in [1.0, 2.0]) {
+    testWidgets('hub card opens its destination at text scale $scale', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(320, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) => Scaffold(
+              body: SingleChildScrollView(
+                child: HubTile(
+                  DiscoveryHub(
+                    id: 'hub',
+                    name: 'Ebola Response Hub',
+                    slug: 'ebola',
+                    description: 'Development content for testing',
+                    outbreak: const {'status': 'active'},
+                    diseases: const [
+                      DiscoveryDisease(
+                        id: 'disease',
+                        name: 'Ebola virus disease',
+                        slug: 'ebola',
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          GoRoute(
+            path: '/hubs/:slug',
+            builder: (_, state) =>
+                Scaffold(body: Text('Opened ${state.pathParameters['slug']}')),
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        MaterialApp.router(
+          routerConfig: router,
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(
+              context,
+            ).copyWith(textScaler: TextScaler.linear(scale)),
+            child: child!,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Ebola virus disease'), findsOneWidget);
+      expect(find.text('Outbreak response'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.tap(find.text('Ebola Response Hub'));
+      await tester.pumpAndSettle();
+      expect(find.text('Opened ebola'), findsOneWidget);
+    });
+  }
+
   for (final hubs in [true, false]) {
     testWidgets(
       '${hubs ? 'hub' : 'disease'} directory renders loading, results and recoverable search without blanking',

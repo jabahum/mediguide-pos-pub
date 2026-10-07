@@ -20,17 +20,101 @@ class HubTile extends StatelessWidget {
   final DiscoveryHub hub;
 
   @override
-  Widget build(BuildContext context) => _DiscoveryTopicTile(
-    icon: LucideIcons.layoutGrid,
-    title: hub.name,
-    subtitle: [
-      if (hub.diseases.isNotEmpty)
-        hub.diseases.map((disease) => disease.name).join(', '),
-      if (hub.outbreak != null) 'Outbreak response',
-      hub.description,
-    ].where((value) => value.isNotEmpty).join(' · '),
-    onTap: () => context.push(AppRoutes.hub(hub.slug)),
-  );
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
+    final outbreak = hub.outbreak != null;
+    final topic = hub.diseases.map((disease) => disease.name).join(', ');
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Card(
+        margin: EdgeInsets.zero,
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: colors.outlineVariant),
+        ),
+        child: InkWell(
+          onTap: () => context.push(AppRoutes.hub(hub.slug)),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: outbreak
+                        ? colors.tertiaryContainer
+                        : colors.primaryContainer,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    outbreak ? LucideIcons.shieldPlus : LucideIcons.bookOpen,
+                    color: outbreak
+                        ? colors.onTertiaryContainer
+                        : colors.primary,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        hub.name,
+                        style: text.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      if (topic.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          topic,
+                          style: text.bodySmall?.copyWith(
+                            color: colors.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: outbreak
+                              ? colors.tertiaryContainer
+                              : colors.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          outbreak ? 'Outbreak response' : 'Clinical resources',
+                          style: text.labelSmall?.copyWith(
+                            color: outbreak
+                                ? colors.onTertiaryContainer
+                                : colors.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  LucideIcons.chevronRight,
+                  color: colors.onSurfaceVariant,
+                  size: 18,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _DiscoveryTopicTile extends StatelessWidget {
