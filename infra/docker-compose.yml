@@ -114,6 +114,7 @@ services:
       DEFAULT_ADMIN_EMAIL: "${DEFAULT_ADMIN_EMAIL:-admin@mediguide.local}"
       DEFAULT_ADMIN_PASSWORD: "${DEFAULT_ADMIN_PASSWORD:-Admin123!}"
       ALLOWED_ORIGINS: "${ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5000,http://localhost:5173}"
+      ACCOUNT_ACTION_URL: "${ACCOUNT_ACTION_URL:-}"
       PUBLIC_APP_URL: "${DASHBOARD_PUBLIC_URL:-http://localhost:3000}"
       MAIL_DRIVER: "${MAIL_DRIVER:-disabled}"
       MAIL_FROM: "${MAIL_FROM:-}"
