@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:user_app/app/router/app_router.dart';
 import 'package:user_app/core/utils/app_message.dart';
 import 'package:user_app/core/widgets/app_skeleton.dart';
+import 'package:user_app/core/widgets/app_error_view.dart';
 import 'package:user_app/core/widgets/empty_state.dart' as states;
 import 'package:user_app/features/discovery/data/models/discovery_models.dart';
 
@@ -15,24 +16,70 @@ class HubTile extends StatelessWidget {
   final DiscoveryHub hub;
 
   @override
-  Widget build(BuildContext context) => Card(
-    child: ListTile(
-      leading: const Icon(LucideIcons.layoutGrid),
-      title: Text(hub.name),
-      subtitle: Text(
-        [
-          if (hub.diseases.isNotEmpty)
-            hub.diseases.map((disease) => disease.name).join(', '),
-          if (hub.outbreak != null) 'Outbreak response',
-          hub.description,
-        ].where((value) => value.isNotEmpty).join(' · '),
-        maxLines: 3,
-        overflow: TextOverflow.ellipsis,
-      ),
-      trailing: const Icon(LucideIcons.chevronRight),
-      onTap: () => context.push(AppRoutes.hub(hub.slug)),
-    ),
+  Widget build(BuildContext context) => _DiscoveryTopicTile(
+    icon: LucideIcons.layoutGrid,
+    title: hub.name,
+    subtitle: [
+      if (hub.diseases.isNotEmpty)
+        hub.diseases.map((disease) => disease.name).join(', '),
+      if (hub.outbreak != null) 'Outbreak response',
+      hub.description,
+    ].where((value) => value.isNotEmpty).join(' · '),
+    onTap: () => context.push(AppRoutes.hub(hub.slug)),
   );
+}
+
+class _DiscoveryTopicTile extends StatelessWidget {
+  const _DiscoveryTopicTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+  final IconData icon;
+  final String title, subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: colors.outlineVariant),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(16),
+        leading: Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            color: colors.primaryContainer,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, color: colors.primary, size: 21),
+        ),
+        title: Text(
+          title,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(
+            context,
+          ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+        ),
+        subtitle: subtitle.isEmpty
+            ? null
+            : Text(subtitle, maxLines: 3, overflow: TextOverflow.ellipsis),
+        trailing: Icon(
+          LucideIcons.chevronRight,
+          color: colors.onSurfaceVariant,
+          size: 20,
+        ),
+        onTap: onTap,
+      ),
+    );
+  }
 }
 
 class ResourceTile extends StatelessWidget {
@@ -179,15 +226,17 @@ class DiscoverySkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => AppShimmer(
-    child: ListView(
-      padding: const EdgeInsets.all(16),
-      children: const [
-        AppSkeleton(height: 44),
-        SizedBox(height: 16),
-        AppSkeleton(height: 120),
-        SizedBox(height: 12),
-        AppSkeleton(height: 120),
-      ],
+    child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Column(
+        children: const [
+          AppSkeleton(height: 44),
+          SizedBox(height: 16),
+          AppSkeleton(height: 120),
+          SizedBox(height: 12),
+          AppSkeleton(height: 120),
+        ],
+      ),
     ),
   );
 }
@@ -197,8 +246,10 @@ class ErrorState extends StatelessWidget {
   final VoidCallback onRetry;
 
   @override
-  Widget build(BuildContext context) => Center(
-    child: FilledButton(onPressed: onRetry, child: const Text('Try again')),
+  Widget build(BuildContext context) => AppErrorView(
+    error: 'Unable to load this content.',
+    message: 'Check your connection and try again.',
+    onRetry: onRetry,
   );
 }
 
@@ -252,20 +303,11 @@ List<Widget> diseaseTiles(
     for (final disease in rows) ...[
       Padding(
         padding: EdgeInsets.only(left: depth * 18.0),
-        child: Card(
-          child: ListTile(
-            leading: const Icon(LucideIcons.activity),
-            title: Text(disease.name),
-            subtitle: disease.description.isEmpty
-                ? null
-                : Text(
-                    disease.description,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-            trailing: const Icon(LucideIcons.chevronRight),
-            onTap: () => context.push(AppRoutes.disease(disease.slug)),
-          ),
+        child: _DiscoveryTopicTile(
+          icon: LucideIcons.activity,
+          title: disease.name,
+          subtitle: disease.description,
+          onTap: () => context.push(AppRoutes.disease(disease.slug)),
         ),
       ),
       ...diseaseTiles(

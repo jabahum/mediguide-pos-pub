@@ -1,13 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:user_app/app/providers/app_providers.dart';
 import 'package:user_app/app/router/app_router.dart';
-import 'package:user_app/core/utils/app_message.dart';
 import 'package:user_app/features/ai_assistant/data/models/ai_context.dart';
 import 'package:user_app/features/discovery/data/models/discovery_models.dart';
 import 'package:user_app/features/discovery/presentation/widgets/discovery_widgets.dart';
+import 'package:user_app/features/discovery/presentation/widgets/discovery_directory_scaffold.dart';
 
 class ContentHubDirectoryPage extends ConsumerStatefulWidget {
   const ContentHubDirectoryPage({super.key});
@@ -20,6 +22,7 @@ class ContentHubDirectoryPage extends ConsumerStatefulWidget {
 class _ContentHubDirectoryPageState
     extends ConsumerState<ContentHubDirectoryPage> {
   final search = TextEditingController();
+  Timer? debounce;
   late Future<DiscoveryValue<List<DiscoveryHub>>> request;
 
   @override
@@ -30,76 +33,100 @@ class _ContentHubDirectoryPageState
 
   @override
   void dispose() {
+    debounce?.cancel();
     search.dispose();
     super.dispose();
   }
 
-  void reload() =>
-      request = ref.read(discoveryRepositoryProvider).hubs(search: search.text);
+  void reload() {
+    request = ref
+        .read(discoveryRepositoryProvider)
+        .hubs(search: search.text.trim());
+  }
+
+  void searchChanged(String _) {
+    debounce?.cancel();
+    setState(() {});
+    debounce = Timer(const Duration(milliseconds: 300), () => setState(reload));
+  }
+
+  void submit() {
+    debounce?.cancel();
+    setState(reload);
+  }
+
+  void clear() {
+    search.clear();
+    submit();
+  }
+
+  Future<void> refresh() async {
+    submit();
+    try {
+      await request;
+    } catch (_) {
+      // FutureBuilder displays the request error with a retry action.
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final diseaseHubsEnabled = ref.watch(diseaseHubsEnabledProvider);
-    final genericHubsEnabled = ref.watch(genericHubsEnabledProvider);
-    return Scaffold(
-      appBar: AppBar(title: const Text('Content hubs')),
-      body: !diseaseHubsEnabled && !genericHubsEnabled
-          ? const EmptyState('Content hubs are not enabled yet.')
-          : RefreshIndicator(
-              onRefresh: () async {
-                setState(reload);
-                await request;
+    final diseaseEnabled = ref.watch(diseaseHubsEnabledProvider);
+    final genericEnabled = ref.watch(genericHubsEnabledProvider);
+    final hasSearch = search.text.trim().isNotEmpty;
+    return DiscoveryDirectoryScaffold(
+      title: 'Content hubs',
+      subtitle: 'Disease and clinical resource collections',
+      icon: LucideIcons.layoutGrid,
+      browseTitle: 'Find a content hub',
+      description: 'Explore approved guidance and resources grouped by topic.',
+      searchHint: 'Search disease and clinical hubs',
+      search: search,
+      onChanged: searchChanged,
+      onSubmitted: submit,
+      onClear: clear,
+      onRefresh: refresh,
+      child: !diseaseEnabled && !genericEnabled
+          ? const EmptyState(
+              'Content hubs will appear here when this feature is available.',
+              title: 'Content hubs are not available yet',
+            )
+          : FutureBuilder<DiscoveryValue<List<DiscoveryHub>>>(
+              future: request,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState != ConnectionState.done) {
+                  return const DiscoverySkeleton();
+                }
+                if (snapshot.hasError) {
+                  return ErrorState(onRetry: submit);
+                }
+                final result = snapshot.data!;
+                final hubs = result.value
+                    .where(
+                      (hub) => hub.diseases.isNotEmpty
+                          ? diseaseEnabled
+                          : genericEnabled,
+                    )
+                    .toList();
+                return DiscoveryDirectoryResults(
+                  label: hasSearch ? 'Matching hubs' : 'Available hubs',
+                  count: hubs.length,
+                  offline: result.offline,
+                  child: hubs.isEmpty
+                      ? EmptyState(
+                          hasSearch
+                              ? 'Try another topic or clear your search to browse all hubs.'
+                              : 'Published clinical and disease resource collections will appear here.',
+                          title: hasSearch
+                              ? 'No matching content hubs'
+                              : 'No content hubs yet',
+                          isSearch: hasSearch,
+                          actionLabel: hasSearch ? 'Clear search' : 'Refresh',
+                          onAction: hasSearch ? clear : submit,
+                        )
+                      : Column(children: hubs.map(HubTile.new).toList()),
+                );
               },
-              child: ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(16),
-                children: [
-                  TextField(
-                    controller: search,
-                    textInputAction: TextInputAction.search,
-                    decoration: const InputDecoration(
-                      prefixIcon: Icon(LucideIcons.search),
-                      hintText: 'Search disease and clinical hubs',
-                    ),
-                    onSubmitted: (_) => setState(reload),
-                  ),
-                  const SizedBox(height: 16),
-                  FutureBuilder<DiscoveryValue<List<DiscoveryHub>>>(
-                    future: request,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState != ConnectionState.done) {
-                        return const DiscoverySkeleton();
-                      }
-                      if (snapshot.hasError) {
-                        return ErrorState(onRetry: () => setState(reload));
-                      }
-                      final result = snapshot.data!;
-                      final hubs = result.value.where((hub) {
-                        final diseaseHub = hub.diseases.isNotEmpty;
-                        return diseaseHub
-                            ? diseaseHubsEnabled
-                            : genericHubsEnabled;
-                      }).toList();
-                      if (result.offline) {
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (mounted) {
-                            AppMessage.warning(
-                              context,
-                              'Offline: showing saved content hubs.',
-                            );
-                          }
-                        });
-                      }
-                      if (hubs.isEmpty) {
-                        return const EmptyState(
-                          'No published content hubs are available.',
-                        );
-                      }
-                      return Column(children: hubs.map(HubTile.new).toList());
-                    },
-                  ),
-                ],
-              ),
             ),
     );
   }
@@ -114,7 +141,9 @@ class DiseaseDirectoryPage extends ConsumerStatefulWidget {
 
 class _DiseaseDirectoryPageState extends ConsumerState<DiseaseDirectoryPage> {
   final search = TextEditingController();
+  Timer? debounce;
   late Future<DiscoveryValue<List<DiscoveryDisease>>> request;
+
   @override
   void initState() {
     super.initState();
@@ -123,72 +152,95 @@ class _DiseaseDirectoryPageState extends ConsumerState<DiseaseDirectoryPage> {
 
   @override
   void dispose() {
+    debounce?.cancel();
     search.dispose();
     super.dispose();
   }
 
-  void reload() => request = ref
-      .read(discoveryRepositoryProvider)
-      .diseases(search: search.text);
+  void reload() {
+    request = ref
+        .read(discoveryRepositoryProvider)
+        .diseases(search: search.text.trim());
+  }
+
+  void searchChanged(String _) {
+    debounce?.cancel();
+    setState(() {});
+    debounce = Timer(const Duration(milliseconds: 300), () => setState(reload));
+  }
+
+  void submit() {
+    debounce?.cancel();
+    setState(reload);
+  }
+
+  void clear() {
+    search.clear();
+    submit();
+  }
+
+  Future<void> refresh() async {
+    submit();
+    try {
+      await request;
+    } catch (_) {
+      // FutureBuilder displays the request error with a retry action.
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (!ref.watch(diseaseTaxonomyEnabledProvider)) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Diseases & conditions')),
-        body: const EmptyState('Disease discovery is not enabled yet.'),
-      );
-    }
-    return Scaffold(
-      appBar: AppBar(title: const Text('Diseases & conditions')),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          setState(reload);
-          await request;
-        },
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            TextField(
-              controller: search,
-              textInputAction: TextInputAction.search,
-              decoration: const InputDecoration(
-                prefixIcon: Icon(LucideIcons.search),
-                hintText: 'Search official names or aliases',
-              ),
-              onSubmitted: (_) => setState(reload),
-            ),
-            const SizedBox(height: 16),
-            FutureBuilder<DiscoveryValue<List<DiscoveryDisease>>>(
+    final hasSearch = search.text.trim().isNotEmpty;
+    return DiscoveryDirectoryScaffold(
+      title: 'Diseases & conditions',
+      subtitle: 'Clinical guidance by condition',
+      icon: LucideIcons.activity,
+      browseTitle: 'Find a disease or condition',
+      description:
+          'Browse conditions and open their approved clinical resources.',
+      searchHint: 'Search official names or aliases',
+      search: search,
+      onChanged: searchChanged,
+      onSubmitted: submit,
+      onClear: clear,
+      onRefresh: refresh,
+      child: !ref.watch(diseaseTaxonomyEnabledProvider)
+          ? const EmptyState(
+              'Conditions and their clinical resources will appear here when this feature is available.',
+              title: 'Disease discovery is not available yet',
+            )
+          : FutureBuilder<DiscoveryValue<List<DiscoveryDisease>>>(
               future: request,
               builder: (context, snapshot) {
                 if (snapshot.connectionState != ConnectionState.done) {
                   return const DiscoverySkeleton();
                 }
                 if (snapshot.hasError) {
-                  return ErrorState(onRetry: () => setState(reload));
+                  return ErrorState(onRetry: submit);
                 }
                 final result = snapshot.data!;
-                if (result.offline) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (mounted) {
-                      AppMessage.warning(
-                        context,
-                        'Offline: showing saved disease content.',
-                      );
-                    }
-                  });
-                }
-                if (result.value.isEmpty) {
-                  return const EmptyState(
-                    'No active diseases with public content found.',
-                  );
-                }
-                return Column(children: diseaseTiles(context, result.value));
+                return DiscoveryDirectoryResults(
+                  label: hasSearch
+                      ? 'Matching conditions'
+                      : 'Available conditions',
+                  count: result.value.length,
+                  offline: result.offline,
+                  child: result.value.isEmpty
+                      ? EmptyState(
+                          hasSearch
+                              ? 'Try another name or alias, or clear your search to see all conditions.'
+                              : 'Conditions with approved public guidance will appear here.',
+                          title: hasSearch
+                              ? 'No matching conditions'
+                              : 'No conditions yet',
+                          isSearch: hasSearch,
+                          actionLabel: hasSearch ? 'Clear search' : 'Refresh',
+                          onAction: hasSearch ? clear : submit,
+                        )
+                      : Column(children: diseaseTiles(context, result.value)),
+                );
               },
             ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -210,8 +262,9 @@ class _DiseaseDetailPageState extends ConsumerState<DiseaseDetailPage> {
     reload();
   }
 
-  void reload() =>
-      request = ref.read(discoveryRepositoryProvider).disease(widget.slug);
+  void reload() {
+    request = ref.read(discoveryRepositoryProvider).disease(widget.slug);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -318,8 +371,9 @@ class _ContentHubPageState extends ConsumerState<ContentHubPage> {
     reload();
   }
 
-  void reload() =>
-      request = ref.read(discoveryRepositoryProvider).hub(widget.slug);
+  void reload() {
+    request = ref.read(discoveryRepositoryProvider).hub(widget.slug);
+  }
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -480,8 +534,9 @@ class _ContentPillarPageState extends ConsumerState<ContentPillarPage> {
     reload();
   }
 
-  void reload() =>
-      request = ref.read(discoveryRepositoryProvider).hub(widget.hubSlug);
+  void reload() {
+    request = ref.read(discoveryRepositoryProvider).hub(widget.hubSlug);
+  }
 
   @override
   void dispose() {
