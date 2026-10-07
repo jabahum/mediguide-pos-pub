@@ -42,6 +42,7 @@ type Config struct {
 	AccountActionURL                string
 	MailDriver                      string
 	MailFrom                        string
+	ResendAPIKey                    string
 	SMTPHost                        string
 	SMTPPort                        int
 	SMTPUsername                    string
@@ -102,6 +103,7 @@ func Load() Config {
 		AccountActionURL:                get("ACCOUNT_ACTION_URL", ""),
 		MailDriver:                      get("MAIL_DRIVER", "disabled"),
 		MailFrom:                        get("MAIL_FROM", ""),
+		ResendAPIKey:                    get("RESEND_API_KEY", ""),
 		SMTPHost:                        get("SMTP_HOST", ""),
 		SMTPPort:                        getInt("SMTP_PORT", 587),
 		SMTPUsername:                    get("SMTP_USERNAME", ""),

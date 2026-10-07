@@ -157,7 +157,7 @@ func (s AuthService) deliverAccountEmail(ctx context.Context, d models.AccountEm
 	}
 	sendCtx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
-	if err := s.Mailer.Send(sendCtx, mailer.Message{To: user.Email, Subject: subject, Text: fmt.Sprintf("Open this link to continue: %s\n\nIf you did not request this action, ignore this message.", link)}); err != nil {
+	if err := s.Mailer.Send(sendCtx, mailer.Message{To: user.Email, Subject: subject, Text: fmt.Sprintf("Open this link to continue: %s\n\nIf you did not request this action, ignore this message.", link), IdempotencyKey: "account-email/" + d.ID.String()}); err != nil {
 		code := "provider_rejected"
 		if errors.Is(err, mailer.ErrDisabled) {
 			code = "mail_disabled"

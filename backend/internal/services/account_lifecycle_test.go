@@ -89,6 +89,9 @@ func TestAccountEmailRetriesAreDurableAndTokensNeverAppearInAudits(t *testing.T)
 	if len(sender.messages) != 2 {
 		t.Fatal("already sent message was delivered twice")
 	}
+	if sender.messages[0].IdempotencyKey != "account-email/"+delivery.ID.String() || sender.messages[0].IdempotencyKey != sender.messages[1].IdempotencyKey {
+		t.Fatal("account email retries must reuse the same provider idempotency key")
+	}
 	if err := s.ConfirmPasswordReset(result.DevelopmentToken, "NewPassword9"); err != nil {
 		t.Fatal(err)
 	}

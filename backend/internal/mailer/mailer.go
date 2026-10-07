@@ -20,6 +20,8 @@ type Message struct {
 	To      string
 	Subject string
 	Text    string
+	// Stable per queued email, including across retries and lease recovery.
+	IdempotencyKey string
 }
 
 type Sender interface {
@@ -35,6 +37,8 @@ func New(cfg config.Config) (Sender, error) {
 			return nil, errors.New("development mail driver is not allowed in production")
 		}
 		return DevelopmentSender{}, nil
+	case "resend":
+		return newResendSender(cfg)
 	case "smtp":
 		if cfg.SMTPHost == "" || cfg.SMTPPort == 0 || cfg.MailFrom == "" {
 			return nil, errors.New("MAIL_DRIVER=smtp requires SMTP_HOST, SMTP_PORT, and MAIL_FROM")

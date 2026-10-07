@@ -15,7 +15,7 @@ SECTIONS = [
     ("Object storage and browser asset URLs", ("STORAGE_DRIVER", "MINIO_ROOT_USER", "MINIO_ROOT_PASSWORD", "S3_", "MINIO_API_CORS_ALLOW_ORIGIN", "GUIDELINE_DIRECT_UPLOADS", "MAX_UPLOAD_MB", "MAX_UPLOAD_BYTES", "MINIO_PUBLIC_PORT", "MINIO_CONSOLE_PUBLIC_PORT")),
     ("Database connections", ("POSTGRES_DB", "POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_PUBLIC_PORT", "DATABASE_URL", "AI_DATABASE_URL", "DB_STATEMENT_TIMEOUT_MS")),
     ("Authentication and initial administrator", ("JWT_SECRET", "JWT_ISSUER", "JWT_ACCESS_TTL_MINUTES", "JWT_REFRESH_TTL_MINUTES", "DEFAULT_ADMIN_NAME", "DEFAULT_ADMIN_EMAIL", "DEFAULT_ADMIN_PASSWORD", "ACCOUNT_ACTION_URL")),
-    ("Account email delivery", ("MAIL_DRIVER", "MAIL_FROM", "SMTP_HOST", "SMTP_PORT", "SMTP_USERNAME", "SMTP_PASSWORD")),
+    ("Account email delivery", ("MAIL_DRIVER", "MAIL_FROM", "RESEND_API_KEY", "SMTP_HOST", "SMTP_PORT", "SMTP_USERNAME", "SMTP_PASSWORD")),
     ("Firebase and notification worker", ("FIREBASE_", "NOTIFICATION_")),
     ("Redis and response caching", ("REDIS_", "CACHE_")),
     ("Rate limits", ("RATE_LIMIT_",)),
@@ -60,6 +60,9 @@ def organize(raw: bytes, defaults: bytes | None = None) -> bytes:
                       b"# Keep S3_PUBLIC_SSL=true in production. Internal API storage traffic still uses minio:9000."]
         if title.startswith("Firebase"):
             block += [b"# Service-account credentials stay backend-only; use encoded JSON, not a filename."]
+        if title == "Account email delivery":
+            block += [b"# MAIL_DRIVER: disabled, development (non-production), smtp, or resend (HTTPS API).",
+                      b"# Resend requires a verified sender in MAIL_FROM and a private RESEND_API_KEY."]
         block.extend(key.encode() + b"=" + values[key] for key in keys)
         remaining.difference_update(keys)
         blocks.append(b"\n".join(block))
