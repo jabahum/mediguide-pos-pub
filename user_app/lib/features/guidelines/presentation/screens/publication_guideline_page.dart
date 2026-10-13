@@ -119,11 +119,12 @@ class _PublicationGuidelinePageState
     // File and link readers need only metadata; their structured endpoints
     // may intentionally have no published content.
     final completeContent =
-        summary != null &&
-            kind != DocumentReaderKind.uploaded &&
-            kind != DocumentReaderKind.link &&
-            summary.manifest.recommendedMode !=
-                GuidelineReaderMode.originalDocument
+        summaryContent.hasError ||
+            (summary != null &&
+                kind != DocumentReaderKind.uploaded &&
+                kind != DocumentReaderKind.link &&
+                summary.manifest.recommendedMode !=
+                    GuidelineReaderMode.originalDocument)
         ? ref.watch(publicationGuidelineProvider(widget.guidelineId))
         : summaryContent;
     final content = widget.readerOnly || completeContent.valueOrNull != null
