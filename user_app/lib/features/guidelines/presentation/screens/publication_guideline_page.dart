@@ -26,6 +26,8 @@ import 'package:user_app/features/guidelines/data/models/guideline_publication.d
 import 'package:user_app/features/guidelines/data/models/reading_progress.dart';
 import 'package:user_app/features/guidelines/presentation/controllers/publication_guideline_controller.dart';
 import 'package:user_app/features/guidelines/presentation/widgets/publication_block_view.dart';
+import 'package:user_app/features/guidelines/presentation/widgets/document_kind_reader.dart';
+import 'package:user_app/features/guidelines/presentation/utils/document_reader_kind.dart';
 import 'package:user_app/features/guidelines/presentation/widgets/publication_guideline_page_empty_section.dart';
 import 'package:user_app/features/library/presentation/widgets/save_to_collection_sheet.dart';
 import 'package:user_app/features/library/presentation/utils/collection_messages.dart';
@@ -107,12 +109,23 @@ class _PublicationGuidelinePageState
 
   @override
   Widget build(BuildContext context) {
-    final completeContent = ref.watch(
-      publicationGuidelineProvider(widget.guidelineId),
-    );
     final summaryContent = ref.watch(
       publicationGuidelineSummaryProvider(widget.guidelineId),
     );
+    final summary = summaryContent.valueOrNull;
+    final kind = summary == null
+        ? null
+        : DocumentReaderKind.forPublication(summary.publication);
+    // File and link readers need only metadata; their structured endpoints
+    // may intentionally have no published content.
+    final completeContent =
+        summary != null &&
+            kind != DocumentReaderKind.uploaded &&
+            kind != DocumentReaderKind.link &&
+            summary.manifest.recommendedMode !=
+                GuidelineReaderMode.originalDocument
+        ? ref.watch(publicationGuidelineProvider(widget.guidelineId))
+        : summaryContent;
     final content = widget.readerOnly || completeContent.valueOrNull != null
         ? completeContent
         : summaryContent;
@@ -238,7 +251,8 @@ class _PublicationGuidelinePageState
           },
         ),
         data: (value) {
-          if (value.publication.opensWebsite) {
+          if (DocumentReaderKind.forPublication(value.publication) ==
+              DocumentReaderKind.link) {
             return _LinkedDocumentView(
               publication: value.publication,
               onOpen: () {
@@ -247,7 +261,9 @@ class _PublicationGuidelinePageState
             );
           }
 
-          if (widget.readerOnly) {
+          if (widget.readerOnly ||
+              DocumentReaderKind.forPublication(value.publication) ==
+                  DocumentReaderKind.uploaded) {
             return _content(context, value);
           }
 
@@ -261,7 +277,10 @@ class _PublicationGuidelinePageState
       // A link has nothing to read or download; its view opens the website.
       bottomNavigationBar:
           content.valueOrNull == null ||
-              content.requireValue.publication.opensWebsite
+              DocumentReaderKind.forPublication(
+                    content.requireValue.publication,
+                  ) ==
+                  DocumentReaderKind.link
           ? null
           : _ReaderActionBar(
               isBookmarked: progress?.isBookmarked == true,
@@ -509,8 +528,10 @@ class _PublicationGuidelinePageState
 
   Widget _content(BuildContext context, GuidelinePublicationContent value) {
     final mode = value.manifest.recommendedMode;
+    final kind = DocumentReaderKind.forPublication(value.publication);
 
-    if (mode == GuidelineReaderMode.originalDocument) {
+    if (kind == DocumentReaderKind.uploaded ||
+        mode == GuidelineReaderMode.originalDocument) {
       final asset = ref
           .watch(guidelineOriginalDocumentProvider(widget.guidelineId))
           .valueOrNull;
@@ -528,6 +549,22 @@ class _PublicationGuidelinePageState
     final sections = value.readerSections;
 
     _scheduleInitialProgress(sections);
+    if (kind != DocumentReaderKind.guideline) {
+      return DocumentKindReader(
+        key: ValueKey('${value.publication.id}:${value.manifest.checksum}'),
+        content: value,
+        kind: kind,
+        initialSectionId: _selectedSectionId,
+        onSection: (id) {
+          setState(() {
+            _selectedSectionId = id;
+            _currentSectionId = id;
+          });
+          unawaited(_recordSectionProgress(sections, id));
+        },
+        onOpenOriginal: () => _openOriginal(context),
+      );
+    }
 
     final selected = _selectedSectionId;
 
