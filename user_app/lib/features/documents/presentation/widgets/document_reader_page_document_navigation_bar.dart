@@ -6,7 +6,7 @@ class _DocumentNavigationBar extends StatelessWidget {
     required this.pageCount,
     required this.onPrevious,
     required this.onNext,
-    required this.onOpenOriginal,
+    required this.onMore,
     required this.onPickPage,
   });
 
@@ -14,7 +14,7 @@ class _DocumentNavigationBar extends StatelessWidget {
   final int pageCount;
   final VoidCallback? onPrevious;
   final VoidCallback? onNext;
-  final VoidCallback onOpenOriginal;
+  final VoidCallback onMore;
   final VoidCallback? onPickPage;
 
   @override
@@ -93,9 +93,9 @@ class _DocumentNavigationBar extends StatelessWidget {
                   ),
 
                   IconButton(
-                    tooltip: 'Open original PDF',
-                    onPressed: onOpenOriginal,
-                    icon: const Icon(LucideIcons.externalLink),
+                    tooltip: 'More document actions',
+                    onPressed: onMore,
+                    icon: const Icon(LucideIcons.ellipsis),
                   ),
                 ],
               ),

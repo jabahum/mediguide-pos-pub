@@ -305,35 +305,36 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
-  testWidgets(
-    'top and bottom More open the same menu and launch reader tools',
-    (tester) async {
-      await pumpOverview(tester, _sample('manual', 'Manual'), readerOnly: true);
-      await tester.tap(find.byTooltip('More document actions'));
-      await tester.pumpAndSettle();
-      expect(find.text('Document actions'), findsOneWidget);
-      await tester.tap(find.byKey(const ValueKey(DocumentMenuAction.contents)));
-      await tester.pumpAndSettle();
-      expect(find.text('Document actions'), findsNothing);
-      expect(find.text('Find a section'), findsOneWidget);
-      await tester.tap(find.byTooltip('Close contents'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('More'));
-      await tester.pumpAndSettle();
-      expect(find.text('Document actions'), findsOneWidget);
-      await tester.scrollUntilVisible(
-        find.text('Reading settings'),
-        250,
-        scrollable: find.byType(Scrollable).last,
-      );
-      await tester.tap(find.text('Reading settings'));
-      await tester.pumpAndSettle();
-      expect(find.text('Document actions'), findsNothing);
-      expect(find.text('Text size · 100%'), findsOneWidget);
-      await tester.tap(find.text('Done'));
-      await tester.pumpAndSettle();
-    },
-  );
+  testWidgets('only bottom More opens the menu and launches reader tools', (
+    tester,
+  ) async {
+    await pumpOverview(tester, _sample('manual', 'Manual'), readerOnly: true);
+    expect(find.byTooltip('More document actions'), findsNothing);
+    expect(find.text('More'), findsOneWidget);
+    await tester.tap(find.text('More'));
+    await tester.pumpAndSettle();
+    expect(find.text('Document actions'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey(DocumentMenuAction.contents)));
+    await tester.pumpAndSettle();
+    expect(find.text('Document actions'), findsNothing);
+    expect(find.text('Find a section'), findsOneWidget);
+    await tester.tap(find.byTooltip('Close contents'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('More'));
+    await tester.pumpAndSettle();
+    expect(find.text('Document actions'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Reading settings'),
+      250,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.tap(find.text('Reading settings'));
+    await tester.pumpAndSettle();
+    expect(find.text('Document actions'), findsNothing);
+    expect(find.text('Text size · 100%'), findsOneWidget);
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+  });
   testWidgets('an open menu reflects removal of its saved offline copy', (
     tester,
   ) async {
@@ -350,7 +351,7 @@ void main() {
         ),
       ],
     );
-    await tester.tap(find.byTooltip('More document actions'));
+    await tester.tap(find.byTooltip('More'));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
       find.text('Manage offline copy'),

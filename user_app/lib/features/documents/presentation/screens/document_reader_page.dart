@@ -273,13 +273,23 @@ class _DocumentReaderPageState extends State<DocumentReaderPage> {
             onPressed: _pageCount > 0 ? _pickPage : null,
             icon: const Icon(Icons.find_in_page_outlined),
           ),
-          IconButton(
-            tooltip: 'More document actions',
-            onPressed: _hasValidSource ? _showDocumentActions : null,
-            icon: const Icon(Icons.more_vert),
-          ),
         ],
       ),
+
+      bottomNavigationBar: !_hasValidSource
+          ? null
+          : _DocumentNavigationBar(
+              currentPage: _currentPage,
+              pageCount: _pageCount,
+              onPrevious: _currentPage > 0
+                  ? () => _goToPage(_currentPage - 1)
+                  : null,
+              onNext: _pageCount > 0 && _currentPage < _pageCount - 1
+                  ? () => _goToPage(_currentPage + 1)
+                  : null,
+              onMore: _showDocumentActions,
+              onPickPage: _pageCount > 0 ? _pickPage : null,
+            ),
 
       body: !_hasValidSource
           ? const _DocumentError(
@@ -393,24 +403,6 @@ class _DocumentReaderPageState extends State<DocumentReaderPage> {
                               ),
                             ),
                           ),
-                        ),
-
-                        _DocumentNavigationBar(
-                          currentPage: _currentPage,
-                          pageCount: _pageCount,
-                          onPrevious: _currentPage > 0
-                              ? () {
-                                  _goToPage(_currentPage - 1);
-                                }
-                              : null,
-                          onNext:
-                              _pageCount > 0 && _currentPage < _pageCount - 1
-                              ? () {
-                                  _goToPage(_currentPage + 1);
-                                }
-                              : null,
-                          onOpenOriginal: _openOriginal,
-                          onPickPage: _pageCount > 0 ? _pickPage : null,
                         ),
                       ],
                     ),

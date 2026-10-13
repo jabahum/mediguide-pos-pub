@@ -169,18 +169,6 @@ class _PublicationGuidelinePageState
           if (!widget.readerOnly &&
               ref.watch(authControllerProvider).valueOrNull?.user != null)
             _FollowGuidelineButton(guidelineId: widget.guidelineId),
-          IconButton(
-            tooltip: 'More document actions',
-            icon: const Icon(Icons.more_vert),
-            onPressed: currentContent == null
-                ? null
-                : () => _showDocumentActions(
-                    context,
-                    currentContent,
-                    progress,
-                    offlineDownload,
-                  ),
-          ),
         ],
       ),
 
@@ -226,10 +214,8 @@ class _PublicationGuidelinePageState
       // =====================================================================
       // BOTTOM ACTION BAR
       // =====================================================================
-      // A link has nothing to read or download; its view opens the website.
-      bottomNavigationBar:
-          currentContent == null ||
-              (widget.readerOnly && overviewPresentation!.isLink)
+      // Keep document actions available from one consistent bottom menu.
+      bottomNavigationBar: currentContent == null
           ? null
           : _ReaderActionBar(
               isBookmarked: progress?.isBookmarked == true,
