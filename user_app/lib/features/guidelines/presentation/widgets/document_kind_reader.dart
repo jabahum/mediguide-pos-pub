@@ -26,10 +26,10 @@ class DocumentKindReader extends StatefulWidget {
   final VoidCallback onOpenOriginal;
   final ValueChanged<int>? onOpenSourcePage;
   @override
-  State<DocumentKindReader> createState() => _DocumentKindReaderState();
+  State<DocumentKindReader> createState() => DocumentKindReaderState();
 }
 
-class _DocumentKindReaderState extends State<DocumentKindReader> {
+class DocumentKindReaderState extends State<DocumentKindReader> {
   final _readSections = <String>{};
   final _scroll = AutoScrollController(suggestedRowHeight: 360);
   final _viewport = GlobalKey();
@@ -148,6 +148,9 @@ class _DocumentKindReaderState extends State<DocumentKindReader> {
       widget.onSection(id);
     }
   }
+
+  Future<void> openContents() => _showContents();
+  void openSettings() => _settings();
 
   Future<void> _showContents() async {
     final id = await showModalBottomSheet<String>(

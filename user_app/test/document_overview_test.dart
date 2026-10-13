@@ -11,6 +11,7 @@ import 'package:user_app/core/network/api_client.dart';
 import 'package:user_app/features/authentication/presentation/controllers/auth_controller.dart';
 import 'package:user_app/features/authentication/presentation/controllers/auth_state.dart';
 import 'package:user_app/features/downloads/data/models/offline_download.dart';
+import 'package:user_app/features/documents/presentation/widgets/document_actions_sheet.dart';
 import 'package:user_app/features/downloads/presentation/controllers/guideline_downloads_controller.dart';
 import 'package:user_app/features/guidelines/data/models/guideline_publication.dart';
 import 'package:user_app/features/guidelines/data/models/reading_progress.dart';
@@ -24,9 +25,11 @@ class _Guest extends AuthController {
   Future<AuthState> build() async => const AuthState.unauthenticated();
 }
 
+final _downloadItems = StateProvider<List<OfflineDownload>>((_) => const []);
+
 class _Downloads extends GuidelineDownloadsController {
   @override
-  Future<List<OfflineDownload>> build() async => const [];
+  Future<List<OfflineDownload>> build() async => ref.watch(_downloadItems);
 }
 
 GuidelinePublicationContent _sample(
@@ -106,6 +109,8 @@ void main() {
     double scale = 1,
     bool dark = false,
     ReadingProgress? progress,
+    bool readerOnly = false,
+    List<OfflineDownload> downloads = const [],
     Completer<GuidelinePublicationContent>? pending,
   }) async {
     final store = TestLocalStore();
@@ -118,7 +123,10 @@ void main() {
       routes: [
         GoRoute(
           path: '/',
-          builder: (_, _) => const PublicationGuidelinePage(guidelineId: 'doc'),
+          builder: (_, _) => PublicationGuidelinePage(
+            guidelineId: 'doc',
+            readerOnly: readerOnly,
+          ),
         ),
         GoRoute(
           path: AppRoutes.publicGuidelineReader,
@@ -151,6 +159,7 @@ void main() {
           publicationReadingProgressProvider(
             'doc',
           ).overrideWith((_) async => progress),
+          _downloadItems.overrideWith((_) => downloads),
           guidelineDownloadsControllerProvider.overrideWith(_Downloads.new),
           usageRepositoryProvider.overrideWithValue(
             UsageRepository(BackendApiService(), store.cache, () => null),
@@ -296,4 +305,67 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+  testWidgets(
+    'top and bottom More open the same menu and launch reader tools',
+    (tester) async {
+      await pumpOverview(tester, _sample('manual', 'Manual'), readerOnly: true);
+      await tester.tap(find.byTooltip('More document actions'));
+      await tester.pumpAndSettle();
+      expect(find.text('Document actions'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey(DocumentMenuAction.contents)));
+      await tester.pumpAndSettle();
+      expect(find.text('Document actions'), findsNothing);
+      expect(find.text('Find a section'), findsOneWidget);
+      await tester.tap(find.byTooltip('Close contents'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('More'));
+      await tester.pumpAndSettle();
+      expect(find.text('Document actions'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.text('Reading settings'),
+        250,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await tester.tap(find.text('Reading settings'));
+      await tester.pumpAndSettle();
+      expect(find.text('Document actions'), findsNothing);
+      expect(find.text('Text size · 100%'), findsOneWidget);
+      await tester.tap(find.text('Done'));
+      await tester.pumpAndSettle();
+    },
+  );
+  testWidgets('an open menu reflects removal of its saved offline copy', (
+    tester,
+  ) async {
+    await pumpOverview(
+      tester,
+      _sample('manual', 'Manual'),
+      downloads: const [
+        OfflineDownload(
+          id: 'offline',
+          guidelineId: 'doc',
+          assetType: 'original_pdf',
+          scope: 'public',
+          status: OfflineDownloadStatus.ready,
+        ),
+      ],
+    );
+    await tester.tap(find.byTooltip('More document actions'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Manage offline copy'),
+      250,
+      scrollable: find.byType(Scrollable).last,
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PublicationGuidelinePage)),
+    );
+    container.read(_downloadItems.notifier).state = const [];
+    await tester.pumpAndSettle();
+    expect(find.text('Manage offline copy'), findsNothing);
+    expect(find.text('Download for offline use'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await tester.tap(find.byTooltip('Close document actions'));
+    await tester.pumpAndSettle();
+  });
 }

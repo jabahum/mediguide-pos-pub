@@ -20,6 +20,7 @@ import 'package:user_app/core/widgets/app_status_badge.dart';
 import 'package:user_app/features/ai_assistant/data/models/ai_context.dart';
 import 'package:user_app/features/authentication/presentation/controllers/auth_controller.dart';
 import 'package:user_app/features/documents/presentation/screens/document_reader_page.dart';
+import 'package:user_app/features/documents/presentation/widgets/document_actions_sheet.dart';
 import 'package:user_app/features/downloads/data/models/offline_download.dart';
 import 'package:user_app/features/downloads/presentation/controllers/guideline_downloads_controller.dart';
 import 'package:user_app/features/guidelines/data/models/guideline_publication.dart';
@@ -32,7 +33,6 @@ import 'package:user_app/features/library/presentation/widgets/save_to_collectio
 import 'package:user_app/features/library/presentation/utils/collection_messages.dart';
 import 'package:user_app/shared/widgets/app_markdown_body.dart';
 
-part '../widgets/publication_guideline_page_guideline_menu_action.dart';
 part '../widgets/publication_guideline_page_guideline_content_search_delegate.dart';
 part '../widgets/publication_guideline_page_reading_notes_sheet.dart';
 part '../widgets/publication_guideline_page_reading_notes_sheet_state.dart';
@@ -70,6 +70,9 @@ class PublicationGuidelinePage extends ConsumerStatefulWidget {
 class _PublicationGuidelinePageState
     extends ConsumerState<PublicationGuidelinePage> {
   String? _selectedSectionId;
+  String? _readerIdentity;
+  GlobalKey<DocumentKindReaderState> _readerKey =
+      GlobalKey<DocumentKindReaderState>();
   String? _currentSectionId;
 
   bool _usageTracked = false;
@@ -166,60 +169,17 @@ class _PublicationGuidelinePageState
           if (!widget.readerOnly &&
               ref.watch(authControllerProvider).valueOrNull?.user != null)
             _FollowGuidelineButton(guidelineId: widget.guidelineId),
-          PopupMenuButton<_GuidelineMenuAction>(
+          IconButton(
             tooltip: 'More document actions',
-            onSelected: (action) {
-              _handleMenuAction(
-                context,
-                action,
-                content.valueOrNull,
-                progress?.notes ?? '',
-              );
-            },
-            itemBuilder: (_) => [
-              if (content.valueOrNull?.blocks.isNotEmpty == true)
-                const PopupMenuItem(
-                  value: _GuidelineMenuAction.search,
-                  child: ListTile(
-                    leading: Icon(LucideIcons.search),
-                    title: Text('Search document'),
+            icon: const Icon(Icons.more_vert),
+            onPressed: currentContent == null
+                ? null
+                : () => _showDocumentActions(
+                    context,
+                    currentContent,
+                    progress,
+                    offlineDownload,
                   ),
-                ),
-              PopupMenuItem(
-                value: _GuidelineMenuAction.notes,
-                child: ListTile(
-                  leading: Icon(LucideIcons.notebookPen),
-                  title: Text('Reading notes'),
-                ),
-              ),
-              PopupMenuItem(
-                value: _GuidelineMenuAction.collection,
-                child: ListTile(
-                  leading: Icon(LucideIcons.folderPlus),
-                  title: Text('Save to collection'),
-                ),
-              ),
-              PopupMenuItem(
-                value: _GuidelineMenuAction.share,
-                child: ListTile(
-                  leading: Icon(LucideIcons.share2),
-                  title: Text('Copy link'),
-                ),
-              ),
-              if (overviewPresentation?.isLink == true ||
-                  content.valueOrNull?.manifest.hasOriginalPdf == true)
-                PopupMenuItem(
-                  value: _GuidelineMenuAction.original,
-                  child: ListTile(
-                    leading: Icon(LucideIcons.fileText),
-                    title: Text(
-                      overviewPresentation?.isLink == true
-                          ? 'Open website'
-                          : 'Open original document',
-                    ),
-                  ),
-                ),
-            ],
           ),
         ],
       ),
@@ -268,7 +228,7 @@ class _PublicationGuidelinePageState
       // =====================================================================
       // A link has nothing to read or download; its view opens the website.
       bottomNavigationBar:
-          content.valueOrNull == null ||
+          currentContent == null ||
               (widget.readerOnly && overviewPresentation!.isLink)
           ? null
           : _ReaderActionBar(
@@ -284,14 +244,18 @@ class _PublicationGuidelinePageState
               primaryEnabled: overviewPresentation.canOpen,
               showDownload:
                   !overviewPresentation.isLink &&
-                  (currentContent!.manifest.hasOfflinePackage ||
+                  (currentContent.manifest.hasOfflinePackage ||
                       currentContent.manifest.hasOriginalPdf),
               showAi:
                   !overviewPresentation.isLink &&
                   !overviewPresentation.isFile &&
-                  currentContent!.blocks.isNotEmpty,
-              isLink: overviewPresentation.isLink,
-              hasOriginal: currentContent!.manifest.hasOriginalPdf,
+                  currentContent.blocks.isNotEmpty,
+              onMore: () => _showDocumentActions(
+                context,
+                currentContent,
+                progress,
+                offlineDownload,
+              ),
               onRead: () {
                 if (overviewPresentation.isLink) {
                   _openWebsite(context, currentContent.publication.externalUrl);
@@ -317,15 +281,6 @@ class _PublicationGuidelinePageState
               onNotes: () {
                 _editNotes(context, progress?.notes ?? '');
               },
-              onSaveToCollection: () {
-                _saveToCollection(context);
-              },
-              onShare: () {
-                _copyLink(context);
-              },
-              onOriginal: () {
-                _openOriginal(context);
-              },
               onDownload: () {
                 if (offlineDownload?.status == OfflineDownloadStatus.ready) {
                   context.push(AppRoutes.offlineContent);
@@ -346,29 +301,100 @@ class _PublicationGuidelinePageState
   // MENU
   // ===========================================================================
 
-  Future<void> _handleMenuAction(
+  Future<void> _showDocumentActions(
     BuildContext context,
-    _GuidelineMenuAction action,
-    GuidelinePublicationContent? content,
-    String notes,
+    GuidelinePublicationContent content,
+    ReadingProgress? progress,
+    OfflineDownload? offlineDownload,
   ) async {
+    final presentation = DocumentOverviewPresentation(content);
+    OfflineDownload? matchingDownload(List<OfflineDownload>? items) {
+      final assetType = content.manifest.hasOfflinePackage
+          ? 'offline_package'
+          : 'original_pdf';
+      return items
+          ?.where(
+            (item) =>
+                item.guidelineId == widget.guidelineId &&
+                item.assetType == assetType,
+          )
+          .firstOrNull;
+    }
+
+    final action = await showModalBottomSheet<DocumentMenuAction>(
+      context: context,
+      useSafeArea: true,
+      showDragHandle: true,
+      isScrollControlled: true,
+      constraints: const BoxConstraints(maxWidth: 640),
+      builder: (_) => Consumer(
+        builder: (context, menuRef, _) {
+          final downloads = menuRef.watch(guidelineDownloadsControllerProvider);
+          return DocumentActionsSheet(
+            title: content.publication.title,
+            kindLabel: presentation.name,
+            version: content.publication.version,
+            showReadingTools:
+                widget.readerOnly && _readerKey.currentState != null,
+            showSearch:
+                !presentation.isFile &&
+                !presentation.isLink &&
+                content.blocks.isNotEmpty,
+            showAi:
+                !presentation.isFile &&
+                !presentation.isLink &&
+                content.blocks.isNotEmpty,
+            showDownload:
+                !presentation.isLink &&
+                (content.manifest.hasOfflinePackage ||
+                    content.manifest.hasOriginalPdf),
+            hasOriginal: content.manifest.hasOriginalPdf,
+            isLink: presentation.isLink,
+            websiteAvailable: presentation.hasValidWebsite,
+            websiteHost:
+                Uri.tryParse(content.publication.externalUrl)?.host ?? '',
+            isBookmarked: progress?.isBookmarked == true,
+            hasNotes: progress?.notes.trim().isNotEmpty == true,
+            isSignedIn:
+                ref.read(authControllerProvider).valueOrNull?.user != null,
+            offlineDownload: downloads.hasValue
+                ? matchingDownload(downloads.valueOrNull)
+                : offlineDownload,
+          );
+        },
+      ),
+    );
+    if (!context.mounted || action == null) return;
     switch (action) {
-      case _GuidelineMenuAction.search:
-        if (content != null) {
-          await _searchWithin(context, content);
-        }
-
-      case _GuidelineMenuAction.notes:
-        await _editNotes(context, notes);
-
-      case _GuidelineMenuAction.collection:
+      case DocumentMenuAction.contents:
+        await _readerKey.currentState?.openContents();
+      case DocumentMenuAction.settings:
+        _readerKey.currentState?.openSettings();
+      case DocumentMenuAction.search:
+        await _searchWithin(context, content);
+      case DocumentMenuAction.askAi:
+        _openAiAssistant(context, content);
+      case DocumentMenuAction.notes:
+        await _editNotes(context, progress?.notes ?? '');
+      case DocumentMenuAction.bookmark:
+        await _toggleBookmark(context);
+      case DocumentMenuAction.collection:
         await _saveToCollection(context);
-
-      case _GuidelineMenuAction.share:
+      case DocumentMenuAction.copyLink:
         await _copyLink(context);
-
-      case _GuidelineMenuAction.original:
+      case DocumentMenuAction.original:
         await _openOriginal(context);
+      case DocumentMenuAction.download:
+        if (matchingDownload(
+              ref.read(guidelineDownloadsControllerProvider).valueOrNull,
+            )?.status ==
+            OfflineDownloadStatus.ready) {
+          context.push(AppRoutes.offlineContent);
+        } else {
+          await _download(context, content);
+        }
+      case DocumentMenuAction.page:
+        break;
     }
   }
 
@@ -574,8 +600,13 @@ class _PublicationGuidelinePageState
     final sections = value.readerSections;
 
     _scheduleInitialProgress(sections);
+    final identity = '${value.publication.id}:${value.manifest.checksum}';
+    if (_readerIdentity != identity) {
+      _readerIdentity = identity;
+      _readerKey = GlobalKey<DocumentKindReaderState>();
+    }
     return DocumentKindReader(
-      key: ValueKey('${value.publication.id}:${value.manifest.checksum}'),
+      key: _readerKey,
       content: value,
       kind: kind,
       initialSectionId: _selectedSectionId,
@@ -838,11 +869,11 @@ class _PublicationGuidelinePageState
     try {
       await Clipboard.setData(ClipboardData(text: link));
       if (context.mounted) {
-        AppMessage.success(context, 'Guideline link copied.');
+        AppMessage.success(context, 'Document link copied.');
       }
     } catch (_) {
       if (context.mounted) {
-        AppMessage.error(context, 'The guideline link could not be copied.');
+        AppMessage.error(context, 'The document link could not be copied.');
       }
     }
   }
