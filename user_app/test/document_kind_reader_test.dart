@@ -51,6 +51,8 @@ void main() {
   test('seeded kinds select readers and unknown kinds fall back', () {
     const expected = {
       'guideline': DocumentReaderKind.guideline,
+      'manual': DocumentReaderKind.guideline,
+      'framework': DocumentReaderKind.reference,
       'form': DocumentReaderKind.uploaded,
       'sop': DocumentReaderKind.procedure,
       'ipc_protocol': DocumentReaderKind.procedure,

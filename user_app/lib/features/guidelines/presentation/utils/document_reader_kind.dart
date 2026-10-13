@@ -17,6 +17,7 @@ enum DocumentReaderKind {
     if (kind?.publishAsLink == true) return link;
     if (kind?.publishAsUploaded == true) return uploaded;
     return switch (kind?.slug.trim().toLowerCase().replaceAll('-', '_')) {
+      'manual' => guideline,
       'form' => uploaded,
       'sop' ||
       'ipc_protocol' ||
@@ -28,6 +29,7 @@ enum DocumentReaderKind {
       'checklist' => checklist,
       'case_definition' => caseDefinition,
       'training_material' => training,
+      'framework' ||
       'communication_material' ||
       'policy' ||
       'situation_report_attachment' => reference,

@@ -23,6 +23,8 @@ import 'package:user_app/features/guidelines/presentation/utils/document_reader_
 
 const _kinds = <String, String>{
   'guideline': 'Guideline',
+  'manual': 'Manual',
+  'framework': 'Framework',
   'sop': 'SOP',
   'ipc_protocol': 'IPC Protocol',
   'laboratory_protocol': 'Laboratory Protocol',
