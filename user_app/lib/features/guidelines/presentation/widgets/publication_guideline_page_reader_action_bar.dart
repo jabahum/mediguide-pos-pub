@@ -2,6 +2,13 @@ part of '../screens/publication_guideline_page.dart';
 
 class _ReaderActionBar extends StatelessWidget {
   const _ReaderActionBar({
+    required this.primaryLabel,
+    required this.primaryIcon,
+    required this.primaryEnabled,
+    required this.showDownload,
+    required this.showAi,
+    required this.isLink,
+    required this.hasOriginal,
     required this.isBookmarked,
     required this.offlineDownload,
     required this.showRead,
@@ -15,6 +22,9 @@ class _ReaderActionBar extends StatelessWidget {
     required this.onDownload,
   });
 
+  final String primaryLabel;
+  final IconData primaryIcon;
+  final bool primaryEnabled, showDownload, showAi, isLink, hasOriginal;
   final bool isBookmarked;
   final OfflineDownload? offlineDownload;
   final bool showRead;
@@ -49,6 +59,10 @@ class _ReaderActionBar extends StatelessWidget {
           ),
           child: showRead
               ? _OverviewBottomActions(
+                  primaryLabel: primaryLabel,
+                  primaryIcon: primaryIcon,
+                  primaryEnabled: primaryEnabled,
+                  showDownload: showDownload,
                   isBookmarked: isBookmarked,
                   offlineDownload: offlineDownload,
                   onRead: onRead,
@@ -115,18 +129,19 @@ class _ReaderActionBar extends StatelessWidget {
               AppSpacing.lg,
             ),
             children: [
-              ListTile(
-                leading: const Icon(LucideIcons.sparkles),
-                title: const Text('Ask AI'),
-                subtitle: const Text(
-                  'Ask questions using this guideline as context',
-                ),
-                onTap: () {
-                  Navigator.pop(sheetContext);
+              if (showAi)
+                ListTile(
+                  leading: const Icon(LucideIcons.sparkles),
+                  title: const Text('Ask AI'),
+                  subtitle: const Text(
+                    'Ask questions using this guideline as context',
+                  ),
+                  onTap: () {
+                    Navigator.pop(sheetContext);
 
-                  onAskAi();
-                },
-              ),
+                    onAskAi();
+                  },
+                ),
 
               ListTile(
                 leading: const Icon(LucideIcons.notebookPen),
@@ -141,7 +156,7 @@ class _ReaderActionBar extends StatelessWidget {
               ListTile(
                 leading: const Icon(LucideIcons.folderPlus),
                 title: const Text('Save to collection'),
-                subtitle: const Text('Organize this guideline for later'),
+                subtitle: const Text('Organize this document for later'),
                 onTap: () {
                   Navigator.pop(sheetContext);
 
@@ -151,7 +166,7 @@ class _ReaderActionBar extends StatelessWidget {
 
               ListTile(
                 leading: const Icon(LucideIcons.share2),
-                title: const Text('Share guideline'),
+                title: const Text('Share document'),
                 onTap: () {
                   Navigator.pop(sheetContext);
 
@@ -159,34 +174,38 @@ class _ReaderActionBar extends StatelessWidget {
                 },
               ),
 
-              ListTile(
-                leading: const Icon(LucideIcons.fileText),
-                title: const Text('Open original document'),
-                onTap: () {
-                  Navigator.pop(sheetContext);
+              if (hasOriginal || isLink)
+                ListTile(
+                  leading: const Icon(LucideIcons.fileText),
+                  title: Text(
+                    isLink ? 'Open website' : 'Open original document',
+                  ),
+                  onTap: () {
+                    Navigator.pop(sheetContext);
 
-                  onOriginal();
-                },
-              ),
-
-              ListTile(
-                leading: Icon(
-                  status == OfflineDownloadStatus.ready
-                      ? LucideIcons.cloudCheck
-                      : status == OfflineDownloadStatus.updateAvailable
-                      ? LucideIcons.refreshCw
-                      : LucideIcons.download,
+                    onOriginal();
+                  },
                 ),
-                title: Text(offlineTitle),
-                subtitle: Text(offlineSubtitle),
-                onTap: downloading
-                    ? null
-                    : () {
-                        Navigator.pop(sheetContext);
 
-                        onDownload();
-                      },
-              ),
+              if (showDownload)
+                ListTile(
+                  leading: Icon(
+                    status == OfflineDownloadStatus.ready
+                        ? LucideIcons.cloudCheck
+                        : status == OfflineDownloadStatus.updateAvailable
+                        ? LucideIcons.refreshCw
+                        : LucideIcons.download,
+                  ),
+                  title: Text(offlineTitle),
+                  subtitle: Text(offlineSubtitle),
+                  onTap: downloading
+                      ? null
+                      : () {
+                          Navigator.pop(sheetContext);
+
+                          onDownload();
+                        },
+                ),
             ],
           ),
         );

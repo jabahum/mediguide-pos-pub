@@ -28,6 +28,7 @@ import 'package:user_app/features/guidelines/presentation/controllers/publicatio
 import 'package:user_app/features/guidelines/presentation/widgets/publication_block_view.dart';
 import 'package:user_app/features/guidelines/presentation/widgets/document_kind_reader.dart';
 import 'package:user_app/features/guidelines/presentation/utils/document_reader_kind.dart';
+import 'package:user_app/features/guidelines/presentation/utils/document_overview_presentation.dart';
 import 'package:user_app/features/guidelines/presentation/widgets/publication_guideline_page_empty_section.dart';
 import 'package:user_app/features/library/presentation/widgets/save_to_collection_sheet.dart';
 import 'package:user_app/features/library/presentation/utils/collection_messages.dart';
@@ -144,6 +145,18 @@ class _PublicationGuidelinePageState
         .watch(guidelineDownloadsControllerProvider)
         .valueOrNull;
     final currentContent = content.valueOrNull;
+    final overviewPresentation = currentContent == null
+        ? null
+        : DocumentOverviewPresentation(currentContent);
+    final canResume =
+        currentContent != null &&
+        (progress?.progressPercentage ?? 0) > 0 &&
+        (progress?.progressPercentage ?? 0) < 1 &&
+        currentContent.readerSections.any(
+          (section) => section.id == progress?.currentSection,
+        ) &&
+        !overviewPresentation!.isLink &&
+        !overviewPresentation.isFile;
     final targetAssetType = currentContent?.manifest.hasOfflinePackage == true
         ? 'offline_package'
         : 'original_pdf';
@@ -160,34 +173,36 @@ class _PublicationGuidelinePageState
       appBar: AppBar(
         title: Text(
           content.valueOrNull?.publication.title ??
-              (widget.readerOnly ? 'Guideline reader' : 'Guideline overview'),
+              (widget.readerOnly ? 'Document reader' : 'Document overview'),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
         actions: [
           if (ref.watch(authControllerProvider).valueOrNull?.user != null)
             _FollowGuidelineButton(guidelineId: widget.guidelineId),
-          IconButton(
-            tooltip: 'Save to collection',
-            onPressed: () => _saveToCollection(context),
-            icon: const Icon(LucideIcons.folderPlus),
-          ),
-          IconButton(
-            tooltip: progress?.isBookmarked == true
-                ? 'Remove bookmark'
-                : 'Bookmark guideline',
-            onPressed: () {
-              _toggleBookmark(context);
-            },
-            icon: Icon(
-              progress?.isBookmarked == true
-                  ? LucideIcons.bookmarkCheck
-                  : LucideIcons.bookmark,
+          if (widget.readerOnly)
+            IconButton(
+              tooltip: 'Save to collection',
+              onPressed: () => _saveToCollection(context),
+              icon: const Icon(LucideIcons.folderPlus),
             ),
-          ),
+          if (widget.readerOnly)
+            IconButton(
+              tooltip: progress?.isBookmarked == true
+                  ? 'Remove bookmark'
+                  : 'Bookmark document',
+              onPressed: () {
+                _toggleBookmark(context);
+              },
+              icon: Icon(
+                progress?.isBookmarked == true
+                    ? LucideIcons.bookmarkCheck
+                    : LucideIcons.bookmark,
+              ),
+            ),
 
           PopupMenuButton<_GuidelineMenuAction>(
-            tooltip: 'More guideline actions',
+            tooltip: 'More document actions',
             onSelected: (action) {
               _handleMenuAction(
                 context,
@@ -196,14 +211,15 @@ class _PublicationGuidelinePageState
                 progress?.notes ?? '',
               );
             },
-            itemBuilder: (_) => const [
-              PopupMenuItem(
-                value: _GuidelineMenuAction.search,
-                child: ListTile(
-                  leading: Icon(LucideIcons.search),
-                  title: Text('Search guideline'),
+            itemBuilder: (_) => [
+              if (content.valueOrNull?.blocks.isNotEmpty == true)
+                const PopupMenuItem(
+                  value: _GuidelineMenuAction.search,
+                  child: ListTile(
+                    leading: Icon(LucideIcons.search),
+                    title: Text('Search document'),
+                  ),
                 ),
-              ),
               PopupMenuItem(
                 value: _GuidelineMenuAction.notes,
                 child: ListTile(
@@ -225,13 +241,19 @@ class _PublicationGuidelinePageState
                   title: Text('Copy link'),
                 ),
               ),
-              PopupMenuItem(
-                value: _GuidelineMenuAction.original,
-                child: ListTile(
-                  leading: Icon(LucideIcons.fileText),
-                  title: Text('Open original document'),
+              if (overviewPresentation?.isLink == true ||
+                  content.valueOrNull?.manifest.hasOriginalPdf == true)
+                PopupMenuItem(
+                  value: _GuidelineMenuAction.original,
+                  child: ListTile(
+                    leading: Icon(LucideIcons.fileText),
+                    title: Text(
+                      overviewPresentation?.isLink == true
+                          ? 'Open website'
+                          : 'Open original document',
+                    ),
+                  ),
                 ),
-              ),
             ],
           ),
         ],
@@ -241,7 +263,7 @@ class _PublicationGuidelinePageState
       // BODY
       // =====================================================================
       body: content.when(
-        loading: () => const AppLoadingView(message: 'Loading guideline...'),
+        loading: () => const AppLoadingView(message: 'Loading document...'),
         error: (error, _) => AppErrorView(
           error: error,
           onRetry: () {
@@ -252,6 +274,16 @@ class _PublicationGuidelinePageState
           },
         ),
         data: (value) {
+          if (!widget.readerOnly) {
+            return _overviewPage(
+              context,
+              value,
+              progress,
+              contentLoading: completeContent.isLoading,
+              contentUnavailable:
+                  completeContent.hasError && !summaryContent.hasError,
+            );
+          }
           if (DocumentReaderKind.forPublication(value.publication) ==
               DocumentReaderKind.link) {
             return _LinkedDocumentView(
@@ -262,13 +294,7 @@ class _PublicationGuidelinePageState
             );
           }
 
-          if (widget.readerOnly ||
-              DocumentReaderKind.forPublication(value.publication) ==
-                  DocumentReaderKind.uploaded) {
-            return _content(context, value);
-          }
-
-          return _overviewPage(context, value, progress);
+          return _content(context, value);
         },
       ),
 
@@ -278,17 +304,44 @@ class _PublicationGuidelinePageState
       // A link has nothing to read or download; its view opens the website.
       bottomNavigationBar:
           content.valueOrNull == null ||
-              DocumentReaderKind.forPublication(
-                    content.requireValue.publication,
-                  ) ==
-                  DocumentReaderKind.link
+              (widget.readerOnly && overviewPresentation!.isLink)
           ? null
           : _ReaderActionBar(
               isBookmarked: progress?.isBookmarked == true,
               offlineDownload: offlineDownload,
               showRead: !widget.readerOnly,
+              primaryLabel: canResume
+                  ? 'Continue reading'
+                  : overviewPresentation!.actionLabel,
+              primaryIcon: overviewPresentation.isLink
+                  ? Icons.open_in_new
+                  : overviewPresentation.icon,
+              primaryEnabled: overviewPresentation.canOpen,
+              showDownload:
+                  !overviewPresentation.isLink &&
+                  (currentContent!.manifest.hasOfflinePackage ||
+                      currentContent.manifest.hasOriginalPdf),
+              showAi:
+                  !overviewPresentation.isLink &&
+                  !overviewPresentation.isFile &&
+                  currentContent!.blocks.isNotEmpty,
+              isLink: overviewPresentation.isLink,
+              hasOriginal: currentContent!.manifest.hasOriginalPdf,
               onRead: () {
-                context.push(AppRoutes.readPublicGuideline(widget.guidelineId));
+                if (overviewPresentation.isLink) {
+                  _openWebsite(context, currentContent.publication.externalUrl);
+                } else if (overviewPresentation.isFile) {
+                  _openOriginal(context);
+                } else {
+                  final route = AppRoutes.readPublicGuideline(
+                    widget.guidelineId,
+                  );
+                  context.push(
+                    canResume
+                        ? '$route?section=${Uri.encodeQueryComponent(progress!.currentSection)}'
+                        : route,
+                  );
+                }
               },
               onAskAi: () {
                 _openAiAssistant(context, content.requireValue);
@@ -392,16 +445,22 @@ class _PublicationGuidelinePageState
   Widget _overviewPage(
     BuildContext context,
     GuidelinePublicationContent value,
-    ReadingProgress? progress,
-  ) {
+    ReadingProgress? progress, {
+    bool contentLoading = false,
+    bool contentUnavailable = false,
+  }) {
     return _GuidelineOverview(
+      key: ValueKey(value.publication.id),
+      contentLoading: contentLoading,
+      contentUnavailable: contentUnavailable,
+      onRetryContent: () =>
+          ref.invalidate(publicationGuidelineProvider(widget.guidelineId)),
+      onTable: (id) => context.push(
+        AppRoutes.publicGuidelineTableView(widget.guidelineId, id),
+      ),
       content: value,
-      isBookmarked: progress?.isBookmarked == true,
       currentSectionId: progress?.currentSection,
       readingProgress: progress?.progressPercentage,
-      onRead: () {
-        context.push(AppRoutes.readPublicGuideline(widget.guidelineId));
-      },
       onSection: (sectionId) {
         context.push(
           '${AppRoutes.readPublicGuideline(widget.guidelineId)}'
@@ -911,12 +970,12 @@ class _PublicationGuidelinePageState
   Future<void> _openOriginal(BuildContext context) async {
     final publication =
         (ref
-                    .read(publicationGuidelineProvider(widget.guidelineId))
-                    .valueOrNull ??
-                ref
                     .read(
                       publicationGuidelineSummaryProvider(widget.guidelineId),
                     )
+                    .valueOrNull ??
+                ref
+                    .read(publicationGuidelineProvider(widget.guidelineId))
                     .valueOrNull)
             ?.publication;
     if (publication != null && publication.opensWebsite) {
