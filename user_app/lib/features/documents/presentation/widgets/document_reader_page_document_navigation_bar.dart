@@ -7,6 +7,7 @@ class _DocumentNavigationBar extends StatelessWidget {
     required this.onPrevious,
     required this.onNext,
     required this.onOpenOriginal,
+    required this.onPickPage,
   });
 
   final int currentPage;
@@ -14,6 +15,7 @@ class _DocumentNavigationBar extends StatelessWidget {
   final VoidCallback? onPrevious;
   final VoidCallback? onNext;
   final VoidCallback onOpenOriginal;
+  final VoidCallback? onPickPage;
 
   @override
   Widget build(BuildContext context) {
@@ -52,29 +54,34 @@ class _DocumentNavigationBar extends StatelessWidget {
                   ),
 
                   Expanded(
-                    child: Semantics(
-                      liveRegion: true,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            hasPages
-                                ? 'Page ${currentPage + 1} of $pageCount'
-                                : 'Preparing pages',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.labelLarge
-                                ?.copyWith(fontWeight: FontWeight.w700),
-                            textAlign: TextAlign.center,
-                          ),
-
-                          if (hasPages)
+                    child: InkWell(
+                      onTap: onPickPage,
+                      child: Semantics(
+                        liveRegion: true,
+                        button: onPickPage != null,
+                        label: 'Choose a page',
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
                             Text(
-                              '${(progress! * 100).round()}% through document',
-                              style: Theme.of(context).textTheme.labelSmall
-                                  ?.copyWith(color: colors.onSurfaceVariant),
+                              hasPages
+                                  ? 'Page ${currentPage + 1} of $pageCount'
+                                  : 'Preparing pages',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.labelLarge
+                                  ?.copyWith(fontWeight: FontWeight.w700),
+                              textAlign: TextAlign.center,
                             ),
-                        ],
+
+                            if (hasPages)
+                              Text(
+                                '${(progress! * 100).round()}% through document',
+                                style: Theme.of(context).textTheme.labelSmall
+                                    ?.copyWith(color: colors.onSurfaceVariant),
+                              ),
+                          ],
+                        ),
                       ),
                     ),
                   ),

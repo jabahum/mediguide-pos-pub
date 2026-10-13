@@ -10,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:user_app/core/constants/app_spacing.dart';
+import 'package:user_app/features/documents/presentation/widgets/document_page_picker.dart';
 import 'package:user_app/core/utils/app_message.dart';
 import 'package:user_app/core/widgets/app_skeleton.dart';
 import 'package:user_app/shared/widgets/clinical_icon_tile.dart';
@@ -266,6 +267,11 @@ class _DocumentReaderPageState extends State<DocumentReaderPage> {
         ),
         actions: [
           IconButton(
+            tooltip: 'Go to page',
+            onPressed: _pageCount > 0 ? _pickPage : null,
+            icon: const Icon(Icons.find_in_page_outlined),
+          ),
+          IconButton(
             tooltip: 'Open original PDF',
             onPressed: _hasValidSource ? _openOriginal : null,
             icon: const Icon(LucideIcons.externalLink),
@@ -402,6 +408,7 @@ class _DocumentReaderPageState extends State<DocumentReaderPage> {
                                 }
                               : null,
                           onOpenOriginal: _openOriginal,
+                          onPickPage: _pageCount > 0 ? _pickPage : null,
                         ),
                       ],
                     ),
@@ -430,6 +437,17 @@ class _DocumentReaderPageState extends State<DocumentReaderPage> {
   // =========================================================================
   // RETRY
   // =========================================================================
+
+  Future<void> _pickPage() async {
+    final page = await showDialog<int>(
+      context: context,
+      builder: (_) => DocumentPagePicker(
+        pageCount: _pageCount,
+        currentPage: _currentPage + 1,
+      ),
+    );
+    if (mounted && page != null) _goToPage(page - 1);
+  }
 
   void _retry() {
     _cancelToken?.cancel('Retrying document download');

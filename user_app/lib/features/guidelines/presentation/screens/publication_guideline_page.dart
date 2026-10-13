@@ -25,11 +25,9 @@ import 'package:user_app/features/downloads/presentation/controllers/guideline_d
 import 'package:user_app/features/guidelines/data/models/guideline_publication.dart';
 import 'package:user_app/features/guidelines/data/models/reading_progress.dart';
 import 'package:user_app/features/guidelines/presentation/controllers/publication_guideline_controller.dart';
-import 'package:user_app/features/guidelines/presentation/widgets/publication_block_view.dart';
 import 'package:user_app/features/guidelines/presentation/widgets/document_kind_reader.dart';
 import 'package:user_app/features/guidelines/presentation/utils/document_reader_kind.dart';
 import 'package:user_app/features/guidelines/presentation/utils/document_overview_presentation.dart';
-import 'package:user_app/features/guidelines/presentation/widgets/publication_guideline_page_empty_section.dart';
 import 'package:user_app/features/library/presentation/widgets/save_to_collection_sheet.dart';
 import 'package:user_app/features/library/presentation/utils/collection_messages.dart';
 import 'package:user_app/shared/widgets/app_markdown_body.dart';
@@ -51,10 +49,8 @@ part '../widgets/publication_guideline_page_overview_bottom_actions.dart';
 part '../widgets/publication_guideline_page_reading_bottom_actions.dart';
 part '../widgets/publication_guideline_page_bottom_icon_action.dart';
 part '../widgets/publication_guideline_page_reader_bottom_action.dart';
-part '../widgets/publication_guideline_page_overview.dart';
 part '../widgets/publication_guideline_page_original_document_reader.dart';
 part '../widgets/publication_guideline_page_linked_document.dart';
-part '../widgets/publication_guideline_page_section_header_delegate.dart';
 
 class PublicationGuidelinePage extends ConsumerStatefulWidget {
   const PublicationGuidelinePage({
@@ -76,10 +72,6 @@ class _PublicationGuidelinePageState
   String? _selectedSectionId;
   String? _currentSectionId;
 
-  final Map<String, GlobalKey> _sectionKeys = {};
-
-  final ScrollController _readerScrollController = ScrollController();
-
   bool _usageTracked = false;
   bool _deepLinkApplied = false;
   bool _initialProgressScheduled = false;
@@ -99,13 +91,6 @@ class _PublicationGuidelinePageState
     if (section != null && section.trim().isNotEmpty) {
       _selectedSectionId = section.trim();
     }
-  }
-
-  @override
-  void dispose() {
-    _readerScrollController.dispose();
-
-    super.dispose();
   }
 
   @override
@@ -178,29 +163,9 @@ class _PublicationGuidelinePageState
           overflow: TextOverflow.ellipsis,
         ),
         actions: [
-          if (ref.watch(authControllerProvider).valueOrNull?.user != null)
+          if (!widget.readerOnly &&
+              ref.watch(authControllerProvider).valueOrNull?.user != null)
             _FollowGuidelineButton(guidelineId: widget.guidelineId),
-          if (widget.readerOnly)
-            IconButton(
-              tooltip: 'Save to collection',
-              onPressed: () => _saveToCollection(context),
-              icon: const Icon(LucideIcons.folderPlus),
-            ),
-          if (widget.readerOnly)
-            IconButton(
-              tooltip: progress?.isBookmarked == true
-                  ? 'Remove bookmark'
-                  : 'Bookmark document',
-              onPressed: () {
-                _toggleBookmark(context);
-              },
-              icon: Icon(
-                progress?.isBookmarked == true
-                    ? LucideIcons.bookmarkCheck
-                    : LucideIcons.bookmark,
-              ),
-            ),
-
           PopupMenuButton<_GuidelineMenuAction>(
             tooltip: 'More document actions',
             onSelected: (action) {
@@ -609,212 +574,20 @@ class _PublicationGuidelinePageState
     final sections = value.readerSections;
 
     _scheduleInitialProgress(sections);
-    if (kind != DocumentReaderKind.guideline) {
-      return DocumentKindReader(
-        key: ValueKey('${value.publication.id}:${value.manifest.checksum}'),
-        content: value,
-        kind: kind,
-        initialSectionId: _selectedSectionId,
-        onSection: (id) {
-          setState(() {
-            _selectedSectionId = id;
-            _currentSectionId = id;
-          });
-          unawaited(_recordSectionProgress(sections, id));
-        },
-        onOpenOriginal: () => _openOriginal(context),
-      );
-    }
-
-    final selected = _selectedSectionId;
-
-    final selectedIds = selected == null
-        ? <String>{}
-        : _sectionAndDescendants(sections, selected);
-
-    final visibleSections =
-        mode == GuidelineReaderMode.structured && selected != null
-        ? sections.where((section) => selectedIds.contains(section.id)).toList()
-        : sections;
-
-    final navigationSections = sections
-        .where((section) => !value.isDocumentTitleWrapper(section))
-        .toList(growable: false);
-    final navigationSectionIds = navigationSections
-        .map((section) => section.id)
-        .toSet();
-    final rootSections = navigationSections
-        .where(
-          (section) =>
-              section.parentId == null ||
-              section.parentId!.isEmpty ||
-              !navigationSectionIds.contains(section.parentId),
-        )
-        .toList(growable: false);
-
-    return NotificationListener<ScrollNotification>(
-      onNotification: (notification) {
-        if (notification is ScrollUpdateNotification ||
-            notification is ScrollEndNotification) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _trackVisibleSection(sections);
-          });
-        }
-
-        return false;
+    return DocumentKindReader(
+      key: ValueKey('${value.publication.id}:${value.manifest.checksum}'),
+      content: value,
+      kind: kind,
+      initialSectionId: _selectedSectionId,
+      onSection: (id) {
+        setState(() {
+          _selectedSectionId = id;
+          _currentSectionId = id;
+        });
+        unawaited(_recordSectionProgress(sections, id));
       },
-      child: CustomScrollView(
-        controller: _readerScrollController,
-        slivers: [
-          SliverToBoxAdapter(child: _Overview(content: value)),
-
-          // =================================================================
-          // CURRENT SECTION
-          // =================================================================
-          if (_currentSectionId != null)
-            SliverToBoxAdapter(
-              child: Semantics(
-                liveRegion: true,
-                label:
-                    'Current section ${sections.where((item) => item.id == _currentSectionId).map((item) => item.title).firstOrNull ?? ''}',
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: Responsive.horizontalPadding(context),
-                  ),
-                  child: Text(
-                    'Current section: '
-                    '${sections.where((item) => item.id == _currentSectionId).map((item) => item.title).firstOrNull ?? ''}',
-                    style: Theme.of(context).textTheme.labelMedium,
-                  ),
-                ),
-              ),
-            ),
-
-          // =================================================================
-          // SECTION NAVIGATION
-          // =================================================================
-          if (sections.isNotEmpty)
-            SliverPersistentHeader(
-              pinned: true,
-              delegate: _SectionHeaderDelegate(
-                child: Material(
-                  color: Theme.of(context).colorScheme.surface,
-                  child: Semantics(
-                    label: 'Guideline chapters',
-                    child: ListView.separated(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: Responsive.horizontalPadding(context),
-                        vertical: AppSpacing.sm,
-                      ),
-                      scrollDirection: Axis.horizontal,
-                      itemCount: rootSections.length,
-                      separatorBuilder: (_, _) => AppSpacing.gapSm,
-                      itemBuilder: (_, index) {
-                        final section = rootSections[index];
-
-                        return ChoiceChip(
-                          label: Text(section.title),
-                          selected: selected == section.id,
-                          onSelected: (_) {
-                            final next = selected == section.id
-                                ? null
-                                : section.id;
-
-                            setState(() {
-                              _selectedSectionId = next;
-                            });
-
-                            if (next != null) {
-                              unawaited(_recordSectionProgress(sections, next));
-                            }
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-          // =================================================================
-          // CONTENT
-          // =================================================================
-          SliverPadding(
-            padding: EdgeInsets.fromLTRB(
-              Responsive.horizontalPadding(context),
-              AppSpacing.md,
-              Responsive.horizontalPadding(context),
-
-              // Extra breathing room above the persistent bottom bar.
-              AppSpacing.xxxl + 72,
-            ),
-            sliver: SliverList.builder(
-              itemCount: visibleSections.length,
-              itemBuilder: (_, index) {
-                final section = visibleSections[index];
-
-                final blocks = value.displayBlocksFor(section);
-                final showSectionTitle = !value.isDocumentTitleWrapper(section);
-
-                _sectionKeys.putIfAbsent(section.id, GlobalKey.new);
-
-                return Semantics(
-                  key: _sectionKeys[section.id],
-                  container: true,
-                  label: section.title,
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.xl),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (showSectionTitle)
-                          Semantics(
-                            header: true,
-                            child: Text(
-                              section.title,
-                              style: Theme.of(context).textTheme.headlineSmall,
-                            ),
-                          ),
-
-                        if (section.pageLabel.isNotEmpty)
-                          Text(
-                            section.pageLabel,
-                            style: Theme.of(context).textTheme.labelMedium,
-                          ),
-
-                        AppSpacing.gapMd,
-
-                        if (blocks.isEmpty)
-                          PublicationEmptyReviewedSection(
-                            hasOriginalDocument: value.manifest.hasOriginalPdf,
-                            reviewedDescendants: _reviewedDescendants(
-                              section.id,
-                              sections,
-                              value.blocks,
-                            ),
-                            onSection: (id) {
-                              setState(() => _selectedSectionId = id);
-                              unawaited(_recordSectionProgress(sections, id));
-                            },
-                            onOpenOriginal: () => _openOriginal(context),
-                          )
-                        else
-                          for (final block in blocks) ...[
-                            PublicationBlockView(
-                              block: block,
-                              guidelineId: widget.guidelineId,
-                            ),
-                            AppSpacing.gapLg,
-                          ],
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
+      onOpenOriginal: () => _openOriginal(context),
+      onOpenSourcePage: (page) => _openOriginal(context, page: page),
     );
   }
 
@@ -851,89 +624,6 @@ class _PublicationGuidelinePageState
     });
   }
 
-  void _trackVisibleSection(List<PublicationSection> sections) {
-    if (!mounted || sections.isEmpty) {
-      return;
-    }
-
-    String? nearest;
-
-    var distance = double.infinity;
-
-    for (final section in sections) {
-      final target = _sectionKeys[section.id]?.currentContext;
-
-      final box = target?.findRenderObject();
-
-      if (box is! RenderBox || !box.attached) {
-        continue;
-      }
-
-      final dy = box.localToGlobal(Offset.zero).dy;
-
-      final candidate = (dy - 120).abs();
-
-      if (candidate < distance) {
-        distance = candidate;
-        nearest = section.id;
-      }
-    }
-
-    if (nearest == null || nearest == _currentSectionId) {
-      return;
-    }
-
-    setState(() {
-      _currentSectionId = nearest;
-    });
-
-    unawaited(_recordSectionProgress(sections, nearest));
-  }
-
-  Set<String> _sectionAndDescendants(
-    List<PublicationSection> sections,
-    String root,
-  ) {
-    final result = <String>{root};
-
-    var frontier = <String>{root};
-
-    while (frontier.isNotEmpty) {
-      final next = sections
-          .where(
-            (section) =>
-                section.parentId != null && frontier.contains(section.parentId),
-          )
-          .map((section) => section.id)
-          .where(result.add)
-          .toSet();
-
-      frontier = next;
-    }
-
-    return result;
-  }
-
-  List<PublicationSection> _reviewedDescendants(
-    String root,
-    List<PublicationSection> sections,
-    List<GuidelineBlock> blocks,
-  ) {
-    final descendantIds = _sectionAndDescendants(sections, root)..remove(root);
-    final reviewedIds = blocks
-        .map((block) => block.sectionId)
-        .whereType<String>()
-        .toSet();
-    return sections
-        .where(
-          (section) =>
-              descendantIds.contains(section.id) &&
-              reviewedIds.contains(section.id),
-        )
-        .take(12)
-        .toList(growable: false);
-  }
-
   Future<void> _recordSectionProgress(
     List<PublicationSection> sections,
     String sectionId,
@@ -967,7 +657,7 @@ class _PublicationGuidelinePageState
   // ORIGINAL DOCUMENT
   // ===========================================================================
 
-  Future<void> _openOriginal(BuildContext context) async {
+  Future<void> _openOriginal(BuildContext context, {int? page}) async {
     final publication =
         (ref
                     .read(
@@ -1004,6 +694,7 @@ class _PublicationGuidelinePageState
               ? 'Original guideline'
               : asset.originalFilename,
           source: asset.url,
+          initialPage: page,
         ),
       );
     } catch (_) {
@@ -1193,20 +884,6 @@ class _PublicationGuidelinePageState
     setState(() {
       _selectedSectionId = sectionId;
     });
-
-    if (content.manifest.recommendedMode == GuidelineReaderMode.partial) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        final target = _sectionKeys[sectionId]?.currentContext;
-
-        if (target != null) {
-          Scrollable.ensureVisible(
-            target,
-            duration: const Duration(milliseconds: 300),
-            alignment: 0.1,
-          );
-        }
-      });
-    }
   }
 }
 

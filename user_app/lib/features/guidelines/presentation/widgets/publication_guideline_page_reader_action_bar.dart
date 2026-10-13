@@ -73,6 +73,7 @@ class _ReaderActionBar extends StatelessWidget {
                   },
                 )
               : _ReadingBottomActions(
+                  showAi: showAi,
                   isBookmarked: isBookmarked,
                   onAskAi: onAskAi,
                   onBookmark: onBookmark,

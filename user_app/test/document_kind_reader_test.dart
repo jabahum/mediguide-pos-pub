@@ -48,6 +48,7 @@ GuidelinePublicationContent _content({
 );
 
 void main() {
+  WidgetController.hitTestWarningShouldBeFatal = true;
   test('seeded kinds select readers and unknown kinds fall back', () {
     const expected = {
       'guideline': DocumentReaderKind.guideline,
@@ -116,15 +117,23 @@ void main() {
     WidgetTester tester,
     DocumentReaderKind kind, {
     String? section,
+    GuidelinePublicationContent? content,
+    double scale = 1,
     bool partial = false,
     bool empty = false,
     ValueChanged<String>? onSection,
     VoidCallback? onOpen,
   }) => tester.pumpWidget(
     MaterialApp(
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(
+          context,
+        ).copyWith(textScaler: TextScaler.linear(scale)),
+        child: child!,
+      ),
       home: Scaffold(
         body: DocumentKindReader(
-          content: _content(partial: partial, empty: empty),
+          content: content ?? _content(partial: partial, empty: empty),
           kind: kind,
           initialSectionId: section,
           onSection: onSection ?? (_) {},
@@ -204,4 +213,99 @@ void main() {
     expect(opened, isTrue);
     expect(find.byType(Card), findsNothing);
   });
+  testWidgets('contents search reliably jumps to a distant reference section', (
+    tester,
+  ) async {
+    final longContent = GuidelinePublicationContent(
+      publication: const GuidelinePublication(
+        id: 'long',
+        title: 'Long reference',
+      ),
+      manifest: const GuidelineManifest(
+        guidelineId: 'long',
+        versionId: 'v1',
+        recommendedMode: GuidelineReaderMode.structured,
+      ),
+      sections: [
+        for (var i = 0; i < 80; i++)
+          PublicationSection(
+            id: 's-$i',
+            title: 'Reference section $i',
+            sortOrder: i,
+          ),
+      ],
+      blocks: [
+        for (var i = 0; i < 80; i++)
+          GuidelineBlock.paragraph(
+            id: 'b-$i',
+            sectionId: 's-$i',
+            sortOrder: i,
+            text: 'Reviewed content for section $i.',
+          ),
+      ],
+    );
+    await pumpReader(
+      tester,
+      DocumentReaderKind.reference,
+      content: longContent,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Contents'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'section 79');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Reference section 79'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Reviewed content for section 79.').hitTestable(),
+      findsOneWidget,
+    );
+    expect(find.text('80 / 80'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('settings preserve selected section when changing reading mode', (
+    tester,
+  ) async {
+    await pumpReader(tester, DocumentReaderKind.guideline, section: 'second');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Reading settings'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(SwitchListTile));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+    expect(find.text('Second approved content').hitTestable(), findsOneWidget);
+    expect(find.text('2 / 2'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  for (final kind in [
+    DocumentReaderKind.guideline,
+    DocumentReaderKind.procedure,
+    DocumentReaderKind.checklist,
+    DocumentReaderKind.caseDefinition,
+    DocumentReaderKind.training,
+    DocumentReaderKind.reference,
+  ]) {
+    testWidgets('${kind.name} reader fits a narrow phone at 200% text', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(320, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await pumpReader(tester, kind, scale: 2);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Reading settings'));
+      await tester.pumpAndSettle();
+      expect(find.text('Reading settings'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      expect(find.text('Done').hitTestable(), findsOneWidget);
+      await tester.tap(find.text('Done'));
+      await tester.pumpAndSettle();
+      expect(find.text('Reading settings'), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+  }
 }
