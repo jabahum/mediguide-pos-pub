@@ -351,7 +351,7 @@ func seedDemoGuideline(ctx context.Context, database *gorm.DB, store storage.Obj
 	}); err != nil {
 		return err
 	}
-	if err := database.Table("guideline_documents").Where("id = ?", documentID).Updates(map[string]any{"current_version_id": versionID, "updated_at": time.Now().UTC()}).Error; err != nil {
+	if err := database.Table("guideline_documents").Where("id = ? AND withdrawn_at IS NULL", documentID).Updates(map[string]any{"current_version_id": versionID, "updated_at": time.Now().UTC()}).Error; err != nil {
 		return err
 	}
 

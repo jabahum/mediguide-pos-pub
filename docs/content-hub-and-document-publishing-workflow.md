@@ -362,6 +362,12 @@ opening or refreshing Downloads/the reader, or reconnecting while the app is
 running). Connection and server failures preserve offline copies. Files already
 exported outside the app and previously issued storage links cannot be recalled.
 
+The public website refreshes the library and document-kind counts when its tab
+regains focus or visibility, and every 30 seconds while visible. Public API
+responses require revalidation; the website bypasses older browser cache entries.
+Rerunning the development seed preserves document withdrawals; republish through
+the governed dashboard action when the document is ready.
+
 Deployment requires database migration `00084_guideline_withdrawal.sql` before
 the backend/dashboard update, plus an app release for mobile cache removal.
 The API is `POST /api/v2/guidelines/{id}/withdraw` with JSON
