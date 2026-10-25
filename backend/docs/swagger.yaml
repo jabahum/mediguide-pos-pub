@@ -439,6 +439,14 @@ definitions:
         example: true
         type: boolean
     type: object
+  handlers.CalculatorUsageSummaryEnvelope:
+    properties:
+      data:
+        $ref: '#/definitions/services.CalculatorUsageSummary'
+      success:
+        example: true
+        type: boolean
+    type: object
   handlers.CalculatorVersionAuditEnvelope:
     properties:
       data:
@@ -4873,6 +4881,32 @@ definitions:
       version_id:
         type: string
       version_status:
+        type: string
+    type: object
+  services.CalculatorUsageDay:
+    properties:
+      date:
+        type: string
+      sessions:
+        type: integer
+    type: object
+  services.CalculatorUsageSummary:
+    properties:
+      daily:
+        items:
+          $ref: '#/definitions/services.CalculatorUsageDay'
+        type: array
+      ended_sessions:
+        type: integer
+      recent_sessions:
+        type: integer
+      since:
+        type: string
+      total_sessions:
+        type: integer
+      unique_users:
+        type: integer
+      until:
         type: string
     type: object
   services.CalculatorVersionAuditDTO:
@@ -12672,6 +12706,38 @@ paths:
       tags:
       - calculator-versions
   /api/v2/calculators/{id}/usage:
+    get:
+      parameters:
+      - description: Calculator ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.CalculatorUsageSummaryEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get per-tool usage totals and daily sessions for the last 30 UTC days
+      tags:
+      - calculators
     post:
       consumes:
       - application/json

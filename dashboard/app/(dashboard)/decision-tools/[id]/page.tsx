@@ -17,6 +17,7 @@ import { Edit, Copy, Trash2, Play, Calculator, Brain, CheckSquare, Info, Setting
 import { usePermissionContext } from "@/lib/permission-context"
 import { getAppFileLabel } from "../app-file"
 import { StoredIcon } from "@/components/ui/stored-icon"
+import { ToolUsage } from "@/components/clinical-tools/tool-usage"
 
 interface DecisionToolViewPageProps {
   params: Promise<{ id: string }>
@@ -329,18 +330,7 @@ export default function DecisionToolViewPage({ params }: DecisionToolViewPagePro
         </TabsContent>
 
         <TabsContent value="usage" className="mt-8 space-y-8">
-          <Card>
-            <CardHeader className="pb-4">
-              <CardTitle>Usage Statistics</CardTitle>
-              <CardDescription>Usage metrics and analytics</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12 text-muted-foreground">
-                <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Usage analytics will be available in a future update</p>
-              </div>
-            </CardContent>
-          </Card>
+          <ToolUsage toolId={id} />
         </TabsContent>
 
         <TabsContent value="metadata" className="mt-8 space-y-8">

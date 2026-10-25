@@ -4,6 +4,7 @@ import type {
   ModelsCalculator,
   ServicesCreateCalculatorInput,
   ServicesUpdateCalculatorInput,
+  ServicesCalculatorUsageSummary,
 } from "@/types/generated/backend-openapi";
 import type {
   AdvancedFilter,
@@ -132,6 +133,9 @@ async function calculatorPayload(
 }
 
 export const calculatorService = {
+  async usage(id: string): Promise<ServicesCalculatorUsageSummary> {
+    return backendClient.send(`/api/v2/calculators/${encodeURIComponent(id)}/usage`);
+  },
   async list(
     query: {
       page?: number;

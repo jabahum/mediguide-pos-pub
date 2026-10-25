@@ -890,6 +890,28 @@ final class HandlersCalculatorUsageEnvelope {
   Map<String, dynamic> toJson() => Map.of(value);
 }
 
+final class HandlersCalculatorUsageSummaryEnvelope {
+  HandlersCalculatorUsageSummaryEnvelope(Map<String, dynamic> value)
+    : value = UnmodifiableMapView<String, dynamic>(Map.of(value));
+
+  factory HandlersCalculatorUsageSummaryEnvelope.fromJson(
+    Map<String, dynamic> json,
+  ) => HandlersCalculatorUsageSummaryEnvelope(json);
+
+  static const schemaName = 'handlers.CalculatorUsageSummaryEnvelope';
+  final Map<String, dynamic> value;
+
+  ServicesCalculatorUsageSummary? get data {
+    final raw = value['data'];
+    if (raw is! Map) return null;
+    return ServicesCalculatorUsageSummary.fromJson(_jsonMap(raw));
+  }
+
+  bool? get success => value['success'] as bool?;
+
+  Map<String, dynamic> toJson() => Map.of(value);
+}
+
 final class HandlersCalculatorVersionAuditEnvelope {
   HandlersCalculatorVersionAuditEnvelope(Map<String, dynamic> value)
     : value = UnmodifiableMapView<String, dynamic>(Map.of(value));
@@ -9295,6 +9317,57 @@ final class ServicesCalculatorReviewQueueItem {
   String? get versionId => value['version_id']?.toString();
 
   String? get versionStatus => value['version_status']?.toString();
+
+  Map<String, dynamic> toJson() => Map.of(value);
+}
+
+final class ServicesCalculatorUsageDay {
+  ServicesCalculatorUsageDay(Map<String, dynamic> value)
+    : value = UnmodifiableMapView<String, dynamic>(Map.of(value));
+
+  factory ServicesCalculatorUsageDay.fromJson(Map<String, dynamic> json) =>
+      ServicesCalculatorUsageDay(json);
+
+  static const schemaName = 'services.CalculatorUsageDay';
+  final Map<String, dynamic> value;
+
+  String? get date => value['date']?.toString();
+
+  int? get sessions => (value['sessions'] as num?)?.toInt();
+
+  Map<String, dynamic> toJson() => Map.of(value);
+}
+
+final class ServicesCalculatorUsageSummary {
+  ServicesCalculatorUsageSummary(Map<String, dynamic> value)
+    : value = UnmodifiableMapView<String, dynamic>(Map.of(value));
+
+  factory ServicesCalculatorUsageSummary.fromJson(Map<String, dynamic> json) =>
+      ServicesCalculatorUsageSummary(json);
+
+  static const schemaName = 'services.CalculatorUsageSummary';
+  final Map<String, dynamic> value;
+
+  List<ServicesCalculatorUsageDay> get daily {
+    final raw = value['daily'];
+    if (raw is! List) return const [];
+    return raw
+        .whereType<Map>()
+        .map((item) => ServicesCalculatorUsageDay.fromJson(_jsonMap(item)))
+        .toList(growable: false);
+  }
+
+  int? get endedSessions => (value['ended_sessions'] as num?)?.toInt();
+
+  int? get recentSessions => (value['recent_sessions'] as num?)?.toInt();
+
+  String? get since => value['since']?.toString();
+
+  int? get totalSessions => (value['total_sessions'] as num?)?.toInt();
+
+  int? get uniqueUsers => (value['unique_users'] as num?)?.toInt();
+
+  String? get until => value['until']?.toString();
 
   Map<String, dynamic> toJson() => Map.of(value);
 }

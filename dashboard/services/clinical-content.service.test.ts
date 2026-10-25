@@ -12,6 +12,14 @@ const json = (data: unknown, status = 200) =>
 describe("typed calculator and drug services", () => {
   afterEach(() => vi.unstubAllGlobals());
 
+  it("loads usage for the selected tool", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(json({ total_sessions: 2, unique_users: 1, ended_sessions: 1, recent_sessions: 2, daily: [] }));
+    vi.stubGlobal("fetch", fetchMock);
+    const usage = await calculatorService.usage("tool-id");
+    expect(String(fetchMock.mock.calls[0][0])).toContain("/api/v2/calculators/tool-id/usage");
+    expect(usage.total_sessions).toBe(2);
+  });
+
   it("serializes calculator list filters as typed query parameters", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       json({

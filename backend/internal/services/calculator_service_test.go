@@ -257,6 +257,10 @@ func TestCalculatorUsageRetriesValidationAndExactVersion(t *testing.T) {
 	if updated.UsageCount != 1 {
 		t.Fatalf("retry counted twice: %d", updated.UsageCount)
 	}
+	summary, err := s.UsageSummary(tool.ID)
+	if err != nil || summary.TotalSessions != 1 || summary.UniqueUsers != 1 {
+		t.Fatalf("analytics must count a retried session once: %+v %v", summary, err)
+	}
 	if _, err := s.StartUsage(uuid.New(), tool.ID, in); err != nil {
 		t.Fatal(err)
 	}
