@@ -4,6 +4,11 @@ This runbook describes the supported dashboard workflow from creating a
 guideline to publishing a reviewed version. It is intended for authors,
 clinical reviewers, publishers, and administrators.
 
+For the illustrated walkthrough with actual dashboard screens and enlarged
+control details, see the [Clinical Guidelines dashboard SOP PDF](../artifacts/clinical-guidelines-dashboard-sop/mediguide-clinical-guidelines-dashboard-sop.pdf).
+Its [capture notes](../artifacts/clinical-guidelines-dashboard-sop/README.md)
+distinguish local training examples, published fixtures and app reference images.
+
 The central safety rule is that the Markdown source, generated reader content,
 clinical review, and publication are separate steps. Saving or assigning a
 reviewer does not approve clinical content, and regeneration never publishes a

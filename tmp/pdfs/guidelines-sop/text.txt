@@ -1,0 +1,649 @@
+MEDIGUIDE  |  CLINICAL GUIDELINES
+SOP-CG-01  /  Version 1.0
+25 October 2026  |  Based on MediGuide v2.1.23
+01 / 30
+ILLUSTRATED STANDARD OPERATING PROCEDURE
+Clinical guidelines:
+from source to published readers
+A complete dashboard guide for authors, clinical reviewers and publishers.
+Includes: upload and resume; Markdown editing; figures and tables; revision control; regeneration; individual and
+low-risk review; completeness; acceptance; publication; website and mobile/offline checks; notifications; updates
+and withdrawal.
+Image note. All images in this guide are illustrative screen guides reconstructed from the implemented
+dashboard controls. They are not live screenshots. Example records contain no clinical dosing content.
+Document control
+SOP-CG-01 | Version 1.0 | Prepared 25 October 2026
+Implementation baseline: v2.1.23, commit 2cd566c4.
+Operational guide for local approval. This document does not grant clinical approval, publishing permissions or organizational sign-off.
+
+MEDIGUIDE  |  CLINICAL GUIDELINES
+SOP-CG-01  /  Version 1.0
+25 October 2026  |  Based on MediGuide v2.1.23
+02 / 30
+01  /  WORKFLOW MAP
+The complete workflow
+Use this map to keep the source, generated content, review decisions and public version aligned.
+1. Create and upload. Create a guideline document and a version. Upload the authoritative source and wait for
+processing. See pages 5-8.
+2. Edit and regenerate. Correct the Markdown, tables and images. Save the intended revision and regenerate its
+reader content. See pages 9-15.
+3. Review and accept. Review ordinary prose as well as safety-sensitive blocks. Check completeness and accept
+the exact regenerated revision. See pages 16-21.
+4. Publish and verify. Validate and publish, then verify the website, mobile reader, downloads and search. See
+pages 22-24. Notifications, updates and exceptions follow on pages 25-29.
+Expected result. Saving, reviewer assignment, generation completion and a private preview do not publish a
+guideline.
+Watch point: Keep the last approved publication available while its replacement is prepared.
+
+MEDIGUIDE  |  CLINICAL GUIDELINES
+SOP-CG-01  /  Version 1.0
+25 October 2026  |  Based on MediGuide v2.1.23
+03 / 30
+02  /  ALL ROLES
+People, access and preparation
+Assign responsibility before starting. The organization must authorize clinical decisions and publication.
+1. Author / editor. Needs document creation access plus guideline.markdown.read, guideline.markdown.edit,
+guideline.markdown.upload, guideline.asset.manage and guideline.structure.regenerate for the assigned work.
+Prepare the authoritative PDF or UTF-8 Markdown, images and issuing organization.
+2. Reviewer. Uses guideline.review. High-risk clinical decisions and regeneration acceptance also require
+guideline.high_risk.approve. Compare content with the authoritative source; use an independent reviewer where
+local governance requires it.
+3. Publisher. Needs guideline.publish and access to the document. The server still enforces publication validation.
+An administrator cannot bypass missing review by changing a dashboard badge.
+4. Before uploading. Confirm title, document kind, version label, source organization, country, language,
+publication/review dates, applicable categories and diseases. Avoid patient-identifiable information in training files
+or review notes.
+Expected result. An active account with the correct role can see the expected controls. If a control is missing,
+ask an administrator to check permissions.
+Watch point: Assignment is coordination, not clinical approval. Never approve content merely to clear a warning.
+
+MEDIGUIDE  |  CLINICAL GUIDELINES
+SOP-CG-01  /  Version 1.0
+25 October 2026  |  Based on MediGuide v2.1.23
+04 / 30
+03  /  AUTHOR
+Choose the correct document route
+The selected document kind determines whether readers receive structured content, an original file, or a
+link.
+1. Structured clinical guideline. Choose a normal guideline kind for searchable, editable chapters and blocks.
+Upload PDF, .md or .markdown. Follow the full editing, regeneration, review and publication process in pages
+5-24.
+2. Publish as uploaded. Some kinds, such as forms, keep the PDF or Word (.docx) file exactly as uploaded. Text
+indexing supports discovery, but there is no Markdown editing or structured-block workflow. See page 27.
+3. Publish as link. A link kind publishes a complete HTTPS URL. No source file is uploaded and no extraction or
+Markdown editor runs. Review the destination before publishing. See page 27.
+4. Choose deliberately. Use categories and diseases for discovery. Legacy program area is optional. If the
+expected structured workflow is absent, check the document kind instead of uploading the same file repeatedly.
+Expected result. For an editable clinical guideline, continue with the structured route.
+Watch point: Do not select an original-file or link kind just to avoid clinical review requirements.
+
+MEDIGUIDE  |  CLINICAL GUIDELINES
+SOP-CG-01  /  Version 1.0
+25 October 2026  |  Based on MediGuide v2.1.23
+05 / 30
+04  /  AUTHOR
+Create the guideline record
+Dashboard > Clinical Guidelines > Create Guideline. This record describes the document across all its
+versions.
+1. Open the creation wizard. Select Create Guideline from the guidelines area. The four stages are Create
+guideline, Create version, Upload version, and Review and edit.
+2. Complete the metadata. Enter the official title and select Document kind. Add Source organization, Country
+and Language code. Add a description that explains the document without changing its clinical meaning.
+3. Classify for discovery. Select every relevant Category and Disease, then a Primary disease from the selected
+diseases. Use active taxonomy entries. Classification supports browsing and hub placement; it is not publication
+approval.
+4. Save the record. Select Create and Continue. Confirm that the next stage names the correct document. To
+correct document-level metadata later, use Edit Metadata on the document page.
+Expected result. The guideline record exists and the wizard advances to Create version.
+Watch point: Use the source title consistently; a template title or unrelated Markdown H1 can block publication.
+
+MEDIGUIDE  |  CLINICAL GUIDELINES
+SOP-CG-01  /  Version 1.0
+25 October 2026  |  Based on MediGuide v2.1.23
+06 / 30
+05  /  AUTHOR
+Create the first version
+Document version labels identify the clinical edition; they are separate from the MediGuide application
+release.
+1. Name the edition. In Create first version, enter the official Version label, such as 2026.1. Choose a label that is
+unique for this document and follows the organization's naming convention.
+2. Record the dates. Enter Publication date and Review date when applicable. These describe the guideline
+edition; entering a date does not schedule or perform publication.
+3. Create the draft. Select Create Version. A saved version is required before uploading source files. Finish Later
+returns to the document, where New Version can create additional editions.
+4. Confirm your target. Before any upload or edit, check the document title, version label and draft state.
+Published versions are immutable; updates use a new draft rather than an in-place edit.
+Expected result. The draft version is listed under Versions and the upload stage is available.
+Watch point: Do not reuse an existing edition label for a replacement. Retain older versions for audit.
+
+MEDIGUIDE  |  CLINICAL GUIDELINES
+SOP-CG-01  /  Version 1.0
+25 October 2026  |  Based on MediGuide v2.1.23
+07 / 30
+06  /  AUTHOR
+Upload the authoritative source
+The source is the fidelity reference for every subsequent correction and clinical review decision.
+1. Choose a supported file. In Upload guideline source, choose the authoritative PDF or UTF-8 Markdown (.md /
+.markdown). The creation screen allows up to 100 MB. For an existing draft, use Upload PDF to open the source
+dialog, which also accepts Markdown.
+2. Transfer the source. Select Upload source. The screen checks the file, transfers it, verifies storage and queues
+processing. Keep the selected version unchanged during the upload.
+3. Resume safely. Pause is available during transfer. To resume, choose the same file and select Resume
+upload; the screen preserves completed upload parts for up to 24 hours. Cancel upload abandons the transfer
+session.
+4. Choose another starting path if needed. Start with blank Markdown or Start from template opens authoring
+without PDF extraction. Existing Markdown may also be loaded from the editor. Obtain the original images
+separately for Markdown imports.
+Expected result. Storage verification finishes and Source transfer and processing shows a real processing job.
+Watch point: An upload reaching 100% is not proof that extraction, indexing, clinical review or publication succeeded.
+
+MEDIGUIDE  |  CLINICAL GUIDELINES
+SOP-CG-01  /  Version 1.0
+25 October 2026  |  Based on MediGuide v2.1.23
+08 / 30
+07  /  AUTHOR
+Monitor extraction and indexing
+Wait for the real processing result. A large PDF can take time, especially when OCR or table extraction is
+required.
+1. Watch the stage list. Follow Source transfer and processing. It reports the current stage, progress, attempts
+and any available timings. The wizard refreshes while extracted Markdown is still unavailable.
+2. Wait for usable output. When processing completes, open the document and choose Edit Markdown or
+Editorial Review as appropriate. Preview original keeps the source available for comparison; processing
+completion alone does not make extracted blocks approved.
+3. Handle a failed job. Read the error and failing stage. Retry processing is offered for eligible failed/canceled jobs
+and reuses completed checkpoints where possible. An automatic retry time may also be shown.
+4. Escalate a persistent failure. Record the title, version, job identifier, stage, attempt count, time and error. Ask
+an administrator to investigate worker/storage/embedding failures. Do not create several duplicate documents to
+work around one job.
+Expected result. The correct draft has its extracted source and is ready for editorial work.
+Watch point: Do not assume a fixed completion time or that a quiet progress bar means the job has failed.
+
+MEDIGUIDE  |  CLINICAL GUIDELINES
+SOP-CG-01  /  Version 1.0
+25 October 2026  |  Based on MediGuide v2.1.23
+09 / 30
+08  /  AUTHOR
+Open the Markdown workspace
+Document > draft version > Edit Markdown (or Author Markdown when starting without extracted source).
+1. Check the version and revision. Confirm the guideline title and version. The editor shows the saved revision
+and structured-content status. Work in the draft intended for publication.
+2. Choose a working view. Use Edit, Split or Preview. Split makes it easier to compare source syntax and
+rendered output. Use Original PDF where available to verify fidelity; Markdown-only sources cannot claim PDF
+page citations.
+3. Inspect the whole document. Review the outline, front matter, chapter boundaries, paragraphs, lists, links,
+tables, figures and footnotes. Check the beginning, middle and end, not only the first chapter.
+4. Use private previews carefully. Reader, mobile, search and RAG presentations help expose structural
+problems. They are previews, not evidence that content has been published or clinically approved.
+Expected result. The editor contains the correct complete source for the draft edition.
+Watch point: Retain the authoritative source beside the editor. Extraction can lose text or reorder content without an obvious syntax error.
+
+MEDIGUIDE  |  CLINICAL GUIDELINES
+SOP-CG-01  /  Version 1.0
+25 October 2026  |  Based on MediGuide v2.1.23
+10 / 30
+09  /  AUTHOR
+Repair headings and reading order
+A clear hierarchy becomes the chapter and section navigation on the website and mobile app.
+1. Use one document title. Keep one H1 (# Guideline title). Use H2 (##) for chapters or major front matter, H3 for
+major sections within a chapter and H4 for subsections. Do not skip heading levels.
+2. Match the source structure. Preserve the sequence and meaning of chapters. Remove repeated page
+headers/footers only after checking the source. Keep clinically meaningful notes, references and appendices.
+3. Replace training/template content. Replace template titles, unchanged template headings and every _Add
+reviewed clinical content._ marker. A template provides structure, not clinical wording.
+4. Check navigation and anchors. Preview the section outline and internal links. Renamed headings may retain
+stable anchors from revision metadata; verify that links still lead to the correct clinical section.
+Expected result. One coherent title and an unbroken parent-child outline match the source.
+Watch point: A normal single H1 acts as the document wrapper; its H2 children become mobile chapter cards. Do not create extra H1
+headings just to obtain more cards.
+
+MEDIGUIDE  |  CLINICAL GUIDELINES
+SOP-CG-01  /  Version 1.0
+25 October 2026  |  Based on MediGuide v2.1.23
+11 / 30
+10  /  AUTHOR
+Upload and reconnect images
+Use Assets in the editor to manage version-scoped images and their attribution.
+1. Gather the exact figures. Obtain the source images or extract them from the authoritative PDF. Check charts,
+axes, legends and labels. Do not substitute a similar chart when the required original is missing.
+2. Complete asset metadata. Open Assets > Guideline asset library. Choose, drop or paste images. Supported
+files are PNG, JPEG, GIF and WebP, up to 10 MB each. Provide meaningful alternative text; add caption, source,
+attribution and license as applicable.
+3. Insert the correct reference. Upload the image, inspect its preview and insert it where it belongs. Prefer the
+stable guideline-asset:// reference returned by the library. Resolve Broken references and ambiguous filenames
+before regeneration.
+4. Review clinical figures. Mark clinically sensitive figures appropriately. Review the asset and generated figure
+against the source. A figure is not ready for publication simply because its image loads.
+Expected result. Every intended image resolves to the correct version asset with meaningful alternative text.
+Watch point: Replacing a clinical figure requires a fresh source check. Missing or unreviewed referenced assets can block publication.
+
+MEDIGUIDE  |  CLINICAL GUIDELINES
+SOP-CG-01  /  Version 1.0
+25 October 2026  |  Based on MediGuide v2.1.23
+12 / 30
+11  /  AUTHOR
+Repair and verify clinical tables
+Table formatting and clinical correctness are separate checks. Both must pass.
+1. Preserve the cell grid. Each Markdown table needs a header row, a separator row and an equal number of
+cells in every row. Keep empty leading or trailing cells and escape literal pipes inside cell text when needed.
+2. Use the visual table editor. Inspect the whole grid before adding, deleting or moving rows/columns. Preserve
+the source headings, merged-cell meaning, notes and reading order. Verify rendered output after each structural
+edit.
+3. Check every clinical detail. Compare headers, row associations, values, decimal points, units, age/weight
+groups, routes, intervals, footnotes, caption and source page. Never infer a missing dose or unit to make a table
+look complete.
+4. Save and regenerate. A valid table may still show high_risk_table_review_required. Save the source,
+regenerate, then approve the generated table individually in Editorial Review after source comparison.
+Expected result. The rendered grid is faithful to the authoritative table, including intentionally blank cells.
+Watch point: Do not remove a row or warning merely to reach zero warnings. A syntactically valid table can still be clinically wrong.
+
+MEDIGUIDE  |  CLINICAL GUIDELINES
+SOP-CG-01  /  Version 1.0
+25 October 2026  |  Based on MediGuide v2.1.23
+13 / 30
+12  /  AUTHOR
+Prepare, save and checkpoint
+Save the exact source you intend to regenerate. Autosave and checkpoints are not publication actions.
+1. Inspect preparation proposals. Select Prepare for review. Review its before/after diff and Automatic, Editor
+review and Manual review categories. Apply only changes that preserve source meaning; preparation does not
+approve clinical content.
+2. Resolve blocking errors. Use the validation panel and source-line guidance to fix malformed tables,
+unsafe/unsupported markup, missing alternative text, broken links and invalid hierarchy. Warnings about tables
+and doses usually remain review obligations.
+3. Save the revision. Select Save draft and confirm the revision badge updates. Regenerate is disabled while
+changes are unsaved. A saved revision is immutable; saving newer source makes the previous structured
+projection outdated.
+4. Create a named milestone. For a substantial change, use Checkpoint and describe the change. If a conflict
+occurs, preserve/export your local work, load the current server revision and reconcile differences; do not
+overwrite another author blindly.
+Expected result. The intended source is saved on the server and has no regeneration-blocking errors.
+Watch point: Local settings and local drafts are not a substitute for a confirmed server save. Do not regenerate from an older revision.
+
+MEDIGUIDE  |  CLINICAL GUIDELINES
+SOP-CG-01  /  Version 1.0
+25 October 2026  |  Based on MediGuide v2.1.23
+14 / 30
+13  /  AUTHOR
+Assign reviewers and record decisions
+Review & activity coordinates work and retains comments, assignments and the audit trail.
+1. Assign responsibility. Open Review & activity > Reviewer assignments. Select an active clinical reviewer,
+optionally set a due date, then Assign reviewer. If the list is empty, ask an administrator to check active status and
+guideline.review access.
+2. Make requests traceable. Use comments to record source discrepancies, missing material and requested
+corrections. Refer to the version, revision, section or block and source page whenever available.
+3. Resolve collaboration work. Resolve or reopen comments as the source issue is checked. Refresh or poll to
+see others' work; the editor does not provide guaranteed live cursors or realtime presence.
+4. Keep review separate. Completing an assignment or resolving a comment does not mark a block reviewed.
+High-risk blocks still need the explicit decision by an authorized reviewer, followed by regeneration acceptance
+and publication validation.
+Expected result. Reviewer responsibility and unresolved questions are visible and attributable.
+Watch point: Do not place patient identifiers, passwords or unrelated personal information in review comments.
+
+MEDIGUIDE  |  CLINICAL GUIDELINES
+SOP-CG-01  /  Version 1.0
+25 October 2026  |  Based on MediGuide v2.1.23
+15 / 30
+14  /  AUTHOR
+Regenerate the saved source
+Regeneration rebuilds the reader projection and search material from one immutable Markdown revision.
+1. Start from the saved revision. Confirm Save draft completed and authoritative Markdown validation has no
+blocking errors. Select Regenerate in the toolbar (described as Regenerate structured content in some guides).
+2. Monitor the revision-bound job. Watch the stage and percentage until generation completes or requires review.
+Check that the job refers to the revision you intend to publish. Do not treat successful generation as clinical
+approval.
+3. Handle newer edits. If Regeneration stopped: newer revision appears, use Reload current revision, check the
+saved source and start a new regeneration. Retrying the superseded job is intentionally disabled.
+4. Handle a failure. Use Retry only when it is offered for the current eligible job and the cause is understood.
+Record a persistent error for operations. Review generated blocks again after regeneration; do not assume prior
+decisions were inherited.
+Expected result. A generated projection exists for the current saved revision, ready for review.
+Watch point: If source changes after review begins, save, regenerate and repeat the review/acceptance cycle for the new revision.
+
+MEDIGUIDE  |  CLINICAL GUIDELINES
+SOP-CG-01  /  Version 1.0
+25 October 2026  |  Based on MediGuide v2.1.23
+16 / 30
+15  /  REVIEWER
+Navigate Editorial Review
+Document > draft version > Editorial Review. The workspace opens at the first pending high-risk block.
+1. Understand the workspace. The left column is Sections; the middle is Source PDF or Reader preview; the right
+is the block list and selected block. Narrow screens use Sections / Source / Review block tabs.
+2. Choose the right filter. Pending review only targets outstanding individual decisions. All high-risk blocks
+includes approved safety-sensitive content. All blocks is essential for checking ordinary prose and surrounding
+context.
+3. Compare before deciding. Select a section and block, confirm its source page/provenance and compare the
+rendered output with the original. Use Review next pending to move through the queue.
+4. Use header controls. The progress bar summarizes individual review. The blockers button opens Publication
+checklist. Validate reruns publication checks. Progress and checklist counts can differ; the authoritative
+publication validator controls readiness.
+Expected result. You can locate the original source, rendered block and review status for the same section.
+Watch point: No pending high-risk blocks does not prove that ordinary paragraphs, lists or entire sections have been reviewed.
+
+MEDIGUIDE  |  CLINICAL GUIDELINES
+SOP-CG-01  /  Version 1.0
+25 October 2026  |  Based on MediGuide v2.1.23
+17 / 30
+16  /  REVIEWER
+Review ordinary content explicitly
+Approving tables alone can leave published chapters without their explanatory prose.
+1. Inspect the full content. Use All blocks to check paragraphs, headings, lists and references against the source.
+Verify that content is complete and in order, including front matter and appendices.
+2. Use the controlled low-risk queue. Open Bulk approve low-risk. Select only the eligible blocks you actually
+verified. The backend allowlist includes paragraphs, headings, ordered/unordered lists, references and page
+breaks.
+3. Attest deliberately. Review the selected content and counts. The operation allows at most 500 eligible blocks
+per submission. Confirm the attestation that every selected block was checked against the authoritative source,
+then Confirm approval.
+4. Verify the result. Confirm the selected blocks are reviewed. Repeat in sensible batches, then inspect the
+completeness report for reviewed prose and populated clinical leaf sections.
+Expected result. Reviewed ordinary content accompanies reviewed clinical tables and callouts.
+Watch point: Figures, high-risk blocks, unknown types and types outside the allowlist cannot use this bulk approval. Selection is not
+permission to skip reading.
+
+MEDIGUIDE  |  CLINICAL GUIDELINES
+SOP-CG-01  /  Version 1.0
+25 October 2026  |  Based on MediGuide v2.1.23
+18 / 30
+17  /  AUTHORIZED CLINICAL REVIEWER
+Approve high-risk content individually
+Each safety-sensitive decision must be deliberate, attributable and checked against the authoritative
+source.
+1. Compare the complete clinical statement. Individually review tables, recommendations, warnings, cautions,
+contraindications, dosages, procedures, algorithms, algorithm references and referral criteria. Use the server
+policy and checklist for the actual required set.
+2. Review figures and conservative types. Compare clinically sensitive assets and figure blocks, including axes,
+legends and labels. Key points, evidence, definitions, clinical notes and unknown blocks are not automatically
+bulk-eligible; check the available authorized review action.
+3. Approve or reject. Select Approve & next (or Approve figure & next) only when faithful and correct. Reject when
+it must not publish; a rejected block remains outstanding until corrected and approved.
+4. Work efficiently without bypassing review. Outside text fields/dialogs, J moves next, K previous, A approves
+and advances, R rejects. Confirm the reviewed badge and decision trail. Save or discard an unsaved correction
+before deciding.
+Expected result. Every required high-risk block and relevant asset has an authorized approval.
+Watch point: Do not bulk-approve clinical tables or accept the entire regeneration as a shortcut around individual review.
+
+MEDIGUIDE  |  CLINICAL GUIDELINES
+SOP-CG-01  /  Version 1.0
+25 October 2026  |  Based on MediGuide v2.1.23
+19 / 30
+18  /  EDITOR + REVIEWER
+Correct extraction and section defects
+Choose the correction method intentionally. Source fixes and structured corrections have different
+consequences.
+1. Prefer a durable source correction. For missing wording, table cells, figure references or hierarchy problems,
+return to Edit Markdown. Correct against the source, save, regenerate and re-review the changed projection.
+2. Use a structured correction when appropriate. In Editorial Review, expand Correct extraction. Authorized users
+can edit the typed content type/payload and Save correction. This is an advanced content operation; request help
+rather than guessing JSON fields.
+3. Repair section navigation carefully. Use Section settings for title, level, slug, move or merge actions. Start new
+section here is available in the block menu. Check ordering, links and hierarchy afterward; deletion must not
+remove meaningful clinical content.
+4. Re-review the result. A saved block correction resets its decision to draft. Approve the corrected block only
+after rechecking it. Structured-only changes may be replaced by a later regeneration from Markdown, so reconcile
+the source for future editions.
+Expected result. The corrected source/projection remains faithful, structurally valid and reviewed.
+Watch point: Never invent missing clinical values, source pages or attribution. Escalate missing source evidence.
+
+MEDIGUIDE  |  CLINICAL GUIDELINES
+SOP-CG-01  /  Version 1.0
+25 October 2026  |  Based on MediGuide v2.1.23
+20 / 30
+19  /  REVIEWER + PUBLISHER
+Check the completeness report
+Editorial Review > Completeness report. This is a read-only readiness and coverage report, not an
+approval button.
+1. Inspect coverage. Check total/reviewed sections and clinical leaf sections, empty leaves, block counts by
+type/state, reviewed percentage and reviewed paragraph coverage. Look for chapters with headings but no
+reviewed body.
+2. Compare with the current publication. Investigate unexpected reductions in chapters, sections, blocks, tables or
+high-risk blocks. A mostly empty candidate must not replace a complete published guideline just because some
+tables passed review.
+3. Check supporting evidence. Inspect original-PDF or offline-fallback availability, source revision/job identity,
+regeneration acceptance, validation issues and RAG chunks/embeddings. Confirm that expected images and
+source context are represented.
+4. Export and correct. Export JSON or CSV for audit when needed. Resolve missing content at the source or
+review the outstanding ordinary/high-risk blocks, then refresh the report. Exporting never approves or publishes
+anything.
+Expected result. Coverage is understood, no unexplained content loss remains, and the report refers to the
+intended revision/job.
+Watch point: A high reviewed percentage alone is insufficient if a missing chapter or one critical table is concealed by the total.
+
+MEDIGUIDE  |  CLINICAL GUIDELINES
+SOP-CG-01  /  Version 1.0
+25 October 2026  |  Based on MediGuide v2.1.23
+21 / 30
+20  /  AUTHORIZED CLINICAL REVIEWER
+Accept the regenerated projection
+Return to the Markdown editor after individual and ordinary-content review is complete.
+1. Open the regeneration comparison. Use Regeneration review when returning from Editorial Review, or open
+Edit Markdown for the draft. Inspect hierarchy, block-type counts, tables, chunks, assets, provenance and
+original-PDF availability.
+2. Refresh the approval status. Select Refresh approval status. If outstanding high-risk blocks remain, choose
+Review pending blocks, compare and approve the corrected content, then return and refresh again.
+3. Accept only the faithful result. When required review is complete and the comparison is satisfactory, select
+Accept regenerated projection. If it is not faithful, provide a rejection comment and choose Reject and return to
+Markdown.
+4. Protect the accepted identity. Acceptance applies to the exact generated revision/job. If the source is saved
+again or regenerated, the new result needs a new review and acceptance cycle. Do not publish an accepted older
+projection against newer source.
+Expected result. Regeneration review reads accepted for the current saved and generated revision.
+Watch point: The acceptance button is refused while required high-risk blocks remain draft or rejected. No force-accept path is part of this
+SOP.
+
+MEDIGUIDE  |  CLINICAL GUIDELINES
+SOP-CG-01  /  Version 1.0
+25 October 2026  |  Based on MediGuide v2.1.23
+22 / 30
+21  /  PUBLISHER
+Validate and publish the version
+The publisher performs the final gate. Publication makes the approved version current for reader-facing
+services.
+1. Run authoritative validation. In Editorial Review select Validate and open Publication checklist. Resolve real
+defects and the review queue. The document page's Publish action also validates before attempting publication.
+2. Check every gate. Confirm source/generated/accepted revision identity, valid hierarchy and payloads,
+resolved/reviewed assets, approved required blocks, meaningful reviewed prose, adequate coverage, accepted
+regeneration and required source/offline fallbacks.
+3. Publish deliberately. Select Publish only after no blockers remain. Editorial Review asks for confirmation that
+publication is permanent and audited. Confirm only for the intended document/version. The backend rechecks
+eligibility.
+4. Confirm success and hand over. Check the success message and current published version on the document.
+The previous approved edition remains in history. Continue with website and mobile checks; guideline publication
+does not require a new application or website software release.
+Expected result. The intended edition is the current published version, not merely a saved draft or accepted
+regeneration.
+Watch point: If Publication needs review / Publication blocked appears, return to the named issue. Do not create a software release to
+bypass a content-publication blocker.
+
+MEDIGUIDE  |  CLINICAL GUIDELINES
+SOP-CG-01  /  Version 1.0
+25 October 2026  |  Based on MediGuide v2.1.23
+23 / 30
+22  /  PUBLISHER + READER TESTER
+Verify the public website
+Use a public or signed-out view as well as the private dashboard preview.
+1. Find the published document. Open the public guidelines website and search for the official title. Check
+document kind, classification and visible version metadata. Confirm that a replacement shows the intended
+current edition.
+2. Check discovery and navigation. Open applicable category/disease listings and any configured hub placement.
+Test chapter navigation, nested sections, search terms, internal links and back navigation on desktop and narrow
+widths.
+3. Compare representative content. Check the first, middle and last chapters; review at least one table, clinical
+callout, figure and footnote where present. Confirm no empty clinical chapter has replaced complete reviewed
+content.
+4. Check downloads and citations. Open the original/download fallback where provided. Verify representative
+published search results and RAG citations resolve to the right document, current version and source context.
+Record missing results separately from reader defects.
+Expected result. A reader without dashboard access can find and read the expected approved version.
+Watch point: A private preview is not a public acceptance test. Publication and client caches/indexing may not become visible at exactly the
+same instant.
+
+MEDIGUIDE  |  CLINICAL GUIDELINES
+SOP-CG-01  /  Version 1.0
+25 October 2026  |  Based on MediGuide v2.1.23
+24 / 30
+23  /  PUBLISHER + READER TESTER
+Verify the app and offline package
+Use a supported mobile build with connectivity first, then test the downloaded content offline.
+1. Refresh online discovery. Open the app online, refresh/synchronize available content and search for the title.
+Check relevant browse categories/diseases. If the new edition is absent, verify website/API publication before
+diagnosing the device.
+2. Open the structured reader. Confirm the edition and chapter list. Test nested sections, readable tables, figures,
+links, font scaling and narrow-screen layout. Compare representative safety-sensitive content with the source and
+public website.
+3. Download and reopen offline. Download or refresh the guideline package using the app's available download
+controls. After completion, disable connectivity and open the saved document. Test chapters, tables and images.
+Reconnect when the test is finished.
+4. Confirm update behavior. Existing downloads may need a refresh after a new edition publishes. Verify that the
+refreshed package represents the intended current version. Record device, app build, edition and synchronization
+time in the handover record.
+Expected result. The approved edition is discoverable online and its downloaded package works offline on a
+representative device.
+Watch point: An old offline copy is not evidence that server publication failed. Offline or disconnected devices cannot receive immediate
+updates or withdrawal information.
+
+MEDIGUIDE  |  CLINICAL GUIDELINES
+SOP-CG-01  /  Version 1.0
+25 October 2026  |  Based on MediGuide v2.1.23
+25 / 30
+24  /  AUTHORIZED NOTIFICATION OPERATOR
+Notify readers after verification
+Notifications are an optional, separate approval workflow. They do not publish the guideline itself.
+1. Complete reader checks first. Confirm that the intended version is published and works on the public website
+and app. Prepare a short factual change summary without overstating clinical changes.
+2. Create a draft campaign. On the document, use Notify users when available. Choose All eligible users or the
+intended user/role audience, change summary, priority, optional schedule and Push / In-app channels.
+3. Review before sending. Select Create draft campaign. The dialog explicitly creates a draft; it does not send
+directly. Open campaign to continue in Notification Operations for the normal review and approval process.
+4. Verify delivery responsibly. Confirm the target document/version and audience, then use the approved
+notification workflow. Test the deep link and inspect delivery outcomes. Notification permission/preferences and
+provider delivery affect reach.
+Expected result. If an announcement is needed, its approved campaign links to the verified published
+guideline.
+Watch point: Do not describe a draft campaign as sent, or notification delivery as proof that content publication succeeded.
+
+MEDIGUIDE  |  CLINICAL GUIDELINES
+SOP-CG-01  /  Version 1.0
+25 October 2026  |  Based on MediGuide v2.1.23
+26 / 30
+25  /  AUTHOR + REVIEWER + PUBLISHER
+Update, withdraw or restore access
+Published clinical content is immutable. Corrections use a new edition; urgent removal uses withdrawal.
+1. Prepare a replacement edition. Open the published Markdown read-only view and choose the
+draft-from-published action. Enter a new unique version label. The immutable source is copied; regeneration does
+not run automatically. Correct, save, regenerate, review, accept, validate and publish.
+2. Withdraw unsafe public content. An authorized publisher can select Withdraw and record a reason. This
+removes the document from website, app discovery, search and AI retrieval while retaining files and history.
+Follow local incident communication procedures.
+3. Revise a withdrawn document. Choose Revise document or Continue draft. Use a new unique version label,
+check any omitted-content warnings and complete the full workflow. The document stays withdrawn while you
+work.
+4. Republish unchanged approved content. Review and republish runs publication checks for the approved
+edition. Review the withdrawal reason/history and attest readiness. If clinical wording must change, publish a new
+reviewed draft instead.
+Expected result. The public state matches the clinical decision, and the history explains the change.
+Watch point: Downloaded copies are removed when devices next check online. Withdrawal cannot instantly reach a device that remains
+disconnected.
+
+MEDIGUIDE  |  CLINICAL GUIDELINES
+SOP-CG-01  /  Version 1.0
+25 October 2026  |  Based on MediGuide v2.1.23
+27 / 30
+26  /  AUTHOR + PUBLISHER
+Special routes: forms and links
+Use these paths only for document kinds intentionally configured to publish an original file or external
+URL.
+1. Original-file route. Create document and version, then Upload file. Choose the correct PDF or Word (.docx),
+Upload source and wait for text indexing. Review form shows the file exactly as readers will receive it; use
+Preview original to check every relevant page.
+2. Publish an original file. Confirm readability, edition, source, metadata and the indexing result. Publish from the
+document page when checks pass. No Markdown, regeneration or structured-block editor is used for this route; a
+corrected file belongs in a new draft version.
+3. External-link route. Create document and version, choose Add link, enter the complete HTTPS URL and save.
+Review the actual destination, title, organization, availability and mobile behavior. No file extraction or Markdown
+workflow runs.
+4. Verify the reader result. Publish after required checks, then test the public website and app opening behavior.
+For links, content and access may change at the external host; for original files, verify the actual PDF/Word layout
+and download behavior.
+Expected result. Readers receive the intended reviewed original file or valid external destination.
+Watch point: Do not promise offline availability or structured clinical page citations for an external link. Route-specific publication checks still
+apply.
+
+MEDIGUIDE  |  CLINICAL GUIDELINES
+SOP-CG-01  /  Version 1.0
+25 October 2026  |  Based on MediGuide v2.1.23
+28 / 30
+27  /  ALL ROLES
+Troubleshoot without losing work
+Fix the cause at the correct stage. Keep evidence and avoid duplicate uploads or unreviewed shortcuts.
+1. Upload or processing stalls. Distinguish transfer progress from the processing job. Resume with the same file
+when eligible. For repeated failures, capture job/stage/attempt/error and ask operations to check storage, workers
+and embedding services.
+2. Regenerate is disabled or stale. Save unsaved changes and fix blocking Markdown errors. For a
+newer-revision warning, reload the current revision and regenerate it. Preserve local edits before resolving a
+server conflict.
+3. Review or publication is blocked. A high-risk table warning usually means individual review is still needed.
+Resolve missing image references, invalid typed payloads, rejected blocks, missing reviewed prose, empty
+leaves and unexplained coverage regressions. Refresh approval status before acceptance.
+4. Published content is absent. Verify the current published edition and withdrawal state, then test a signed-out
+website view and a refreshed online app. Check taxonomy/filter placement, synchronization, download age and
+search/index readiness. Escalate with document/version IDs and exact failing reader steps.
+Expected result. The issue has a reproducible cause, an owner and a safe next action.
+Watch point: Never remove clinically meaningful content, invent missing evidence, bulk-approve high-risk blocks or republish a template to
+make a validator pass.
+
+MEDIGUIDE  |  CLINICAL GUIDELINES
+SOP-CG-01  /  Version 1.0
+25 October 2026  |  Based on MediGuide v2.1.23
+29 / 30
+28  /  PUBLISHER + REVIEWER
+Publication handover checklist
+Use this checklist as the minimum operational record for an edition. Complete it before calling publication
+finished.
+1. Source and authorship. Record document title/ID, kind, version/ID, issuing organization, source filename and
+edition, source revision/checkpoint, author, reviewer and publisher. Record the changes made and any
+unresolved source questions.
+2. Review and readiness. Record the regenerated revision/job, completeness report export, ordinary-content
+review, individual high-risk/asset decisions, accepted regeneration and a passing publication validation. No
+unexplained content-loss or empty-clinical-section issue remains.
+3. Publication and reader checks. Record publication time, current edition, public URL, web test result, mobile
+build/device, online discovery result, downloaded edition and offline check. Include representative table, figure
+and RAG citation checks where applicable.
+4. Aftercare. Name the owner for defects, review-due date and withdrawal/escalation contact. Record the optional
+notification campaign separately. Keep audit exports in the organization's approved location; do not attach
+credentials or patient data.
+Expected result. Publication is complete when the correct reviewed edition is current and reader-facing
+verification is recorded.
+Watch point: If verification fails, keep the issue open and assess withdrawal or a corrective edition under local governance.
+
+MEDIGUIDE  |  CLINICAL GUIDELINES
+SOP-CG-01  /  Version 1.0
+25 October 2026  |  Based on MediGuide v2.1.23
+30 / 30
+References and control notes
+This SOP consolidates existing repository guides and checks the control labels against the implemented
+dashboard. It describes the source-to-publication lifecycle; it does not approve any particular guideline.
+Full authoring lifecycle
+docs/guideline-authoring-and-publication-workflow.md
+Editorial Review layout and shortcuts
+docs/guideline-editorial-review-workspace.md
+Role and permission boundaries
+docs/guideline-editor-permissions.md
+Warning interpretation and remedies
+docs/guideline-warning-resolution.md
+Validation failures and recovery
+docs/guideline-validation-troubleshooting.md
+Content-kind alternatives
+docs/content-hub-and-document-publishing-workflow.md
+Creation, detail and version dialogs
+dashboard/app/(dashboard)/guidelines/
+Markdown, asset library and review controls
+dashboard/components/guidelines/
+Authoritative block policy
+backend/internal/models/guideline_block_review_policy.go
+Maintain this SOP. Recheck the workflow after changes to the authoring editor, review policy, publication
+validator, document kinds or public/mobile readers. Replace illustrative images with authorized screenshots
+when a suitable training session is available.
+Local ownership record
+SOP owner: ____________________
+Clinical governance approver: ____________________
+Operational approval date: ____________________
+Next review date: ____________________
