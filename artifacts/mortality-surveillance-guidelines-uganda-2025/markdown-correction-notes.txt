@@ -1,0 +1,9 @@
+Markdown correction notes
+
+Normalized pipe-table spacing to preserve empty leading and trailing cells in the current document processor. All cell text, headings, paragraphs, and image references are preserved. No clinical content was rewritten.
+
+Verification: all 9 tables now have matching header and row column counts using the repository table-cell parser; the original had mismatches in 6 tables.
+
+Import the corrected Markdown using the normal authoring workflow with its images, save, regenerate the candidate, and rerun validation. Existing generated table blocks will not change until regeneration.
+
+Remaining publication requirements: compare the candidate with the current publication and resolve the reviewed-coverage reduction; complete publisher review of the 7 outstanding high-risk blocks against the source PDF. This file does not alter review status or grant approvals. Source OCR fragments and image-based content still require source comparison.
