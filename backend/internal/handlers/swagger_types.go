@@ -492,6 +492,11 @@ type CalculatorUsageEnvelope struct {
 	Data    models.CalculatorUsageLog `json:"data"`
 }
 
+type CalculatorUsageSummaryEnvelope struct {
+	Success bool                            `json:"success" example:"true"`
+	Data    services.CalculatorUsageSummary `json:"data"`
+}
+
 type DrugEnvelope struct {
 	Success bool        `json:"success" example:"true"`
 	Data    models.Drug `json:"data"`

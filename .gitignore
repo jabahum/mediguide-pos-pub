@@ -90,3 +90,4 @@ replay_pid*.log
 
 # Notification delivery operations and device QA guide
 !docs/notification-experience.md
+!docs/tool-usage-tracking.md

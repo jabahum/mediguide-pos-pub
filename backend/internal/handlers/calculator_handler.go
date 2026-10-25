@@ -694,6 +694,30 @@ func optionalRFC3339Query(raw string) (*time.Time, error) {
 	return &value, nil
 }
 
+// UsageSummary godoc
+// @Summary Get per-tool usage totals and daily sessions for the last 30 UTC days
+// @Tags calculators
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Calculator ID" format(uuid)
+// @Success 200 {object} handlers.CalculatorUsageSummaryEnvelope
+// @Failure 400 {object} handlers.ErrorResponse
+// @Failure 403 {object} handlers.ErrorResponse
+// @Failure 404 {object} handlers.ErrorResponse
+// @Router /api/v2/calculators/{id}/usage [get]
+func (h CalculatorHandler) UsageSummary(c *gin.Context) {
+	id, ok := calculatorID(c)
+	if !ok {
+		return
+	}
+	summary, err := h.Service.UsageSummary(id)
+	if err != nil {
+		h.writeError(c, err)
+		return
+	}
+	httpx.OK(c, summary)
+}
+
 // StartUsage godoc
 // @Summary Start a calculator usage session
 // @Tags calculators

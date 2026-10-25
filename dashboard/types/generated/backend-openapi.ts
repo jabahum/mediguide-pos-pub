@@ -249,6 +249,12 @@ export interface HandlersCalculatorUsageEnvelope {
   success?: boolean;
 }
 
+export interface HandlersCalculatorUsageSummaryEnvelope {
+  data?: ServicesCalculatorUsageSummary;
+  /** @example true */
+  success?: boolean;
+}
+
 export interface HandlersCalculatorVersionAuditEnvelope {
   data?: ServicesCalculatorVersionAuditDTO[];
   success?: boolean;
@@ -2912,6 +2918,21 @@ export interface ServicesCalculatorReviewQueueItem {
   validation_passed?: boolean;
   version_id?: string;
   version_status?: string;
+}
+
+export interface ServicesCalculatorUsageDay {
+  date?: string;
+  sessions?: number;
+}
+
+export interface ServicesCalculatorUsageSummary {
+  daily?: ServicesCalculatorUsageDay[];
+  ended_sessions?: number;
+  recent_sessions?: number;
+  since?: string;
+  total_sessions?: number;
+  unique_users?: number;
+  until?: string;
 }
 
 export interface ServicesCalculatorVersionAuditDTO {

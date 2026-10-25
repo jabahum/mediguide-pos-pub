@@ -4192,6 +4192,56 @@ const docTemplate = `{
             }
         },
         "/api/v2/calculators/{id}/usage": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "calculators"
+                ],
+                "summary": "Get per-tool usage totals and daily sessions for the last 30 UTC days",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Calculator ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.CalculatorUsageSummaryEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -19477,6 +19527,18 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.CalculatorUsageSummaryEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/services.CalculatorUsageSummary"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "handlers.CalculatorVersionAuditEnvelope": {
             "type": "object",
             "properties": {
@@ -26140,6 +26202,46 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "version_status": {
+                    "type": "string"
+                }
+            }
+        },
+        "services.CalculatorUsageDay": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "sessions": {
+                    "type": "integer"
+                }
+            }
+        },
+        "services.CalculatorUsageSummary": {
+            "type": "object",
+            "properties": {
+                "daily": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/services.CalculatorUsageDay"
+                    }
+                },
+                "ended_sessions": {
+                    "type": "integer"
+                },
+                "recent_sessions": {
+                    "type": "integer"
+                },
+                "since": {
+                    "type": "string"
+                },
+                "total_sessions": {
+                    "type": "integer"
+                },
+                "unique_users": {
+                    "type": "integer"
+                },
+                "until": {
                     "type": "string"
                 }
             }

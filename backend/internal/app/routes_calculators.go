@@ -38,5 +38,6 @@ func registerCalculatorsRoutes(protected *gin.RouterGroup, rateLimiter *middlewa
 	protected.GET("/calculator-versions/:id/audit", middleware.RequirePermission("calculator.review"), calculatorH.VersionAudit)
 	protected.POST("/calculator-versions/:id/review-comments", middleware.RequirePermission("calculator.review"), calculatorH.AddVersionReviewComment)
 	protected.POST("/calculators/:id/usage", calculatorH.StartUsage)
+	protected.GET("/calculators/:id/usage", middleware.RequireAnyPermission("admin.all", "analytics.read"), rateLimiter.Limit(middleware.Policy("calculator-usage-read", 30, time.Minute, 5), middleware.UserIdentity), calculatorH.UsageSummary)
 	protected.PATCH("/calculator-usage/:usageId", calculatorH.FinishUsage)
 }
