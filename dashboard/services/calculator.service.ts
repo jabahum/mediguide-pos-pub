@@ -5,7 +5,11 @@ import type {
   ServicesCreateCalculatorInput,
   ServicesUpdateCalculatorInput,
 } from "@/types/generated/backend-openapi";
-import type { DomainPageQuery, DomainPageResult } from "@/types/data-table";
+import type {
+  AdvancedFilter,
+  DomainPageQuery,
+  DomainPageResult,
+} from "@/types/data-table";
 
 interface Page<T> {
   items: T[];
@@ -19,6 +23,30 @@ export type CalculatorRecord = CalculatorsResponse<{
   addedBy: UsersResponse[];
 }>;
 export type CalculatorInput = Record<string, unknown> | FormData;
+
+const CALCULATOR_TYPES = ["calculator", "decision_tool", "checklist"];
+const CALCULATOR_STATUSES = ["active", "draft", "archived"];
+const CALCULATOR_RISK_LEVELS = ["standard", "high", "critical"];
+
+// The backend filters type and status by comma-separated value lists, so
+// equals / not_equals table filters are reduced to the set of values to keep.
+function narrowChoices(
+  choices: string[],
+  filters: AdvancedFilter[],
+  field: string,
+): string[] {
+  let kept = choices;
+  for (const filter of filters) {
+    if (filter.field !== field || filter.value == null) continue;
+    const value = String(filter.value);
+    if (filter.condition === "equals") {
+      kept = kept.filter((choice) => choice === value);
+    } else if (filter.condition === "not_equals") {
+      kept = kept.filter((choice) => choice !== value);
+    }
+  }
+  return kept;
+}
 
 function artifactPath(value: unknown): string {
   if (typeof value === "string") return value;
@@ -75,6 +103,8 @@ async function calculatorPayload(
     version: "version",
     type: "type",
     status: "status",
+    category_id: "category_id",
+    risk_level: "risk_level",
   };
   for (const [source, target] of Object.entries(stringFields)) {
     if (values[source] !== undefined && values[source] !== null) {
@@ -110,6 +140,8 @@ export const calculatorService = {
       type?: string;
       status?: string;
       featured?: boolean;
+      categoryId?: string;
+      riskLevel?: string;
       sort?: string;
       order?: "asc" | "desc";
     } = {},
@@ -122,6 +154,8 @@ export const calculatorService = {
         type: query.type,
         status: query.status,
         featured: query.featured,
+        category_id: query.categoryId,
+        risk_level: query.riskLevel,
         sort: query.sort,
         order: query.order,
       },
@@ -132,11 +166,39 @@ export const calculatorService = {
     query: DomainPageQuery,
     type?: string,
   ): Promise<DomainPageResult<CalculatorRecord>> {
+    const types = narrowChoices(
+      type ? type.split(",") : CALCULATOR_TYPES,
+      query.filters,
+      "type",
+    );
+    const statuses = narrowChoices(CALCULATOR_STATUSES, query.filters, "status");
+    const riskLevels = narrowChoices(CALCULATOR_RISK_LEVELS, query.filters, "risk_level");
+    const category = query.filters.find(
+      (filter) => filter.field === "category_id" && filter.condition === "equals",
+    )?.value;
+    if (types.length === 0 || statuses.length === 0 || riskLevels.length === 0) {
+      return {
+        items: [],
+        page: 1,
+        perPage: query.perPage,
+        totalItems: 0,
+        totalPages: 0,
+      };
+    }
     const result = await this.list({
       page: query.page,
       perPage: query.perPage,
       search: query.search,
-      type,
+      type: types.length < CALCULATOR_TYPES.length ? types.join(",") : undefined,
+      status:
+        statuses.length < CALCULATOR_STATUSES.length
+          ? statuses.join(",")
+          : undefined,
+      riskLevel:
+        riskLevels.length < CALCULATOR_RISK_LEVELS.length
+          ? riskLevels.join(",")
+          : undefined,
+      categoryId: category ? String(category) : undefined,
       sort: "name",
     });
     return {

@@ -4,7 +4,7 @@ import * as React from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { PageHeader } from "@/components/ui/page-header"
 import { DecisionToolForm } from "@/components/forms/decision-tool-form"
-import { CalculatorsResponse } from "@/types/backend-types"
+import { CalculatorsResponse, CalculatorsTypeOptions } from "@/types/backend-types"
 import { useDomainCrud } from "@/hooks/use-domain-crud"
 import { calculatorService } from "@/services/calculator.service"
 import { usePermissionContext } from "@/lib/permission-context"
@@ -21,13 +21,13 @@ export default function CreateDecisionToolPage() {
     }
   }, [permLoading, hasPermission, router])
   const duplicateId = searchParams.get("duplicate")
-  
+  const typeParam = searchParams.get("type")
+  const presetType = Object.values(CalculatorsTypeOptions).find((value) => value === typeParam)
+
   const [duplicateData, setDuplicateData] = React.useState<CalculatorsResponse | null>(null)
   const [loadingDuplicate, setLoadingDuplicate] = React.useState(!!duplicateId)
 
-  const { create, loading } = useDomainCrud("calculators", calculatorService, () => {
-      router.push("/decision-tools")
-  })
+  const { create, loading } = useDomainCrud("calculators", calculatorService)
 
   // Fetch duplicate data if needed
   React.useEffect(() => {
@@ -67,7 +67,9 @@ export default function CreateDecisionToolPage() {
         }
       })
       
-      await create(formData)
+      const created = await create(formData)
+      // The record is only a shell: the tool's logic is authored next.
+      router.push(`/decision-tools/${created.id}/author`)
     } catch (error) {
       console.error("Failed to submit form:", error)
       throw error
@@ -83,7 +85,7 @@ export default function CreateDecisionToolPage() {
     ...duplicateData,
     // Clear some fields that shouldn't be duplicated
     name: `${duplicateData.name} (Copy)`
-  } : undefined
+  } : presetType ? { type: presetType } : undefined
 
   const pageTitle = duplicateId 
     ? `Duplicate "${duplicateData?.name || 'Tool'}"` 
@@ -117,7 +119,7 @@ export default function CreateDecisionToolPage() {
         onBack={() => router.push("/decision-tools")}
       />
 
-      <div className="bg-card rounded-lg border p-6">
+      <div>
         <DecisionToolForm
           mode="create"
           initialData={initialData}
