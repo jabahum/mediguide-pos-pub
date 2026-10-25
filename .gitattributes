@@ -4,3 +4,4 @@
 Makefile text eol=lf
 *.mk text eol=lf
 Dockerfile* text eol=lf
+*.pdf binary

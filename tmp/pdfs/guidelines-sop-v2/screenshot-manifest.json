@@ -1,0 +1,694 @@
+[
+  {
+    "id": 1,
+    "file": "01-production-guideline-list.png",
+    "pdf_page": 5,
+    "caption": "Find the intended document before choosing a version. The list is a read-only production capture; all subsequent authoring examples use localhost.",
+    "crop": [
+      510,
+      170,
+      4112,
+      2300
+    ]
+  },
+  {
+    "id": 3,
+    "file": "03-create-guideline-form.png",
+    "pdf_page": 8,
+    "caption": "The stages are Create guideline, Create version, Upload version, and Review and edit. Document kind determines the authoring route.",
+    "crop": [
+      510,
+      200,
+      4112,
+      2310
+    ]
+  },
+  {
+    "id": 4,
+    "file": "04-create-guideline-completed.png",
+    "pdf_page": 10,
+    "caption": "Read each field before Create and Continue. The TRAINING ONLY title and non-clinical description identify this local example.",
+    "crop": [
+      510,
+      200,
+      4112,
+      2310
+    ]
+  },
+  {
+    "id": 4,
+    "file": "04-create-guideline-completed.png",
+    "pdf_page": 11,
+    "caption": "Read each field before Create and Continue. The TRAINING ONLY title and non-clinical description identify this local example.",
+    "crop": [
+      550,
+      520,
+      4050,
+      2180
+    ],
+    "detail": true
+  },
+  {
+    "id": 5,
+    "file": "05-create-version.png",
+    "pdf_page": 13,
+    "caption": "Version label identifies the document edition. Publication date and Review date do not publish or schedule the version.",
+    "crop": [
+      510,
+      200,
+      4112,
+      2310
+    ]
+  },
+  {
+    "id": 5,
+    "file": "05-create-version.png",
+    "pdf_page": 14,
+    "caption": "Version label identifies the document edition. Publication date and Review date do not publish or schedule the version.",
+    "crop": [
+      550,
+      520,
+      4050,
+      1160
+    ],
+    "detail": true
+  },
+  {
+    "id": 6,
+    "file": "06-upload-source-empty.png",
+    "pdf_page": 16,
+    "caption": "Choose a PDF or Markdown source; the alternatives are Start with blank Markdown and Start from template.",
+    "crop": [
+      510,
+      200,
+      4112,
+      2310
+    ]
+  },
+  {
+    "id": 7,
+    "file": "07-upload-source-selected.png",
+    "pdf_page": 17,
+    "caption": "Verify the selected filename, target document and edition, then Upload source. Selecting the file alone does not transfer it.",
+    "crop": [
+      510,
+      200,
+      4112,
+      2310
+    ]
+  },
+  {
+    "id": 8,
+    "file": "08-upload-processing.png",
+    "pdf_page": 19,
+    "caption": "The queued job is a separate step after file transfer. Do not leave with the assumption that the reader content is already reviewed.",
+    "crop": [
+      510,
+      200,
+      4112,
+      2310
+    ]
+  },
+  {
+    "id": 9,
+    "file": "09-processing-stages.png",
+    "pdf_page": 20,
+    "caption": "This small training PDF completed quickly. Stage rows show their actual completion states; duration varies for real documents.",
+    "crop": [
+      510,
+      200,
+      4112,
+      2310
+    ]
+  },
+  {
+    "id": 10,
+    "file": "10-source-ready.png",
+    "pdf_page": 21,
+    "caption": "Use Open Markdown workspace after the source is available. A green processing bar is readiness for editing, not public release.",
+    "crop": [
+      510,
+      200,
+      4112,
+      2310
+    ]
+  },
+  {
+    "id": 11,
+    "file": "11-document-version-actions.png",
+    "pdf_page": 23,
+    "caption": "Check the version row before Upload PDF, Preview original, View Content, Edit Markdown or Editorial Review.",
+    "crop": [
+      510,
+      200,
+      4112,
+      2310
+    ]
+  },
+  {
+    "id": 11,
+    "file": "11-document-version-actions.png",
+    "pdf_page": 24,
+    "caption": "Check the version row before Upload PDF, Preview original, View Content, Edit Markdown or Editorial Review.",
+    "crop": [
+      550,
+      880,
+      4050,
+      1430
+    ],
+    "detail": true
+  },
+  {
+    "id": 12,
+    "file": "12-markdown-extracted-with-errors.png",
+    "pdf_page": 25,
+    "caption": "The extracted H1 says Introduction instead of the document title, and headings repeat. Use validation plus the authoritative PDF to correct structure.",
+    "crop": [
+      510,
+      200,
+      4112,
+      2310
+    ]
+  },
+  {
+    "id": 12,
+    "file": "12-markdown-extracted-with-errors.png",
+    "pdf_page": 26,
+    "caption": "The extracted H1 says Introduction instead of the document title, and headings repeat. Use validation plus the authoritative PDF to correct structure.",
+    "crop": [
+      550,
+      500,
+      4050,
+      2050
+    ],
+    "detail": true
+  },
+  {
+    "id": 13,
+    "file": "13-markdown-corrected.png",
+    "pdf_page": 28,
+    "caption": "One H1 matches the record title; two H2 chapters preserve source order. The warning about a table still requires editorial review.",
+    "crop": [
+      510,
+      200,
+      4112,
+      2310
+    ]
+  },
+  {
+    "id": 13,
+    "file": "13-markdown-corrected.png",
+    "pdf_page": 29,
+    "caption": "One H1 matches the record title; two H2 chapters preserve source order. The warning about a table still requires editorial review.",
+    "crop": [
+      550,
+      450,
+      4050,
+      1950
+    ],
+    "detail": true
+  },
+  {
+    "id": 15,
+    "file": "15-asset-library.png",
+    "pdf_page": 31,
+    "caption": "An extracted asset is already present. Inspect it before uploading or inserting any replacement.",
+    "crop": [
+      880,
+      500,
+      3220,
+      2140
+    ]
+  },
+  {
+    "id": 16,
+    "file": "16-asset-upload-metadata.png",
+    "pdf_page": 32,
+    "caption": "The figure file, alternative text and caption are filled in. Review source, attribution and license where applicable; flag clinical sensitivity accurately.",
+    "crop": [
+      880,
+      150,
+      3220,
+      2150
+    ]
+  },
+  {
+    "id": 16,
+    "file": "16-asset-upload-metadata.png",
+    "pdf_page": 33,
+    "caption": "The figure file, alternative text and caption are filled in. Review source, attribution and license where applicable; flag clinical sensitivity accurately.",
+    "crop": [
+      880,
+      150,
+      3220,
+      2150
+    ],
+    "detail": true
+  },
+  {
+    "id": 17,
+    "file": "17-asset-ready-to-insert.png",
+    "pdf_page": 34,
+    "caption": "Inspect the preview and metadata, then Insert beside the intended asset. The editor inserts a stable guideline-asset reference.",
+    "crop": [
+      880,
+      450,
+      3220,
+      2150
+    ]
+  },
+  {
+    "id": 17,
+    "file": "17-asset-ready-to-insert.png",
+    "pdf_page": 35,
+    "caption": "Inspect the preview and metadata, then Insert beside the intended asset. The editor inserts a stable guideline-asset reference.",
+    "crop": [
+      880,
+      450,
+      3220,
+      2150
+    ],
+    "detail": true
+  },
+  {
+    "id": 22,
+    "file": "22-visual-table-editor.png",
+    "pdf_page": 37,
+    "caption": "This is a newly composed example table: title, caption, source, headers, row and footnote controls. It was canceled rather than applied to the training source.",
+    "crop": [
+      880,
+      230,
+      3220,
+      2210
+    ]
+  },
+  {
+    "id": 22,
+    "file": "22-visual-table-editor.png",
+    "pdf_page": 38,
+    "caption": "This is a newly composed example table: title, caption, source, headers, row and footnote controls. It was canceled rather than applied to the training source.",
+    "crop": [
+      880,
+      230,
+      3220,
+      2210
+    ],
+    "detail": true
+  },
+  {
+    "id": 14,
+    "file": "14-prepare-for-review.png",
+    "pdf_page": 40,
+    "caption": "The dialog has Automatic, Editor review and Manual review categories. This example proposes no changes; no clinical approval is performed.",
+    "crop": [
+      880,
+      770,
+      3220,
+      1430
+    ]
+  },
+  {
+    "id": 18,
+    "file": "18-editor-saved-asset.png",
+    "pdf_page": 41,
+    "caption": "The new guideline-asset reference is part of the saved source. Saving it does not regenerate or approve the structured figure.",
+    "crop": [
+      510,
+      200,
+      4112,
+      2310
+    ]
+  },
+  {
+    "id": 18,
+    "file": "18-editor-saved-asset.png",
+    "pdf_page": 42,
+    "caption": "The new guideline-asset reference is part of the saved source. Saving it does not regenerate or approve the structured figure.",
+    "crop": [
+      550,
+      200,
+      4050,
+      2200
+    ],
+    "detail": true
+  },
+  {
+    "id": 20,
+    "file": "20-revision-history.png",
+    "pdf_page": 43,
+    "caption": "Rows identify revision numbers, source and time. Use Preview or Compare before deciding to restore an earlier source.",
+    "crop": [
+      880,
+      650,
+      3220,
+      1770
+    ]
+  },
+  {
+    "id": 21,
+    "file": "21-revision-diff.png",
+    "pdf_page": 44,
+    "caption": "This actual diff compares extraction revision 1 with corrected revision 2. Red is removed source; green is added source. A diff does not establish clinical correctness.",
+    "crop": [
+      880,
+      400,
+      3220,
+      2090
+    ]
+  },
+  {
+    "id": 19,
+    "file": "19-review-activity.png",
+    "pdf_page": 46,
+    "caption": "Reviewer assignments, comments and Activity log live here. An assignment or resolved comment is separate from a block decision.",
+    "crop": [
+      1150,
+      650,
+      2950,
+      1830
+    ]
+  },
+  {
+    "id": 23,
+    "file": "23-regeneration-review-pending.png",
+    "pdf_page": 48,
+    "caption": "Generation completed for revision 3. Acceptance remains disabled until the required blocks are reviewed. Comparison counts need confirmation in the actual rendered output.",
+    "crop": [
+      510,
+      200,
+      4112,
+      2310
+    ]
+  },
+  {
+    "id": 23,
+    "file": "23-regeneration-review-pending.png",
+    "pdf_page": 49,
+    "caption": "Generation completed for revision 3. Acceptance remains disabled until the required blocks are reviewed. Comparison counts need confirmation in the actual rendered output.",
+    "crop": [
+      550,
+      250,
+      4050,
+      2220
+    ],
+    "detail": true
+  },
+  {
+    "id": 24,
+    "file": "24-editorial-review-table.png",
+    "pdf_page": 51,
+    "caption": "Sections are on the left, original PDF in the middle, rendered block and actions on the right. The table content can be compared cell by cell.",
+    "crop": [
+      510,
+      200,
+      4112,
+      2310
+    ]
+  },
+  {
+    "id": 24,
+    "file": "24-editorial-review-table.png",
+    "pdf_page": 52,
+    "caption": "Sections are on the left, original PDF in the middle, rendered block and actions on the right. The table content can be compared cell by cell.",
+    "crop": [
+      2660,
+      530,
+      4080,
+      2300
+    ],
+    "detail": true
+  },
+  {
+    "id": 25,
+    "file": "25-publication-checklist-blocked.png",
+    "pdf_page": 53,
+    "caption": "This snapshot shows missing reviewed prose and one pending table. Use Go to issue or Start reviewing; do not remove content just to clear a blocker.",
+    "crop": [
+      510,
+      200,
+      4112,
+      2310
+    ]
+  },
+  {
+    "id": 25,
+    "file": "25-publication-checklist-blocked.png",
+    "pdf_page": 54,
+    "caption": "This snapshot shows missing reviewed prose and one pending table. Use Go to issue or Start reviewing; do not remove content just to clear a blocker.",
+    "crop": [
+      2690,
+      330,
+      3540,
+      1140
+    ],
+    "detail": true
+  },
+  {
+    "id": 26,
+    "file": "26-bulk-review-queue.png",
+    "pdf_page": 56,
+    "caption": "Seven eligible blocks are pending: three headings and four paragraphs. Filters and selection controls allow a deliberate, source-checked batch.",
+    "crop": [
+      510,
+      200,
+      4112,
+      2310
+    ]
+  },
+  {
+    "id": 26,
+    "file": "26-bulk-review-queue.png",
+    "pdf_page": 57,
+    "caption": "Seven eligible blocks are pending: three headings and four paragraphs. Filters and selection controls allow a deliberate, source-checked batch.",
+    "crop": [
+      550,
+      530,
+      4050,
+      2150
+    ],
+    "detail": true
+  },
+  {
+    "id": 27,
+    "file": "27-bulk-review-attestation.png",
+    "pdf_page": 58,
+    "caption": "The dialog states the selected type counts and exact-revision attestation. Check the box only after verifying every selected block.",
+    "crop": [
+      1550,
+      910,
+      2570,
+      1480
+    ]
+  },
+  {
+    "id": 28,
+    "file": "28-figure-individual-review.png",
+    "pdf_page": 60,
+    "caption": "Approving a figure also approves its linked asset. Compare the exact image, caption, alternative text and any source/license information.",
+    "crop": [
+      510,
+      200,
+      4112,
+      2310
+    ]
+  },
+  {
+    "id": 28,
+    "file": "28-figure-individual-review.png",
+    "pdf_page": 61,
+    "caption": "Approving a figure also approves its linked asset. Compare the exact image, caption, alternative text and any source/license information.",
+    "crop": [
+      2660,
+      530,
+      4080,
+      2300
+    ],
+    "detail": true
+  },
+  {
+    "id": 29,
+    "file": "29-completeness-report.png",
+    "pdf_page": 64,
+    "caption": "The training example has 9/9 reviewed blocks, 100% coverage, 2/2 reviewed leaves, zero empty leaves, and all publication gates passing.",
+    "crop": [
+      510,
+      200,
+      4112,
+      2310
+    ]
+  },
+  {
+    "id": 29,
+    "file": "29-completeness-report.png",
+    "pdf_page": 65,
+    "caption": "The training example has 9/9 reviewed blocks, 100% coverage, 2/2 reviewed leaves, zero empty leaves, and all publication gates passing.",
+    "crop": [
+      550,
+      530,
+      4050,
+      1640
+    ],
+    "detail": true
+  },
+  {
+    "id": 30,
+    "file": "30-regeneration-acceptance-ready.png",
+    "pdf_page": 67,
+    "caption": "After returning from review, Accept regenerated projection is enabled. Confirm that the comparison still describes the intended saved revision.",
+    "crop": [
+      510,
+      200,
+      4112,
+      2310
+    ]
+  },
+  {
+    "id": 30,
+    "file": "30-regeneration-acceptance-ready.png",
+    "pdf_page": 68,
+    "caption": "After returning from review, Accept regenerated projection is enabled. Confirm that the comparison still describes the intended saved revision.",
+    "crop": [
+      550,
+      900,
+      4050,
+      2250
+    ],
+    "detail": true
+  },
+  {
+    "id": 37,
+    "file": "37-regeneration-accepted.png",
+    "pdf_page": 69,
+    "caption": "The visible state reads accepted and Current structured source approved. This is still a private draft until a publisher publishes it.",
+    "crop": [
+      510,
+      200,
+      4112,
+      2310
+    ]
+  },
+  {
+    "id": 37,
+    "file": "37-regeneration-accepted.png",
+    "pdf_page": 70,
+    "caption": "The visible state reads accepted and Current structured source approved. This is still a private draft until a publisher publishes it.",
+    "crop": [
+      550,
+      500,
+      4050,
+      1450
+    ],
+    "detail": true
+  },
+  {
+    "id": 38,
+    "file": "38-published-version-example.png",
+    "pdf_page": 72,
+    "caption": "This is an existing local reader fixture, Local test - Guideline, version 1.0 published. It is a separate record from the training walkthrough draft.",
+    "crop": [
+      510,
+      200,
+      4112,
+      2310
+    ]
+  },
+  {
+    "id": 38,
+    "file": "38-published-version-example.png",
+    "pdf_page": 73,
+    "caption": "This is an existing local reader fixture, Local test - Guideline, version 1.0 published. It is a separate record from the training walkthrough draft.",
+    "crop": [
+      550,
+      250,
+      4050,
+      1600
+    ],
+    "detail": true
+  },
+  {
+    "id": 32,
+    "file": "32-public-library.png",
+    "pdf_page": 75,
+    "caption": "The library exposes published documents to readers. Search by official title and inspect the version rather than relying on a private dashboard preview.",
+    "crop": [
+      600,
+      0,
+      3600,
+      2300
+    ]
+  },
+  {
+    "id": 33,
+    "file": "33-public-reader.png",
+    "pdf_page": 76,
+    "caption": "This existing published fixture exposes chapter navigation, source-page actions and a structured table. It is not the newly reviewed training draft.",
+    "crop": [
+      600,
+      0,
+      3600,
+      2300
+    ]
+  },
+  {
+    "id": 34,
+    "file": "34-public-table-navigation.png",
+    "pdf_page": 77,
+    "caption": "The chapter action changes the URL anchor and scroll position. Verify ordered lists, table headers and cells, then the final chapter.",
+    "crop": [
+      600,
+      0,
+      3600,
+      2300
+    ]
+  },
+  {
+    "id": 35,
+    "file": "35-mobile-reader-preview.png",
+    "pdf_page": 79,
+    "caption": "This is the real dashboard preview at mobile width. It is useful for layout inspection; it is not an on-device app acceptance test.",
+    "crop": [
+      510,
+      200,
+      4112,
+      2310
+    ]
+  },
+  {
+    "id": 35,
+    "file": "35-mobile-reader-preview.png",
+    "pdf_page": 80,
+    "caption": "This is the real dashboard preview at mobile width. It is useful for layout inspection; it is not an on-device app acceptance test.",
+    "crop": [
+      1400,
+      590,
+      2320,
+      1880
+    ],
+    "detail": true
+  },
+  {
+    "id": 36,
+    "file": "36-mobile-figure-preview.png",
+    "pdf_page": 81,
+    "caption": "Check the entire image and caption at narrow width, then inspect equivalent content in the supported app build.",
+    "crop": [
+      510,
+      200,
+      4112,
+      2310
+    ]
+  },
+  {
+    "id": 36,
+    "file": "36-mobile-figure-preview.png",
+    "pdf_page": 82,
+    "caption": "Check the entire image and caption at narrow width, then inspect equivalent content in the supported app build.",
+    "crop": [
+      1400,
+      590,
+      2320,
+      1920
+    ],
+    "detail": true
+  }
+]

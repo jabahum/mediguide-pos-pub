@@ -1,0 +1,1398 @@
+MEDIGUIDE  /  CLINICAL GUIDELINES
+VERSION 2.0
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+1
+Clinical Guidelines
+The complete dashboard workflow
+Upload → edit → regenerate → review → accept → publish → verify website and app
+What changed in this edition
+Real dashboard screenshots replace the earlier reconstructed diagrams. Procedures, operating details, full screen
+plates and enlarged panels show the actual controls and review states.
+For authors, clinical reviewers, publishers and reader testers. Prepared 25 October 2026. Training
+content is clearly marked and contains no clinical recommendations.
+Controlled document: Operational reference pending the organization’s clinical governance approval. Assign a local owner
+and review after material dashboard changes.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+REFERENCE
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+2
+How to use this guide
+Follow the procedure, then its screen plates
+Each numbered procedure states the starting point, actions, expected result and a watch point. Screen
+plates immediately afterward show the real interface. Enlarged details preserve small labels. PDF
+bookmarks provide direct navigation.
+Know which environment is shown
+The first library image is a read-only production capture. Authoring screens use the locally running
+dashboard with a non-clinical TRAINING ONLY document, version SOP-2026.1. The public reader and
+published-state plates use a separate existing local fixture.
+What this walkthrough actually reached
+The two-page training source was uploaded, corrected, saved through revision 3, regenerated,
+individually and bulk reviewed, and accepted. Completeness reported 9/9 reviewed blocks and all
+publication gates passing. The final Publish confirmation was inspected and canceled. No production
+clinical records were changed.
+Understand the mobile evidence
+Dashboard mobile previews are labeled as previews. Android app plates come from the repository’s
+real store screenshot assets and show a different guideline. On-device publication, synchronization
+and offline checks remain required for each real edition.
+Use the expected result as a gate
+Stop and investigate a mismatch between source, actual rendered content, report or target edition.
+Screen counts and layout vary with document size, permissions and software version. Training counts
+are examples, never a substitute for full review.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+REFERENCE
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+3
+Find the stage you need
+Create and upload
+Procedures 01–07: lifecycle, people and access, document route, metadata, edition, source upload,
+extraction and indexing.
+Author and regenerate
+Procedures 08–14: Markdown workspace, headings, images, tables, preparation and saving,
+collaboration, revision-bound regeneration.
+Review and accept
+Procedures 15–20: editorial layout, ordinary-content review, individual decisions, corrections,
+completeness, acceptance.
+Publish and verify
+Procedures 21–24: validation and publication, public website, mobile/offline verification, optional
+notifications.
+Aftercare and exceptions
+Procedures 25–28: update/withdrawal, original-file/link routes, troubleshooting, publication handover.
+Navigation tip
+Use the PDF bookmarks or search for an exact control label such as Prepare for review,
+Completeness report or Accept regenerated projection. Every screen plate is named in its related
+procedure.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+WORKFLOW MAP
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+4
+01 The complete workflow
+Use this map to keep the source, generated content, review decisions and public version
+aligned.
+1. Create and upload
+Create a guideline document and a version. Upload the authoritative source and wait for processing.
+See the corresponding procedure and screen plates.
+2. Edit and regenerate
+Correct the Markdown, tables and images. Save the intended revision and regenerate its reader
+content. See the corresponding procedure and screen plates.
+3. Review and accept
+Review ordinary prose as well as safety-sensitive blocks. Check completeness and accept the exact
+regenerated revision. See the corresponding procedure and screen plates.
+4. Publish and verify
+Validate and publish, then verify the website, mobile reader, downloads and search. See the
+corresponding procedure and screen plates. Notifications, updates and exceptions follow in
+procedures 24-28.
+Continue when
+Saving, reviewer assignment, generation completion and a private preview do not publish a guideline.
+Watch point: Keep the last approved publication available while its replacement is prepared.
+Screen plates follow: Guidelines library
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  PRODUCTION READ-ONLY
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+5
+Guidelines library
+Clinical Guidelines > All Guidelines
+Find the intended document before choosing a version. The list is a read-only production capture; all subsequent authoring examples use localhost.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ALL ROLES
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+6
+02 People, access and preparation
+Assign responsibility before starting. The organization must authorize clinical decisions and
+publication.
+1. Author / editor
+Needs document creation access plus guideline.markdown.read, guideline.markdown.edit,
+guideline.markdown.upload, guideline.asset.manage and guideline.structure.regenerate for the
+assigned work. Prepare the authoritative PDF or UTF-8 Markdown, images and issuing organization.
+2. Reviewer
+Uses guideline.review. High-risk clinical decisions and regeneration acceptance also require
+guideline.high_risk.approve. Compare content with the authoritative source; use an independent
+reviewer where local governance requires it.
+3. Publisher
+Needs guideline.publish and access to the document. The server still enforces publication validation.
+An administrator cannot bypass missing review by changing a dashboard badge.
+4. Before uploading
+Confirm title, document kind, version label, source organization, country, language, publication/review
+dates, applicable categories and diseases. Avoid patient-identifiable information in training files or
+review notes.
+Continue when
+An active account with the correct role can see the expected controls. If a control is missing, ask an administrator to
+check permissions.
+Watch point: Assignment is coordination, not clinical approval. Never approve content merely to clear a warning.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+AUTHOR
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+7
+03 Choose the correct document route
+The selected document kind determines whether readers receive structured content, an
+original file, or a link.
+1. Structured clinical guideline
+Choose a normal guideline kind for searchable, editable chapters and blocks. Upload PDF, .md or
+.markdown. Follow the full editing, regeneration, review and publication process in the following
+procedures.
+2. Publish as uploaded
+Some kinds, such as forms, keep the PDF or Word (.docx) file exactly as uploaded. Text indexing
+supports discovery, but there is no Markdown editing or structured-block workflow. See the
+special-routes procedure.
+3. Publish as link
+A link kind publishes a complete HTTPS URL. No source file is uploaded and no extraction or
+Markdown editor runs. Review the destination before publishing. See the special-routes procedure.
+4. Choose deliberately
+Use categories and diseases for discovery. Legacy program area is optional. If the expected structured
+workflow is absent, check the document kind instead of uploading the same file repeatedly.
+Continue when
+For an editable clinical guideline, continue with the structured route.
+Watch point: Do not select an original-file or link kind just to avoid clinical review requirements.
+Screen plates follow: The four-stage creation wizard
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+8
+The four-stage creation wizard
+Clinical Guidelines > Create Guideline
+The stages are Create guideline, Create version, Upload version, and Review and edit. Document kind determines the authoring route.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+AUTHOR
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+9
+04 Create the guideline record
+Dashboard > Clinical Guidelines > Create Guideline. This record describes the document
+across all its versions.
+1. Open the creation wizard
+Select Create Guideline from the guidelines area. The four stages are Create guideline, Create
+version, Upload version, and Review and edit.
+2. Complete the metadata
+Enter the official title and select Document kind. Add Source organization, Country and Language
+code. Add a description that explains the document without changing its clinical meaning.
+3. Classify for discovery
+Select every relevant Category and Disease, then a Primary disease from the selected diseases. Use
+active taxonomy entries. Classification supports browsing and hub placement; it is not publication
+approval.
+4. Save the record
+Select Create and Continue. Confirm that the next stage names the correct document. To correct
+document-level metadata later, use Edit Metadata on the document page.
+Continue when
+The guideline record exists and the wizard advances to Create version.
+Watch point: Use the source title consistently; a template title or unrelated Markdown H1 can block publication.
+Screen plates follow: Completed document metadata
+Field-by-field check
+Title: exact official source title. Document kind: choose the intended structured/original/link route. Legacy program area:
+optional where shown. Source organization: issuing body, not an author signature. Country and language: match the
+document. Categories/diseases: select relevant taxonomy entries; Primary disease comes from selected diseases.
+Description: a short accurate summary.
+After Create and Continue
+The record is saved and Create version becomes active. If validation fails, stay on this form and correct the named field; do
+not create a second record to retry.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+10
+Completed document metadata
+Create guideline stage
+Read each field before Create and Continue. The TRAINING ONLY title and non-clinical description identify this local example.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  ENLARGED DETAIL
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+11
+Completed document metadata — close-up
+Read each field before Create and Continue. The TRAINING ONLY title and non-clinical description identify this local example.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+AUTHOR
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+12
+05 Create the first version
+Document version labels identify the clinical edition; they are separate from the MediGuide
+application release.
+1. Name the edition
+In Create first version, enter the official Version label, such as 2026.1. Choose a label that is unique for
+this document and follows the organization's naming convention.
+2. Record the dates
+Enter Publication date and Review date when applicable. These describe the guideline edition;
+entering a date does not schedule or perform publication.
+3. Create the draft
+Select Create Version. A saved version is required before uploading source files. Finish Later returns
+to the document, where New Version can create additional editions.
+4. Confirm your target
+Before any upload or edit, check the document title, version label and draft state. Published versions
+are immutable; updates use a new draft rather than an in-place edit.
+Continue when
+The draft version is listed under Versions and the upload stage is available.
+Watch point: Do not reuse an existing edition label for a replacement. Retain older versions for audit.
+Screen plates follow: Create the edition
+Record the edition
+Use a unique label such as the issuing body’s edition or year/revision. Confirm dates against the source. The software build
+number and the guideline edition are different identifiers.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+13
+Create the edition
+Create version stage
+Version label identifies the document edition. Publication date and Review date do not publish or schedule the version.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  ENLARGED DETAIL
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+14
+Create the edition — close-up
+Version label identifies the document edition. Publication date and Review date do not publish or schedule the version.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+AUTHOR
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+15
+06 Upload the authoritative source
+The source is the fidelity reference for every subsequent correction and clinical review
+decision.
+1. Choose a supported file
+In Upload guideline source, choose the authoritative PDF or UTF-8 Markdown (.md / .markdown). The
+creation screen allows up to 100 MB. For an existing draft, use Upload PDF to open the source dialog,
+which also accepts Markdown.
+2. Transfer the source
+Select Upload source. The screen checks the file, transfers it, verifies storage and queues processing.
+Keep the selected version unchanged during the upload.
+3. Resume safely
+Pause is available during transfer. To resume, choose the same file and select Resume upload; the
+screen preserves completed upload parts for up to 24 hours. Cancel upload abandons the transfer
+session.
+4. Choose another starting path if needed
+Start with blank Markdown or Start from template opens authoring without PDF extraction. Existing
+Markdown may also be loaded from the editor. Obtain the original images separately for Markdown
+imports.
+Continue when
+Storage verification finishes and Source transfer and processing shows a real processing job.
+Watch point: An upload reaching 100% is not proof that extraction, indexing, clinical review or publication succeeded.
+Screen plates follow: Choose the source route; Source selected, before transfer
+Before Upload source
+Confirm the selected filename appears in the upload panel. Removing or replacing a selected file before transfer is different
+from replacing an already published edition. Keep the authoritative source in the approved document archive.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+16
+Choose the source route
+Upload version stage
+Choose a PDF or Markdown source; the alternatives are Start with blank Markdown and Start from template.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+17
+Source selected, before transfer
+Upload version stage
+Verify the selected filename, target document and edition, then Upload source. Selecting the file alone does not transfer it.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+AUTHOR
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+18
+07 Monitor extraction and indexing
+Wait for the real processing result. A large PDF can take time, especially when OCR or table
+extraction is required.
+1. Watch the stage list
+Follow Source transfer and processing. It reports the current stage, progress, attempts and any
+available timings. The wizard refreshes while extracted Markdown is still unavailable.
+2. Wait for usable output
+When processing completes, open the document and choose Edit Markdown or Editorial Review as
+appropriate. Preview original keeps the source available for comparison; processing completion alone
+does not make extracted blocks approved.
+3. Handle a failed job
+Read the error and failing stage. Retry processing is offered for eligible failed/canceled jobs and
+reuses completed checkpoints where possible. An automatic retry time may also be shown.
+4. Escalate a persistent failure
+Record the title, version, job identifier, stage, attempt count, time and error. Ask an administrator to
+investigate worker/storage/embedding failures. Do not create several duplicate documents to work
+around one job.
+Continue when
+The correct draft has its extracted source and is ready for editorial work.
+Watch point: Do not assume a fixed completion time or that a quiet progress bar means the job has failed.
+Screen plates follow: Transfer complete; processing queued; Completed extraction stages; Ready to author
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+19
+Transfer complete; processing queued
+Source transfer and processing
+The queued job is a separate step after file transfer. Do not leave with the assumption that the reader content is already reviewed.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+20
+Completed extraction stages
+Source transfer and processing
+This small training PDF completed quickly. Stage rows show their actual completion states; duration varies for real documents.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+21
+Ready to author
+Review and edit stage
+Use Open Markdown workspace after the source is available. A green processing bar is readiness for editing, not public release.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+AUTHOR
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+22
+08 Open the Markdown workspace
+Document > draft version > Edit Markdown (or Author Markdown when starting without
+extracted source).
+1. Check the version and revision
+Confirm the guideline title and version. The editor shows the saved revision and structured-content
+status. Work in the draft intended for publication.
+2. Choose a working view
+Use Edit, Split or Preview. Split makes it easier to compare source syntax and rendered output. Use
+Original PDF where available to verify fidelity; Markdown-only sources cannot claim PDF page
+citations.
+3. Inspect the whole document
+Review the outline, front matter, chapter boundaries, paragraphs, lists, links, tables, figures and
+footnotes. Check the beginning, middle and end, not only the first chapter.
+4. Use private previews carefully
+Reader, mobile, search and RAG presentations help expose structural problems. They are previews,
+not evidence that content has been published or clinically approved.
+Continue when
+The editor contains the correct complete source for the draft edition.
+Watch point: Retain the authoritative source beside the editor. Extraction can lose text or reorder content without an obvious
+syntax error.
+Screen plates follow: Version-level actions; Extraction defects are visible
+What each editor control does
+Edit changes source; Split shows source and render together; Preview shows output. History compares immutable saved
+revisions. Assets manages figure files. Review & activity coordinates reviewers. Compare regenerated evaluates a generated
+projection. None of these controls publishes by itself.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+23
+Version-level actions
+Document detail > Versions
+Check the version row before Upload PDF, Preview original, View Content, Edit Markdown or Editorial Review.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  ENLARGED DETAIL
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+24
+Version-level actions — close-up
+Check the version row before Upload PDF, Preview original, View Content, Edit Markdown or Editorial Review.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+25
+Extraction defects are visible
+Edit Markdown > Split
+The extracted H1 says Introduction instead of the document title, and headings repeat. Use validation plus the authoritative PDF to correct structure.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  ENLARGED DETAIL
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+26
+Extraction defects are visible — close-up
+The extracted H1 says Introduction instead of the document title, and headings repeat. Use validation plus the authoritative PDF to correct structure.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+AUTHOR
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+27
+09 Repair headings and reading order
+A clear hierarchy becomes the chapter and section navigation on the website and mobile app.
+1. Use one document title
+Keep one H1 (# Guideline title). Use H2 (##) for chapters or major front matter, H3 for major sections
+within a chapter and H4 for subsections. Do not skip heading levels.
+2. Match the source structure
+Preserve the sequence and meaning of chapters. Remove repeated page headers/footers only after
+checking the source. Keep clinically meaningful notes, references and appendices.
+3. Replace training/template content
+Replace template titles, unchanged template headings and every _Add reviewed clinical content._
+marker. A template provides structure, not clinical wording.
+4. Check navigation and anchors
+Preview the section outline and internal links. Renamed headings may retain stable anchors from
+revision metadata; verify that links still lead to the correct clinical section.
+Continue when
+One coherent title and an unbroken parent-child outline match the source.
+Watch point: A normal single H1 acts as the document wrapper; its H2 children become mobile chapter cards. Do not create
+extra H1 headings just to obtain more cards.
+Screen plates follow: Corrected heading hierarchy
+Worked correction in the screenshots
+Extraction produced “# Introduction” and repeated section labels. The demonstration replaces them with one exact document
+H1 and two source-matching H2 chapters. The table and the full prose are preserved. Real clinical corrections require source
+evidence.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+28
+Corrected heading hierarchy
+Edit Markdown > Split
+One H1 matches the record title; two H2 chapters preserve source order. The warning about a table still requires editorial review.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  ENLARGED DETAIL
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+29
+Corrected heading hierarchy — close-up
+One H1 matches the record title; two H2 chapters preserve source order. The warning about a table still requires editorial review.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+AUTHOR
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+30
+10 Upload and reconnect images
+Use Assets in the editor to manage version-scoped images and their attribution.
+1. Gather the exact figures
+Obtain the source images or extract them from the authoritative PDF. Check charts, axes, legends and
+labels. Do not substitute a similar chart when the required original is missing.
+2. Complete asset metadata
+Open Assets > Guideline asset library. Choose, drop or paste images. Supported files are PNG, JPEG,
+GIF and WebP, up to 10 MB each. Provide meaningful alternative text; add caption, source, attribution
+and license as applicable.
+3. Insert the correct reference
+Upload the image, inspect its preview and insert it where it belongs. Prefer the stable guideline-asset://
+reference returned by the library. Resolve Broken references and ambiguous filenames before
+regeneration.
+4. Review clinical figures
+Mark clinically sensitive figures appropriately. Review the asset and generated figure against the
+source. A figure is not ready for publication simply because its image loads.
+Continue when
+Every intended image resolves to the correct version asset with meaningful alternative text.
+Watch point: Replacing a clinical figure requires a fresh source check. Missing or unreviewed referenced assets can block
+publication.
+Screen plates follow: Version asset library; Image metadata before upload; Uploaded image ready to insert
+Placement and reference check
+Put the insertion cursor at the intended location before Insert. Confirm the Markdown contains the intended guideline-asset://
+reference and that the rendered preview loads the same figure. Remove accidental duplicate references only after checking
+context.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+31
+Version asset library
+Assets > Guideline asset library
+An extracted asset is already present. Inspect it before uploading or inserting any replacement.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+32
+Image metadata before upload
+Assets > Upload panel
+The figure file, alternative text and caption are filled in. Review source, attribution and license where applicable; flag clinical sensitivity accurately.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  ENLARGED DETAIL
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+33
+Image metadata before upload — close-up
+The figure file, alternative text and caption are filled in. Review source, attribution and license where applicable; flag clinical sensitivity accurately.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+34
+Uploaded image ready to insert
+Guideline asset library
+Inspect the preview and metadata, then Insert beside the intended asset. The editor inserts a stable guideline-asset reference.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  ENLARGED DETAIL
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+35
+Uploaded image ready to insert — close-up
+Inspect the preview and metadata, then Insert beside the intended asset. The editor inserts a stable guideline-asset reference.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+AUTHOR
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+36
+11 Repair and verify clinical tables
+Table formatting and clinical correctness are separate checks. Both must pass.
+1. Preserve the cell grid
+Each Markdown table needs a header row, a separator row and an equal number of cells in every row.
+Keep empty leading or trailing cells and escape literal pipes inside cell text when needed.
+2. Use the visual table editor
+Inspect the whole grid before adding, deleting or moving rows/columns. Preserve the source headings,
+merged-cell meaning, notes and reading order. Verify rendered output after each structural edit.
+3. Check every clinical detail
+Compare headers, row associations, values, decimal points, units, age/weight groups, routes,
+intervals, footnotes, caption and source page. Never infer a missing dose or unit to make a table look
+complete.
+4. Save and regenerate
+A valid table may still show high_risk_table_review_required. Save the source, regenerate, then
+approve the generated table individually in Editorial Review after source comparison.
+Continue when
+The rendered grid is faithful to the authoritative table, including intentionally blank cells.
+Watch point: Do not remove a row or warning merely to reach zero warnings. A syntactically valid table can still be clinically
+wrong.
+Screen plates follow: Visual Markdown table editor
+Table dialog controls
+Title describes the table; Caption preserves explanatory context; Source records provenance. Set each header and its
+alignment, then add or remove rows/columns only as required by the source. CSV controls affect the grid; Footnotes retain
+qualifying notes. Inspect Preview before Update Markdown table. Cancel abandons the proposed table edit.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+37
+Visual Markdown table editor
+Formatting toolbar > Table
+This is a newly composed example table: title, caption, source, headers, row and footnote controls. It was canceled rather than applied to the training source.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  ENLARGED DETAIL
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+38
+Visual Markdown table editor — close-up
+This is a newly composed example table: title, caption, source, headers, row and footnote controls. It was canceled rather than applied to the training source.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+AUTHOR
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+39
+12 Prepare, save and checkpoint
+Save the exact source you intend to regenerate. Autosave and checkpoints are not publication
+actions.
+1. Inspect preparation proposals
+Select Prepare for review. Review its before/after diff and Automatic, Editor review and Manual review
+categories. Apply only changes that preserve source meaning; preparation does not approve clinical
+content.
+2. Resolve blocking errors
+Use the validation panel and source-line guidance to fix malformed tables, unsafe/unsupported
+markup, missing alternative text, broken links and invalid hierarchy. Warnings about tables and doses
+usually remain review obligations.
+3. Save the revision
+Select Save draft and confirm the revision badge updates. Regenerate is disabled while changes are
+unsaved. A saved revision is immutable; saving newer source makes the previous structured
+projection outdated.
+4. Create a named milestone
+For a substantial change, use Checkpoint and describe the change. If a conflict occurs,
+preserve/export your local work, load the current server revision and reconcile differences; do not
+overwrite another author blindly.
+Continue when
+The intended source is saved on the server and has no regeneration-blocking errors.
+Watch point: Local settings and local drafts are not a substitute for a confirmed server save. Do not regenerate from an older
+revision.
+Screen plates follow: Prepare for review is a proposal; Saved source with stable image reference; Immutable revision history;
+Compare source revisions
+Practical save sequence
+After typing, wait for All changes saved or use Save draft when enabled. Read the revision number. Create a meaningful
+Checkpoint before a large change when the control is available. Use History to compare the relevant revisions; restoration
+creates a new source state that needs fresh regeneration and review.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+40
+Prepare for review is a proposal
+Prepare for review dialog
+The dialog has Automatic, Editor review and Manual review categories. This example proposes no changes; no clinical approval is performed.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+41
+Saved source with stable image reference
+Edit Markdown > Split
+The new guideline-asset reference is part of the saved source. Saving it does not regenerate or approve the structured figure.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  ENLARGED DETAIL
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+42
+Saved source with stable image reference — close-up
+The new guideline-asset reference is part of the saved source. Saving it does not regenerate or approve the structured figure.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+43
+Immutable revision history
+History > Markdown revision history
+Rows identify revision numbers, source and time. Use Preview or Compare before deciding to restore an earlier source.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+44
+Compare source revisions
+History > Compare
+This actual diff compares extraction revision 1 with corrected revision 2. Red is removed source; green is added source. A diff does not establish clinical correctness.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+AUTHOR
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+45
+13 Assign reviewers and record decisions
+Review & activity coordinates work and retains comments, assignments and the audit trail.
+1. Assign responsibility
+Open Review & activity > Reviewer assignments. Select an active clinical reviewer, optionally set a
+due date, then Assign reviewer. If the list is empty, ask an administrator to check active status and
+guideline.review access.
+2. Make requests traceable
+Use comments to record source discrepancies, missing material and requested corrections. Refer to
+the version, revision, section or block and source page whenever available.
+3. Resolve collaboration work
+Resolve or reopen comments as the source issue is checked. Refresh or poll to see others' work; the
+editor does not provide guaranteed live cursors or realtime presence.
+4. Keep review separate
+Completing an assignment or resolving a comment does not mark a block reviewed. High-risk blocks
+still need the explicit decision by an authorized reviewer, followed by regeneration acceptance and
+publication validation.
+Continue when
+Reviewer responsibility and unresolved questions are visible and attributable.
+Watch point: Do not place patient identifiers, passwords or unrelated personal information in review comments.
+Screen plates follow: Reviewer coordination and audit
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+46
+Reviewer coordination and audit
+Review & activity
+Reviewer assignments, comments and Activity log live here. An assignment or resolved comment is separate from a block decision.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+AUTHOR
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+47
+14 Regenerate the saved source
+Regeneration rebuilds the reader projection and search material from one immutable
+Markdown revision.
+1. Start from the saved revision
+Confirm Save draft completed and authoritative Markdown validation has no blocking errors. Select
+Regenerate in the toolbar (described as Regenerate structured content in some guides).
+2. Monitor the revision-bound job
+Watch the stage and percentage until generation completes or requires review. Check that the job
+refers to the revision you intend to publish. Do not treat successful generation as clinical approval.
+3. Handle newer edits
+If Regeneration stopped: newer revision appears, use Reload current revision, check the saved source
+and start a new regeneration. Retrying the superseded job is intentionally disabled.
+4. Handle a failure
+Use Retry only when it is offered for the current eligible job and the cause is understood. Record a
+persistent error for operations. Review generated blocks again after regeneration; do not assume prior
+decisions were inherited.
+Continue when
+A generated projection exists for the current saved revision, ready for review.
+Watch point: If source changes after review begins, save, regenerate and repeat the review/acceptance cycle for the new
+revision.
+Screen plates follow: Generated, pending review
+Read the comparison critically
+The training comparison’s legacy table counter says after 0, while the actual structured Review and Completeness report
+contain one reviewed table. Counts alone are insufficient evidence of loss or completeness. Compare the real
+sections/blocks, report and source; investigate any unexplained mismatch before publishing.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+48
+Generated, pending review
+Regenerate > regeneration comparison
+Generation completed for revision 3. Acceptance remains disabled until the required blocks are reviewed. Comparison counts need confirmation in the actual rendered
+output.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  ENLARGED DETAIL
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+49
+Generated, pending review — close-up
+Generation completed for revision 3. Acceptance remains disabled until the required blocks are reviewed. Comparison counts need confirmation in the actual rendered
+output.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+REVIEWER
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+50
+15 Navigate Editorial Review
+Document > draft version > Editorial Review. The workspace opens at the first pending
+high-risk block.
+1. Understand the workspace
+The left column is Sections; the middle is Source PDF or Reader preview; the right is the block list and
+selected block. Narrow screens use Sections / Source / Review block tabs.
+2. Choose the right filter
+Pending review only targets outstanding individual decisions. All high-risk blocks includes approved
+safety-sensitive content. All blocks is essential for checking ordinary prose and surrounding context.
+3. Compare before deciding
+Select a section and block, confirm its source page/provenance and compare the rendered output with
+the original. Use Review next pending to move through the queue.
+4. Use header controls
+The progress bar summarizes individual review. The blockers button opens Publication checklist.
+Validate reruns publication checks. Progress and checklist counts can differ; the authoritative
+publication validator controls readiness.
+Continue when
+You can locate the original source, rendered block and review status for the same section.
+Watch point: No pending high-risk blocks does not prove that ordinary paragraphs, lists or entire sections have been
+reviewed.
+Screen plates follow: Source PDF beside the table; Publication blockers grouped by issue
+If the tab strip is covered
+In this capture session the sticky header overlapped the Review / Bulk approve low-risk / Completeness report strip. Use
+keyboard Tab or Shift+Tab until the selected tab receives focus, then Left/Right to choose the tab and Enter if needed. This
+navigates the existing UI without skipping any review gate.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+51
+Source PDF beside the table
+Editorial Review > Review
+Sections are on the left, original PDF in the middle, rendered block and actions on the right. The table content can be compared cell by cell.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  ENLARGED DETAIL
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+52
+Source PDF beside the table — close-up
+Sections are on the left, original PDF in the middle, rendered block and actions on the right. The table content can be compared cell by cell.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+53
+Publication blockers grouped by issue
+Header > blockers > Publication checklist
+This snapshot shows missing reviewed prose and one pending table. Use Go to issue or Start reviewing; do not remove content just to clear a blocker.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  ENLARGED DETAIL
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+54
+Publication blockers grouped by issue — close-up
+This snapshot shows missing reviewed prose and one pending table. Use Go to issue or Start reviewing; do not remove content just to clear a blocker.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+REVIEWER
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+55
+16 Review ordinary content explicitly
+Approving tables alone can leave published chapters without their explanatory prose.
+1. Inspect the full content
+Use All blocks to check paragraphs, headings, lists and references against the source. Verify that
+content is complete and in order, including front matter and appendices.
+2. Use the controlled low-risk queue
+Open Bulk approve low-risk. Select only the eligible blocks you actually verified. The backend allowlist
+includes paragraphs, headings, ordered/unordered lists, references and page breaks.
+3. Attest deliberately
+Review the selected content and counts. The operation allows at most 500 eligible blocks per
+submission. Confirm the attestation that every selected block was checked against the authoritative
+source, then Confirm approval.
+4. Verify the result
+Confirm the selected blocks are reviewed. Repeat in sensible batches, then inspect the completeness
+report for reviewed prose and populated clinical leaf sections.
+Continue when
+Reviewed ordinary content accompanies reviewed clinical tables and callouts.
+Watch point: Figures, high-risk blocks, unknown types and types outside the allowlist cannot use this bulk approval. Selection
+is not permission to skip reading.
+Screen plates follow: Controlled low-risk queue; Approval requires a source attestation
+Reproduce this batch
+Set Risk to low risk pending and inspect the other filters. Read the eligible content against the source. Select visible low-risk
+blocks only for that verified set. Inspect the selected count before Approve selected low-risk blocks. In the dialog check the
+type totals, attest source fidelity, and Confirm approval. Verify Reviewed increases and Pending low risk decreases.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+56
+Controlled low-risk queue
+Editorial Review > Bulk approve low-risk
+Seven eligible blocks are pending: three headings and four paragraphs. Filters and selection controls allow a deliberate, source-checked batch.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  ENLARGED DETAIL
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+57
+Controlled low-risk queue — close-up
+Seven eligible blocks are pending: three headings and four paragraphs. Filters and selection controls allow a deliberate, source-checked batch.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+58
+Approval requires a source attestation
+Approve selected low-risk blocks
+The dialog states the selected type counts and exact-revision attestation. Check the box only after verifying every selected block.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+AUTHORIZED CLINICAL REVIEWER
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+59
+17 Approve high-risk content individually
+Each safety-sensitive decision must be deliberate, attributable and checked against the
+authoritative source.
+1. Compare the complete clinical statement
+Individually review tables, recommendations, warnings, cautions, contraindications, dosages,
+procedures, algorithms, algorithm references and referral criteria. Use the server policy and checklist
+for the actual required set.
+2. Review figures and conservative types
+Compare clinically sensitive assets and figure blocks, including axes, legends and labels. Key points,
+evidence, definitions, clinical notes and unknown blocks are not automatically bulk-eligible; check the
+available authorized review action.
+3. Approve or reject
+Select Approve & next (or Approve figure & next) only when faithful and correct. Reject when it must
+not publish; a rejected block remains outstanding until corrected and approved.
+4. Work efficiently without bypassing review
+Outside text fields/dialogs, J moves next, K previous, A approves and advances, R rejects. Confirm the
+reviewed badge and decision trail. Save or discard an unsaved correction before deciding.
+Continue when
+Every required high-risk block and relevant asset has an authorized approval.
+Watch point: Do not bulk-approve clinical tables or accept the entire regeneration as a shortcut around individual review.
+Screen plates follow: Individual figure review
+Worked individual decisions
+The training table has two columns and three data rows, all compared with PDF page 1. The training figure is a separate
+non-clinical editorial illustration added by the author; verify its original image and metadata, not a fictitious PDF page. The
+example’s figure has no PDF page provenance, shown as p.—.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+60
+Individual figure review
+Editorial Review > Review
+Approving a figure also approves its linked asset. Compare the exact image, caption, alternative text and any source/license information.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  ENLARGED DETAIL
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+61
+Individual figure review — close-up
+Approving a figure also approves its linked asset. Compare the exact image, caption, alternative text and any source/license information.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+EDITOR + REVIEWER
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+62
+18 Correct extraction and section defects
+Choose the correction method intentionally. Source fixes and structured corrections have
+different consequences.
+1. Prefer a durable source correction
+For missing wording, table cells, figure references or hierarchy problems, return to Edit Markdown.
+Correct against the source, save, regenerate and re-review the changed projection.
+2. Use a structured correction when appropriate
+In Editorial Review, expand Correct extraction. Authorized users can edit the typed content
+type/payload and Save correction. This is an advanced content operation; request help rather than
+guessing JSON fields.
+3. Repair section navigation carefully
+Use Section settings for title, level, slug, move or merge actions. Start new section here is available in
+the block menu. Check ordering, links and hierarchy afterward; deletion must not remove meaningful
+clinical content.
+4. Re-review the result
+A saved block correction resets its decision to draft. Approve the corrected block only after rechecking
+it. Structured-only changes may be replaced by a later regeneration from Markdown, so reconcile the
+source for future editions.
+Continue when
+The corrected source/projection remains faithful, structurally valid and reviewed.
+Watch point: Never invent missing clinical values, source pages or attribution. Escalate missing source evidence.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+REVIEWER + PUBLISHER
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+63
+19 Check the completeness report
+Editorial Review > Completeness report. This is a read-only readiness and coverage report,
+not an approval button.
+1. Inspect coverage
+Check total/reviewed sections and clinical leaf sections, empty leaves, block counts by type/state,
+reviewed percentage and reviewed paragraph coverage. Look for chapters with headings but no
+reviewed body.
+2. Compare with the current publication
+Investigate unexpected reductions in chapters, sections, blocks, tables or high-risk blocks. A mostly
+empty candidate must not replace a complete published guideline just because some tables passed
+review.
+3. Check supporting evidence
+Inspect original-PDF or offline-fallback availability, source revision/job identity, regeneration
+acceptance, validation issues and RAG chunks/embeddings. Confirm that expected images and
+source context are represented.
+4. Export and correct
+Export JSON or CSV for audit when needed. Resolve missing content at the source or review the
+outstanding ordinary/high-risk blocks, then refresh the report. Exporting never approves or publishes
+anything.
+Continue when
+Coverage is understood, no unexplained content loss remains, and the report refers to the intended revision/job.
+Watch point: A high reviewed percentage alone is insufficient if a missing chapter or one critical table is concealed by the
+total.
+Screen plates follow: Completeness after review
+Read the actual evidence
+In this walkthrough, the report shows heading 3 reviewed, paragraph 4 reviewed, table 1 reviewed and figure 1 reviewed.
+Those counts fit this tiny two-chapter fixture only. For a real guideline reconcile the report with every source chapter and
+appendix.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+64
+Completeness after review
+Editorial Review > Completeness report
+The training example has 9/9 reviewed blocks, 100% coverage, 2/2 reviewed leaves, zero empty leaves, and all publication gates passing.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  ENLARGED DETAIL
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+65
+Completeness after review — close-up
+The training example has 9/9 reviewed blocks, 100% coverage, 2/2 reviewed leaves, zero empty leaves, and all publication gates passing.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+AUTHORIZED CLINICAL REVIEWER
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+66
+20 Accept the regenerated projection
+Return to the Markdown editor after individual and ordinary-content review is complete.
+1. Open the regeneration comparison
+Use Regeneration review when returning from Editorial Review, or open Edit Markdown for the draft.
+Inspect hierarchy, block-type counts, tables, chunks, assets, provenance and original-PDF availability.
+2. Refresh the approval status
+Select Refresh approval status. If outstanding high-risk blocks remain, choose Review pending blocks,
+compare and approve the corrected content, then return and refresh again.
+3. Accept only the faithful result
+When required review is complete and the comparison is satisfactory, select Accept regenerated
+projection. If it is not faithful, provide a rejection comment and choose Reject and return to Markdown.
+4. Protect the accepted identity
+Acceptance applies to the exact generated revision/job. If the source is saved again or regenerated,
+the new result needs a new review and acceptance cycle. Do not publish an accepted older projection
+against newer source.
+Continue when
+Regeneration review reads accepted for the current saved and generated revision.
+Watch point: The acceptance button is refused while required high-risk blocks remain draft or rejected. No force-accept path
+is part of this SOP.
+Screen plates follow: Acceptance becomes available; Regeneration accepted
+Accepted does not mean published
+The screenshot says Regeneration review: accepted and Current structured source approved. The version can still show
+review_required until publication. Use the authoritative checklist and published-version state rather than interpreting one
+badge in isolation.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+67
+Acceptance becomes available
+Edit Markdown > Regeneration review
+After returning from review, Accept regenerated projection is enabled. Confirm that the comparison still describes the intended saved revision.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  ENLARGED DETAIL
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+68
+Acceptance becomes available — close-up
+After returning from review, Accept regenerated projection is enabled. Confirm that the comparison still describes the intended saved revision.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+69
+Regeneration accepted
+Edit Markdown > Regeneration review
+The visible state reads accepted and Current structured source approved. This is still a private draft until a publisher publishes it.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  ENLARGED DETAIL
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+70
+Regeneration accepted — close-up
+The visible state reads accepted and Current structured source approved. This is still a private draft until a publisher publishes it.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+PUBLISHER
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+71
+21 Validate and publish the version
+The publisher performs the final gate. Publication makes the approved version current for
+reader-facing services.
+1. Run authoritative validation
+In Editorial Review select Validate and open Publication checklist. Resolve real defects and the review
+queue. The document page's Publish action also validates before attempting publication.
+2. Check every gate
+Confirm source/generated/accepted revision identity, valid hierarchy and payloads, resolved/reviewed
+assets, approved required blocks, meaningful reviewed prose, adequate coverage, accepted
+regeneration and required source/offline fallbacks.
+3. Publish deliberately
+Select Publish only after no blockers remain. Editorial Review asks for confirmation that publication is
+permanent and audited. Confirm only for the intended document/version. The backend rechecks
+eligibility.
+4. Confirm success and hand over
+Check the success message and current published version on the document. The previous approved
+edition remains in history. Continue with website and mobile checks; guideline publication does not
+require a new application or website software release.
+Continue when
+The intended edition is the current published version, not merely a saved draft or accepted regeneration.
+Watch point: If Publication needs review / Publication blocked appears, return to the named issue. Do not create a software
+release to bypass a content-publication blocker.
+Screen plates follow: A genuinely published version
+Exact confirmation wording
+Editorial Review asks: “Publish this reviewed version? The action is permanent and audited.” The authorized publisher checks
+the document and version, then confirms. The training walkthrough was stopped at this confirmation; the published-state
+screenshot is an already published local fixture. No production publication was performed for this SOP.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+72
+A genuinely published version
+Document detail > Versions
+This is an existing local reader fixture, Local test - Guideline, version 1.0 published. It is a separate record from the training walkthrough draft.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  ENLARGED DETAIL
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+73
+A genuinely published version — close-up
+This is an existing local reader fixture, Local test - Guideline, version 1.0 published. It is a separate record from the training walkthrough draft.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+PUBLISHER + READER TESTER
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+74
+22 Verify the public website
+Use a public or signed-out view as well as the private dashboard preview.
+1. Find the published document
+Open the public guidelines website and search for the official title. Check document kind, classification
+and visible version metadata. Confirm that a replacement shows the intended current edition.
+2. Check discovery and navigation
+Open applicable category/disease listings and any configured hub placement. Test chapter navigation,
+nested sections, search terms, internal links and back navigation on desktop and narrow widths.
+3. Compare representative content
+Check the first, middle and last chapters; review at least one table, clinical callout, figure and footnote
+where present. Confirm no empty clinical chapter has replaced complete reviewed content.
+4. Check downloads and citations
+Open the original/download fallback where provided. Verify representative published search results
+and RAG citations resolve to the right document, current version and source context. Record missing
+results separately from reader defects.
+Continue when
+A reader without dashboard access can find and read the expected approved version.
+Watch point: A private preview is not a public acceptance test. Publication and client caches/indexing may not become visible
+at exactly the same instant.
+Screen plates follow: Public guidelines website; Published structured reader; Reader navigation reaches the table
+Exact website controls
+Use Search publications, Program area and Document kind in the public library. Choose Read guideline on the intended card.
+In the reader use Search sections, chapter buttons, Change text size and source-page controls. Verify the edition displayed
+beside the source organization.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+75
+Public guidelines website
+Public website > Guidelines
+The library exposes published documents to readers. Search by official title and inspect the version rather than relying on a private dashboard preview.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+76
+Published structured reader
+Public library > Read guideline
+This existing published fixture exposes chapter navigation, source-page actions and a structured table. It is not the newly reviewed training draft.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+77
+Reader navigation reaches the table
+Public reader > Sample workflow
+The chapter action changes the URL anchor and scroll position. Verify ordered lists, table headers and cells, then the final chapter.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+PUBLISHER + READER TESTER
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+78
+23 Verify the app and offline package
+Use a supported mobile build with connectivity first, then test the downloaded content offline.
+1. Refresh online discovery
+Open the app online, refresh/synchronize available content and search for the title. Check relevant
+browse categories/diseases. If the new edition is absent, verify website/API publication before
+diagnosing the device.
+2. Open the structured reader
+Confirm the edition and chapter list. Test nested sections, readable tables, figures, links, font scaling
+and narrow-screen layout. Compare representative safety-sensitive content with the source and public
+website.
+3. Download and reopen offline
+Download or refresh the guideline package using the app's available download controls. After
+completion, disable connectivity and open the saved document. Test chapters, tables and images.
+Reconnect when the test is finished.
+4. Confirm update behavior
+Existing downloads may need a refresh after a new edition publishes. Verify that the refreshed
+package represents the intended current version. Record device, app build, edition and
+synchronization time in the handover record.
+Continue when
+The approved edition is discoverable online and its downloaded package works offline on a representative device.
+Watch point: An old offline copy is not evidence that server publication failed. Offline or disconnected devices cannot receive
+immediate updates or withdrawal information.
+Screen plates follow: Mobile width table preview; Mobile width figure preview
+Evidence boundary
+The dashboard screenshots are exact mobile-width previews of the training draft. The additional Android screenshots are
+existing repository/store screenshots of another guideline. This SOP provides the on-device acceptance steps; it does not
+claim that the training draft was published or verified offline on a device.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+79
+Mobile width table preview
+Editorial Review > Reader preview > Mobile preview
+This is the real dashboard preview at mobile width. It is useful for layout inspection; it is not an on-device app acceptance test.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  ENLARGED DETAIL
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+80
+Mobile width table preview — close-up
+This is the real dashboard preview at mobile width. It is useful for layout inspection; it is not an on-device app acceptance test.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  LOCAL DEMONSTRATION
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+81
+Mobile width figure preview
+Reader preview > Mobile preview
+Check the entire image and caption at narrow width, then inspect equivalent content in the supported app build.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL SCREEN  /  ENLARGED DETAIL
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+82
+Mobile width figure preview — close-up
+Check the entire image and caption at narrow width, then inspect equivalent content in the supported app build.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL APP SCREENSHOT  /  REPOSITORY ASSET
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+83
+Android app — guideline overview
+What to check on the device
+Confirm the edition
+Match the title, issuing body, version/date and reviewed structured content badge with the
+approved current publication.
+Navigate the content
+Open Chapters, use Search chapters and content, and select representative chapters. Use
+Read guideline and inspect the full content, including tables and figures.
+Verify downloads
+The bottom download icon is visible in these app screens. Complete the download, then
+open the saved guideline with connectivity disabled. Check the edition and images,
+reconnect, and record the result.
+Scope of this image
+This is an existing Android store screenshot for the Antimicrobial Resistance plan, not a live
+test of the local training draft. These screenshots do not prove an offline package test
+passed.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ACTUAL APP SCREENSHOT  /  REPOSITORY ASSET
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+84
+Android app — chapters and download
+What to check on the device
+Confirm the edition
+Match the title, issuing body, version/date and reviewed structured content badge with the
+approved current publication.
+Navigate the content
+Open Chapters, use Search chapters and content, and select representative chapters. Use
+Read guideline and inspect the full content, including tables and figures.
+Verify downloads
+The bottom download icon is visible in these app screens. Complete the download, then
+open the saved guideline with connectivity disabled. Check the edition and images,
+reconnect, and record the result.
+Scope of this image
+This is an existing Android store screenshot for the Antimicrobial Resistance plan, not a live
+test of the local training draft. These screenshots do not prove an offline package test
+passed.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+AUTHORIZED NOTIFICATION OPERATOR
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+85
+24 Notify readers after verification
+Notifications are an optional, separate approval workflow. They do not publish the guideline
+itself.
+1. Complete reader checks first
+Confirm that the intended version is published and works on the public website and app. Prepare a
+short factual change summary without overstating clinical changes.
+2. Create a draft campaign
+On the document, use Notify users when available. Choose All eligible users or the intended user/role
+audience, change summary, priority, optional schedule and Push / In-app channels.
+3. Review before sending
+Select Create draft campaign. The dialog explicitly creates a draft; it does not send directly. Open
+campaign to continue in Notification Operations for the normal review and approval process.
+4. Verify delivery responsibly
+Confirm the target document/version and audience, then use the approved notification workflow. Test
+the deep link and inspect delivery outcomes. Notification permission/preferences and provider delivery
+affect reach.
+Continue when
+If an announcement is needed, its approved campaign links to the verified published guideline.
+Watch point: Do not describe a draft campaign as sent, or notification delivery as proof that content publication succeeded.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+AUTHOR + REVIEWER + PUBLISHER
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+86
+25 Update, withdraw or restore access
+Published clinical content is immutable. Corrections use a new edition; urgent removal uses
+withdrawal.
+1. Prepare a replacement edition
+Open the published Markdown read-only view and choose the draft-from-published action. Enter a new
+unique version label. The immutable source is copied; regeneration does not run automatically.
+Correct, save, regenerate, review, accept, validate and publish.
+2. Withdraw unsafe public content
+An authorized publisher can select Withdraw and record a reason. This removes the document from
+website, app discovery, search and AI retrieval while retaining files and history. Follow local incident
+communication procedures.
+3. Revise a withdrawn document
+Choose Revise document or Continue draft. Use a new unique version label, check any
+omitted-content warnings and complete the full workflow. The document stays withdrawn while you
+work.
+4. Republish unchanged approved content
+Review and republish runs publication checks for the approved edition. Review the withdrawal
+reason/history and attest readiness. If clinical wording must change, publish a new reviewed draft
+instead.
+Continue when
+The public state matches the clinical decision, and the history explains the change.
+Watch point: Downloaded copies are removed when devices next check online. Withdrawal cannot instantly reach a device
+that remains disconnected.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+AUTHOR + PUBLISHER
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+87
+26 Special routes: forms and links
+Use these paths only for document kinds intentionally configured to publish an original file or
+external URL.
+1. Original-file route
+Create document and version, then Upload file. Choose the correct PDF or Word (.docx), Upload
+source and wait for text indexing. Review form shows the file exactly as readers will receive it; use
+Preview original to check every relevant page.
+2. Publish an original file
+Confirm readability, edition, source, metadata and the indexing result. Publish from the document page
+when checks pass. No Markdown, regeneration or structured-block editor is used for this route; a
+corrected file belongs in a new draft version.
+3. External-link route
+Create document and version, choose Add link, enter the complete HTTPS URL and save. Review the
+actual destination, title, organization, availability and mobile behavior. No file extraction or Markdown
+workflow runs.
+4. Verify the reader result
+Publish after required checks, then test the public website and app opening behavior. For links, content
+and access may change at the external host; for original files, verify the actual PDF/Word layout and
+download behavior.
+Continue when
+Readers receive the intended reviewed original file or valid external destination.
+Watch point: Do not promise offline availability or structured clinical page citations for an external link. Route-specific
+publication checks still apply.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+ALL ROLES
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+88
+27 Troubleshoot without losing work
+Fix the cause at the correct stage. Keep evidence and avoid duplicate uploads or unreviewed
+shortcuts.
+1. Upload or processing stalls
+Distinguish transfer progress from the processing job. Resume with the same file when eligible. For
+repeated failures, capture job/stage/attempt/error and ask operations to check storage, workers and
+embedding services.
+2. Regenerate is disabled or stale
+Save unsaved changes and fix blocking Markdown errors. For a newer-revision warning, reload the
+current revision and regenerate it. Preserve local edits before resolving a server conflict.
+3. Review or publication is blocked
+A high-risk table warning usually means individual review is still needed. Resolve missing image
+references, invalid typed payloads, rejected blocks, missing reviewed prose, empty leaves and
+unexplained coverage regressions. Refresh approval status before acceptance.
+4. Published content is absent
+Verify the current published edition and withdrawal state, then test a signed-out website view and a
+refreshed online app. Check taxonomy/filter placement, synchronization, download age and
+search/index readiness. Escalate with document/version IDs and exact failing reader steps.
+Continue when
+The issue has a reproducible cause, an owner and a safe next action.
+Watch point: Never remove clinically meaningful content, invent missing evidence, bulk-approve high-risk blocks or republish
+a template to make a validator pass.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+PUBLISHER + REVIEWER
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+89
+28 Publication handover checklist
+Use this checklist as the minimum operational record for an edition. Complete it before calling
+publication finished.
+1. Source and authorship
+Record document title/ID, kind, version/ID, issuing organization, source filename and edition, source
+revision/checkpoint, author, reviewer and publisher. Record the changes made and any unresolved
+source questions.
+2. Review and readiness
+Record the regenerated revision/job, completeness report export, ordinary-content review, individual
+high-risk/asset decisions, accepted regeneration and a passing publication validation. No unexplained
+content-loss or empty-clinical-section issue remains.
+3. Publication and reader checks
+Record publication time, current edition, public URL, web test result, mobile build/device, online
+discovery result, downloaded edition and offline check. Include representative table, figure and RAG
+citation checks where applicable.
+4. Aftercare
+Name the owner for defects, review-due date and withdrawal/escalation contact. Record the optional
+notification campaign separately. Keep audit exports in the organization's approved location; do not
+attach credentials or patient data.
+Continue when
+Publication is complete when the correct reviewed edition is current and reader-facing verification is recorded.
+Watch point: If verification fails, keep the issue open and assess withdrawal or a corrective edition under local governance.
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+REFERENCE
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+90
+Final acceptance record
+Document and source
+Title/ID: ____________________ Version/ID: ____________________
+Issuing body/source filename: ____________________
+Saved revision and regeneration job: ____________________
+Review evidence
+Author: ____________________ Authorized reviewer: ____________________
+Ordinary prose reviewed: ____ Required individual decisions complete: ____
+Completeness export: ____________________ Acceptance time: ____________________
+Publication evidence
+Publisher: ____________________ Publication time: ____________________
+Current edition confirmed: ____ Public URL: ____________________
+First/middle/last chapters, table, figure and source download checked: ____
+App and offline evidence
+Device / OS / app build: ____________________
+Online discovery and intended edition: ____ Download completed: ____
+Offline chapters, tables and figures: ____ Reconnected: ____
+Tester and time: ____________________
+Handover
+Open defects and owner: ____________________
+Next review date: ____________________ Escalation contact: ____________________
+Notification campaign, if any: ____________________
+
+MEDIGUIDE  /  CLINICAL GUIDELINES
+REFERENCE
+SOP v2.0  •  25 October 2026  •  Actual UI screenshots
+91
+Sources, scope and maintenance
+Existing SOPs were available
+This guide expands repository runbooks: guideline-authoring-and-publication-workflow.md;
+guideline-editorial-review-workspace.md; guideline-editor-permissions.md;
+guideline-warning-resolution.md; guideline-validation-troubleshooting.md;
+content-hub-and-document-publishing-workflow.md. All are under docs/.
+Implemented controls
+Capture labels were checked in the actual running dashboard, plus dashboard/components/guidelines/
+and dashboard/app/(dashboard)/guidelines/. Review policy is implemented in
+backend/internal/models/guideline_block_review_policy.go.
+Image provenance
+Native screenshots were captured from the real dashboard and public reader on 25 October 2026.
+Screen plates are unaltered captures apart from cropping and scaling; no dashboard controls were
+recreated or generated. Android plates are existing files in
+user_app/fastlane/metadata/android/en-US/images/phoneScreenshots/.
+Known UI caveats captured during authoring
+The review tab strip could be overlapped by the sticky header; keyboard navigation still opened the
+tabs. Legacy comparison table counts disagreed with the actual structured table/report; reconcile
+against rendered output and source. An advisory table warning can remain visible after the table is
+individually reviewed.
+Maintenance and ownership
+SOP owner: ____________________ Governance approver: ____________________
+Approval date: ____________________ Next review: ____________________
+Replace affected screen plates after workflow, policy, validator or reader changes. Record real
+web/app/offline acceptance evidence for each publication.
