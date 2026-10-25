@@ -1,5 +1,18 @@
 # MediGuide platform release process
 
+## v2.1.23 clinical tool usage release — 25 October 2026
+
+- Synchronizes all service versions to 2.1.23 and mobile to 2.1.23+76.
+- Displays per-tool synced session totals, distinct users, ended sessions and
+  daily usage in the dashboard. Tool opens are not assessment completions;
+  offline usage appears after synchronization.
+- Adds tool categories and risk levels, improves mobile navigation and filter
+  controls, and updates the dashboard Next.js and Zod dependencies.
+- Applies migrations 00086 and 00087 through the standard deployment workflow.
+  Usage statistics require `analytics.read` or `admin.all`.
+- Includes reviewed release notes for all five services. Clinical publication,
+  mobile tester distribution and store submission retain their separate flows.
+
 ## v2.1.22 processing capacity release — 20 October 2026
 
 - Synchronizes all service versions to 2.1.22 and mobile to 2.1.22+75.
