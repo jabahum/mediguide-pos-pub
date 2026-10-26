@@ -1216,7 +1216,7 @@ export function OutbreakEditor({ id }: { id?: string }) {
               />
             </CardContent>
           </Card>
-          <Card>
+          <Card id="resources" className="scroll-mt-24">
             <CardHeader>
               <CardTitle>Typed resources</CardTitle>
             </CardHeader>
