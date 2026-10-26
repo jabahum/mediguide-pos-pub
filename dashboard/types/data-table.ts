@@ -129,6 +129,8 @@ export type DomainPageLoader<TData> = (
 
 // Simplified UI options
 export interface UIOptions {
+  appearance?: "default" | "workspace"
+  searchLabel?: string
   pageSize?: number
   exportable?: boolean
   importable?: boolean

@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { notFound } from "next/navigation"
-import { PageHeader } from "@/components/ui/page-header"
+import { DrugSectionHeader, DrugStatusBadge } from "@/components/drugs/drug-section"
 import { Badge } from "@/components/ui/badge"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -67,7 +67,7 @@ export default function DrugViewPage({ params }: DrugViewPageProps) {
   if (loading) {
     return (
       <div className="space-y-6">
-        <PageHeader
+        <DrugSectionHeader
           title="Loading..."
           showBackButton={true}
           onBack={() => router.push("/drugs")}
@@ -88,7 +88,7 @@ export default function DrugViewPage({ params }: DrugViewPageProps) {
 
   return (
     <div className="w-full min-w-0 space-y-6">
-      <PageHeader
+      <DrugSectionHeader
         title={drug.name}
         description={drug.brand_names ? `Brand names: ${drug.brand_names}` : undefined}
         showBackButton={true}
@@ -115,13 +115,10 @@ export default function DrugViewPage({ params }: DrugViewPageProps) {
       />
 
       {/* Status Badges */}
-      <div className="flex items-center gap-3">
-        <Badge variant={drug.status === 'active' ? 'default' : 'secondary'}>
-          {drug.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-        </Badge>
-        <Badge variant={drug.review_status === 'approved' ? 'default' : 'outline'}>
-          {drug.review_status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-        </Badge>
+      <div className="flex flex-wrap items-center gap-3 rounded-xl border bg-card p-4">
+        <DrugStatusBadge status={drug.status} />
+        <span className="text-xs text-muted-foreground">Review:</span>
+        <DrugStatusBadge status={drug.review_status} />
         {drug.who_eml_status && (
           <Badge variant="secondary">WHO Essential Medicine</Badge>
         )}
@@ -131,7 +128,7 @@ export default function DrugViewPage({ params }: DrugViewPageProps) {
       </div>
 
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-xl p-1.5 sm:grid-cols-3 xl:grid-cols-6 [&>button]:min-h-10">
           <TabsTrigger value="overview" className="flex items-center gap-1">
             <Pill className="h-4 w-4" />
             Overview
@@ -155,8 +152,8 @@ export default function DrugViewPage({ params }: DrugViewPageProps) {
           <TabsTrigger value="metadata">Metadata</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="mt-8">
-          <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
+        <TabsContent value="overview" className="mt-5">
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             {/* Basic Information */}
             <Card>
               <CardHeader className="pb-4">
@@ -269,7 +266,7 @@ export default function DrugViewPage({ params }: DrugViewPageProps) {
 
           {/* Description */}
           {drug.description && (
-            <Card className="mt-8">
+            <Card className="mt-5">
               <CardHeader className="pb-4">
                 <CardTitle>Description</CardTitle>
               </CardHeader>
@@ -342,7 +339,7 @@ export default function DrugViewPage({ params }: DrugViewPageProps) {
         </TabsContent>
 
         <TabsContent value="dosing" className="mt-8 space-y-8">
-          <div className="grid gap-8 lg:grid-cols-2">
+          <div className="grid gap-5 lg:grid-cols-2">
             <Card>
               <CardHeader className="pb-4">
                 <CardTitle>Dosing Information</CardTitle>
@@ -426,7 +423,7 @@ export default function DrugViewPage({ params }: DrugViewPageProps) {
             if (!hasPregnancy && !hasControlled) return null;
 
             return (
-              <div className={bothCards ? "grid gap-8 lg:grid-cols-2" : "space-y-8"}>
+              <div className={bothCards ? "grid gap-5 lg:grid-cols-2" : "space-y-8"}>
                 {drug.pregnancy_category && (
                   <Card>
                     <CardHeader className="pb-4">
@@ -507,7 +504,7 @@ export default function DrugViewPage({ params }: DrugViewPageProps) {
         </TabsContent>
 
         <TabsContent value="regulatory" className="mt-8 space-y-8">
-          <div className="grid gap-8 lg:grid-cols-2">
+          <div className="grid gap-5 lg:grid-cols-2">
             <Card>
               <CardHeader className="pb-4">
                 <CardTitle>Drug Status</CardTitle>
@@ -583,7 +580,7 @@ export default function DrugViewPage({ params }: DrugViewPageProps) {
             </Card>
           )}
 
-          <div className="grid gap-8 lg:grid-cols-2">
+          <div className="grid gap-5 lg:grid-cols-2">
             {drug.search_keywords && (
               <Card>
                 <CardHeader className="pb-4">

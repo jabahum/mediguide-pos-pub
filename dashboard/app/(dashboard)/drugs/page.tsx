@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { Plus } from "lucide-react"
 
 // Components
-import { PageHeader } from "@/components/ui/page-header"
+import { DrugSectionHeader } from "@/components/drugs/drug-section"
 import { BackendDataTable } from "@/components/ui/backend-data-table"
 
 // Page-specific imports
@@ -37,9 +37,9 @@ export default function DrugsPage() {
   return (
     <div className="w-full min-w-0 space-y-6">
       {/* Page Header */}
-      <PageHeader
+      <DrugSectionHeader
         title="Drug Index"
-        description="Comprehensive medication database management with categories, tags, and clinical information"
+        description="Find medications, review clinical information, and manage the drug library."
         actions={hasPermission("content", "create:any") ? [
           {
             label: "Add Drug",
@@ -54,11 +54,15 @@ export default function DrugsPage() {
         collection="drugs"
         loadPage={drugService.listTable.bind(drugService)}
         columns={columns}
+        searchPlaceholder="Search name, brand, or clinical keyword…"
         searchFields={["name", "brand_names", "drug_class", "therapeutic_category", "search_keywords"]}
         rowActions={drugRowActions}
         bulkActions={drugBulkActions}
         availableFields={drugAvailableFields}
         ui={{
+          appearance: "workspace",
+          searchLabel: "Search drugs",
+          title: "Medication library",
           exportable: true
         }}
       />

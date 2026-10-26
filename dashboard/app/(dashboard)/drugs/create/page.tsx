@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { PageHeader } from "@/components/ui/page-header"
+import { DrugSectionHeader } from "@/components/drugs/drug-section"
 import { DrugForm } from "@/components/forms/drug-form"
 import { DrugCategoriesResponse, DrugTagsResponse } from "@/types/backend-types"
 import { useDomainCrud } from "@/hooks/use-domain-crud"
@@ -55,7 +55,7 @@ export default function CreateDrugPage() {
 
   return (
     <div className="w-full min-w-0 space-y-6">
-      <PageHeader
+      <DrugSectionHeader
         title="Create New Drug"
         description="Add a new drug to the medication database with comprehensive clinical information"
         showBackButton={true}

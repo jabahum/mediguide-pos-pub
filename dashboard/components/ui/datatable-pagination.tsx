@@ -15,14 +15,17 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { DataTablePaginationProps } from "@/types/data-table"
+import { cn } from "@/lib/utils"
 
 interface DataTablePaginationComponentProps<TData>
   extends DataTablePaginationProps {
   table: Table<TData>
   showSelection?: boolean
+  appearance?: "default" | "workspace"
 }
 
 export function DataTablePagination<TData>({
+  appearance = "default",
   table,
   paginationInfo,
   pageSizeOptions = [10, 20, 50, 100],
@@ -96,9 +99,9 @@ export function DataTablePagination<TData>({
   }
 
   return (
-    <div className="flex items-center justify-between px-2 py-4">
+    <div className={cn("flex items-center justify-between px-2 py-4", appearance === "workspace" && "flex-wrap gap-4 rounded-xl border bg-card p-4")}>
       {/* Left side - Selection info and rows per page */}
-      <div className="flex items-center space-x-6 text-sm">
+      <div className={appearance === "workspace" ? "flex flex-wrap items-center gap-4 text-sm" : "flex items-center space-x-6 text-sm"}>
         {/* Selection info */}
         {showSelection && (
           <div className="text-muted-foreground">
@@ -136,7 +139,7 @@ export function DataTablePagination<TData>({
       </div>
 
       {/* Right side - Pagination controls */}
-      <div className="flex items-center space-x-6 lg:space-x-8">
+      <div className={appearance === "workspace" ? "flex flex-wrap items-center gap-4" : "flex items-center space-x-6 lg:space-x-8"}>
         {/* Jump to page */}
         {totalPages > 1 && (
           <div className="flex items-center space-x-2">
