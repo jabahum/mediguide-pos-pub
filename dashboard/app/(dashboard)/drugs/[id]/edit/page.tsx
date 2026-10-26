@@ -122,7 +122,7 @@ export default function DrugEditPage({ params, searchParams }: DrugEditPageProps
     : "Update the drug information and clinical details"
 
   return (
-    <div className="space-y-6">
+    <div className="w-full min-w-0 space-y-6">
       <PageHeader
         title={pageTitle}
         description={pageDescription}
@@ -130,7 +130,7 @@ export default function DrugEditPage({ params, searchParams }: DrugEditPageProps
         onBack={() => resolvedParams?.id && router.push(`/drugs/${resolvedParams.id}`)}
       />
 
-      <div className="max-w-4xl">
+      <div className="w-full min-w-0">
         <div className="bg-card rounded-lg border p-6">
           <DrugForm
             mode="edit"

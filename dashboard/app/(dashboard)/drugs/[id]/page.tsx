@@ -87,7 +87,7 @@ export default function DrugViewPage({ params }: DrugViewPageProps) {
   const tags = drug.expand?.tags || []
 
   return (
-    <div className="space-y-6">
+    <div className="w-full min-w-0 space-y-6">
       <PageHeader
         title={drug.name}
         description={drug.brand_names ? `Brand names: ${drug.brand_names}` : undefined}

@@ -54,7 +54,7 @@ export default function CreateDrugPage() {
 
 
   return (
-    <div className="space-y-6">
+    <div className="w-full min-w-0 space-y-6">
       <PageHeader
         title="Create New Drug"
         description="Add a new drug to the medication database with comprehensive clinical information"

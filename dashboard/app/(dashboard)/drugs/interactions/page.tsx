@@ -148,7 +148,7 @@ export default function DrugInteractionsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="w-full min-w-0 space-y-6">
       <PageHeader
         title="Drug Interactions"
         description="Clinical drug interaction database for healthcare providers"
@@ -219,17 +219,17 @@ export default function DrugInteractionsPage() {
       {/* Search and Filters */}
       <Card>
         <CardHeader>
-          <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-            <div className="flex items-center space-x-2">
-              <Search className="h-4 w-4 text-muted-foreground" />
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 flex-1 items-center gap-2">
+              <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
               <Input
                 placeholder="Search by drug name or effect..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="max-w-sm"
+                className="w-full"
               />
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex flex-wrap items-center gap-3 sm:shrink-0">
               <div className="flex items-center space-x-2">
                 <Filter className="h-4 w-4 text-muted-foreground" />
                 <Select value={selectedSeverity} onValueChange={setSelectedSeverity}>
