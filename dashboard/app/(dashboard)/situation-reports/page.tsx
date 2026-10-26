@@ -33,7 +33,7 @@ export default function SituationReportsPage() {
   const change = (setter: (value: string) => void) => (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => { setter(event.target.value); setPage(1); };
   const actions = (item: SituationReportRecord) => <RecordActions href={`/situation-reports/${item.id}`} title={item.title || "Untitled report"} kind="report" onDelete={() => setDeleting(item)} />;
 
-  return <div className="mx-auto w-full max-w-7xl space-y-6 pb-6">
+  return <div className="w-full min-w-0 space-y-6 pb-6">
     <ListHeader title="Situation reports" description="Find the latest reports, follow their review progress, and manage supporting documents." icon={FileText} loading={loading} onRefresh={refresh}>
       <Button variant="outline" asChild><Link href="/outbreaks">Browse outbreaks</Link></Button>
       <Button asChild><Link href="/situation-reports/new"><Plus className="mr-2 size-4" aria-hidden="true" />New report</Link></Button>

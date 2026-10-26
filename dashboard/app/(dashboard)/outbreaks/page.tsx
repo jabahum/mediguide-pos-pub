@@ -58,7 +58,7 @@ export default function OutbreaksPage() {
   const change = (setter: (value: string) => void) => (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => { setter(event.target.value); setPage(1); };
   const actions = (item: OutbreakRecord) => <RecordActions href={`/outbreaks/${item.id}`} title={item.title || "Untitled outbreak"} kind="outbreak" onDelete={() => setDeleting(item)} />;
 
-  return <div className="mx-auto w-full max-w-7xl space-y-6 pb-6">
+  return <div className="w-full min-w-0 space-y-6 pb-6">
     <ListHeader title="Outbreaks" description="Follow the response, review updates, and keep verified outbreak information current." icon={Activity} loading={loading} onRefresh={refresh}>
       <Button variant="outline" asChild><Link href="/outbreaks/resources"><FolderOpen className="mr-2 size-4" aria-hidden="true" />Resources</Link></Button>
       <Button asChild><Link href="/outbreaks/new"><Plus className="mr-2 size-4" aria-hidden="true" />New outbreak</Link></Button>

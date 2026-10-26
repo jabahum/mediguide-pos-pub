@@ -118,7 +118,7 @@ export default function OutbreakResourcesPage() {
     { label: "Drafts", value: "draft", count: all.filter((r) => r.status === "draft").length, icon: FileText, color: "text-slate-600 bg-slate-100 dark:bg-slate-800 dark:text-slate-300" },
   ];
 
-  return <div className="mx-auto w-full max-w-7xl space-y-7 pb-6">
+  return <div className="w-full min-w-0 space-y-7 pb-6">
     <header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
       <div className="flex items-start gap-3.5">
         <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl border border-primary/15 bg-primary/5 text-primary"><FolderOpen className="size-6" aria-hidden="true" /></div>
