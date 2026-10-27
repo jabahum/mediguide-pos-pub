@@ -5,7 +5,7 @@ import { Plus } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { usePermissionContext } from "@/lib/permission-context"
 
-import { PageHeader } from "@/components/ui/page-header"
+import { FacilitySectionHeader } from "@/components/facilities/facility-section"
 import { EnhancedBackendDataTable } from "@/components/ui/enhanced-backend-data-table"
 import { RegionsResponse } from "@/types/backend-types"
 
@@ -71,35 +71,38 @@ export default function RegionsPage() {
   }, [loading, hasPermission, router])
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Regions Management"
+    <div className="w-full min-w-0 space-y-6">
+      <FacilitySectionHeader section="regions"
+        title="Regions"
         description="Manage administrative regions in the health system"
-        actions={[
+        actions={hasPermission("content", "create:any") ? [
           {
             label: "Add Region",
             onClick: openCreate,
             icon: <Plus className="h-4 w-4" />,
           },
-        ]}
+        ] : []}
       />
 
       <EnhancedBackendDataTable<RegionsResponse>
         collectionName="regions"
         loadPage={healthFacilitiesService.listRegions}
+        appearance="workspace"
+        searchLabel="Search regions"
+        title="Regions library"
         columns={regionsColumns}
         searchable={true}
         searchFields={["name", "nhpi_code", "hsdt_code"]}
         selectable={true}
         exportable={true}
         availableFields={regionsAvailableFields}
-        rowActions={rowActions}
-        bulkActions={bulkActions}
+        rowActions={rowActions.filter(action => hasPermission("content", action.id === "edit" ? "update:any" : "delete:any"))}
+        bulkActions={hasPermission("content", "delete:any") ? bulkActions : []}
         persistColumnConfig={true}
         tableContext="regions-management"
       />
 
-      <AdminEntityModal
+      <AdminEntityModal collection="regions"
         open={modalOpen}
         onClose={closeModal}
         createRecord={healthFacilitiesService.createRegion}

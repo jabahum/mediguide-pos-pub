@@ -5,7 +5,7 @@ import { Plus } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { usePermissionContext } from "@/lib/permission-context"
 
-import { PageHeader } from "@/components/ui/page-header"
+import { FacilitySectionHeader } from "@/components/facilities/facility-section"
 import { EnhancedBackendDataTable } from "@/components/ui/enhanced-backend-data-table"
 import { ParishesWithSubcounty } from "@/types/expanded"
 
@@ -77,22 +77,25 @@ export default function ParishesPage() {
   }, [loading, hasPermission, router])
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Parishes Management"
+    <div className="w-full min-w-0 space-y-6">
+      <FacilitySectionHeader section="parishes"
+        title="Parishes"
         description="Manage parishes - the smallest administrative units within subcounties"
-        actions={[
+        actions={hasPermission("content", "create:any") ? [
           {
             label: "Add Parish",
             onClick: openCreate,
             icon: <Plus className="h-4 w-4" />,
           },
-        ]}
+        ] : []}
       />
 
       <EnhancedBackendDataTable<ParishesWithSubcounty>
         collectionName="parishes"
         loadPage={healthFacilitiesService.listParishes}
+        appearance="workspace"
+        searchLabel="Search parishes"
+        title="Parishes library"
         columns={parishesColumns}
         expandable={true}
         searchable={true}
@@ -100,13 +103,13 @@ export default function ParishesPage() {
         selectable={true}
         exportable={true}
         availableFields={parishesAvailableFields}
-        rowActions={rowActions}
-        bulkActions={bulkActions}
+        rowActions={rowActions.filter(action => hasPermission("content", action.id === "edit" ? "update:any" : "delete:any"))}
+        bulkActions={hasPermission("content", "delete:any") ? bulkActions : []}
         persistColumnConfig={true}
         tableContext="parishes-management"
       />
 
-      <AdminEntityModal
+      <AdminEntityModal collection="parishes"
         open={modalOpen}
         onClose={closeModal}
         createRecord={healthFacilitiesService.createParish}

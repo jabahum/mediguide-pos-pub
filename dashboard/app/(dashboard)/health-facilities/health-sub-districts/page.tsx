@@ -5,7 +5,7 @@ import { Plus } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { usePermissionContext } from "@/lib/permission-context"
 
-import { PageHeader } from "@/components/ui/page-header"
+import { FacilitySectionHeader } from "@/components/facilities/facility-section"
 import { EnhancedBackendDataTable } from "@/components/ui/enhanced-backend-data-table"
 import { HealthSubDistrictsResponse } from "@/types/backend-types"
 import { ExtendedColumnDef } from "@/types/data-table"
@@ -78,22 +78,25 @@ export default function HealthSubDistrictsPage() {
   }, [loading, hasPermission, router])
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Health Sub-Districts Management"
+    <div className="w-full min-w-0 space-y-6">
+      <FacilitySectionHeader section="health-sub-districts"
+        title="Health sub-districts"
         description="Manage health sub-districts within districts for health service delivery"
-        actions={[
+        actions={hasPermission("content", "create:any") ? [
           {
             label: "Add Health Sub-District",
             onClick: openCreate,
             icon: <Plus className="h-4 w-4" />,
           },
-        ]}
+        ] : []}
       />
 
       <EnhancedBackendDataTable<HealthSubDistrictsResponse>
         collectionName="health_sub_districts"
         loadPage={healthFacilitiesService.listHealthSubDistricts}
+        appearance="workspace"
+        searchLabel="Search health sub districts"
+        title="Health sub districts library"
         columns={healthSubDistrictsColumns as ExtendedColumnDef<HealthSubDistrictsResponse>[]}
         expandable={true}
         searchable={true}
@@ -101,13 +104,13 @@ export default function HealthSubDistrictsPage() {
         selectable={true}
         exportable={true}
         availableFields={healthSubDistrictsAvailableFields}
-        rowActions={rowActions}
-        bulkActions={bulkActions}
+        rowActions={rowActions.filter(action => hasPermission("content", action.id === "edit" ? "update:any" : "delete:any"))}
+        bulkActions={hasPermission("content", "delete:any") ? bulkActions : []}
         persistColumnConfig={true}
         tableContext="health-sub-districts-management"
       />
 
-      <AdminEntityModal
+      <AdminEntityModal collection="health_sub_districts"
         open={modalOpen}
         onClose={closeModal}
         createRecord={healthFacilitiesService.createHealthSubDistrict}

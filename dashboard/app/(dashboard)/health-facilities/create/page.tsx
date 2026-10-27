@@ -2,9 +2,11 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
+import { useQueryClient } from "@tanstack/react-query"
+import { facilityOptionsQueryKey } from "@/lib/facility-query-keys"
 import { Plus } from "lucide-react"
 
-import { PageHeader } from "@/components/ui/page-header"
+import { FacilitySectionHeader } from "@/components/facilities/facility-section"
 import { usePermissionContext } from "@/lib/permission-context"
 import { FacilityForm } from "../components/facility-form"
 import { CreateCountyModal } from "../components/create-county-modal"
@@ -15,6 +17,11 @@ import { CreateRegionModal } from "../components/create-region-modal"
 
 export default function CreateFacilityPage() {
   const router = useRouter()
+  const queryClient = useQueryClient()
+  const refreshLocations = React.useCallback((collection: string) => {
+    void queryClient.invalidateQueries({ queryKey: facilityOptionsQueryKey })
+    void queryClient.invalidateQueries({ queryKey: ["backend", collection] })
+  }, [queryClient])
   const { hasPermission, loading } = usePermissionContext()
 
   React.useEffect(() => {
@@ -31,12 +38,12 @@ export default function CreateFacilityPage() {
   const [showRegionModal, setShowRegionModal] = React.useState(false)
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <div className="w-full min-w-0 space-y-6">
+      <FacilitySectionHeader section="directory"
         title="Add Health Facility"
         description="Create a new health facility in the system"
         showBackButton={true}
-        onBack={() => window.history.back()}
+        onBack={() => router.push("/health-facilities")}
         actions={[
           {
             label: "Create Location",
@@ -72,23 +79,23 @@ export default function CreateFacilityPage() {
       <FacilityForm mode="create" />
 
       {/* Administrative Entity Creation Modals */}
-      <CreateRegionModal 
+      <CreateRegionModal onSuccess={() => refreshLocations("regions")}
         open={showRegionModal} 
         onClose={() => setShowRegionModal(false)}
       />
-      <CreateDistrictModal 
+      <CreateDistrictModal onSuccess={() => refreshLocations("districts")}
         open={showDistrictModal} 
         onClose={() => setShowDistrictModal(false)}
       />
-      <CreateCountyModal 
+      <CreateCountyModal onSuccess={() => refreshLocations("counties")}
         open={showCountyModal} 
         onClose={() => setShowCountyModal(false)}
       />
-      <CreateSubcountyModal 
+      <CreateSubcountyModal onSuccess={() => refreshLocations("subcounties")}
         open={showSubcountyModal} 
         onClose={() => setShowSubcountyModal(false)}
       />
-      <CreateParishModal 
+      <CreateParishModal onSuccess={() => refreshLocations("parishes")}
         open={showParishModal} 
         onClose={() => setShowParishModal(false)}
       />

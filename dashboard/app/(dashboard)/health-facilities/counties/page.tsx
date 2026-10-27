@@ -5,7 +5,7 @@ import { Plus } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { usePermissionContext } from "@/lib/permission-context"
 
-import { PageHeader } from "@/components/ui/page-header"
+import { FacilitySectionHeader } from "@/components/facilities/facility-section"
 import { EnhancedBackendDataTable } from "@/components/ui/enhanced-backend-data-table"
 import { CountiesWithDistrict } from "@/types/expanded"
 
@@ -77,22 +77,25 @@ export default function CountiesPage() {
   }, [loading, hasPermission, router])
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Counties Management"
+    <div className="w-full min-w-0 space-y-6">
+      <FacilitySectionHeader section="counties"
+        title="Counties"
         description="Manage counties within districts"
-        actions={[
+        actions={hasPermission("content", "create:any") ? [
           {
             label: "Add County",
             onClick: openCreate,
             icon: <Plus className="h-4 w-4" />,
           },
-        ]}
+        ] : []}
       />
 
       <EnhancedBackendDataTable<CountiesWithDistrict>
         collectionName="counties"
         loadPage={healthFacilitiesService.listCounties}
+        appearance="workspace"
+        searchLabel="Search counties"
+        title="Counties library"
         columns={countiesColumns}
         expandable={true}
         searchable={true}
@@ -100,13 +103,13 @@ export default function CountiesPage() {
         selectable={true}
         exportable={true}
         availableFields={countiesAvailableFields}
-        rowActions={rowActions}
-        bulkActions={bulkActions}
+        rowActions={rowActions.filter(action => hasPermission("content", action.id === "edit" ? "update:any" : "delete:any"))}
+        bulkActions={hasPermission("content", "delete:any") ? bulkActions : []}
         persistColumnConfig={true}
         tableContext="counties-management"
       />
 
-      <AdminEntityModal
+      <AdminEntityModal collection="counties"
         open={modalOpen}
         onClose={closeModal}
         createRecord={healthFacilitiesService.createCounty}

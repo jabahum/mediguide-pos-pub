@@ -4,7 +4,7 @@ import * as React from "react"
 import { useRouter } from "next/navigation"
 import { Plus } from "lucide-react"
 
-import { PageHeader } from "@/components/ui/page-header"
+import { FacilitySectionHeader } from "@/components/facilities/facility-section"
 import { EnhancedBackendDataTable } from "@/components/ui/enhanced-backend-data-table"
 import { createColumns, HealthFacility } from "./columns"
 import { createFacilityRowActions, facilityBulkActions } from "./facility-actions"
@@ -29,8 +29,13 @@ export default function HealthFacilitiesPage() {
 
   // Create row actions with proper navigation
   const facilityRowActions = React.useMemo(() => 
-    createFacilityRowActions((path) => router.push(path)), 
-    [router]
+    createFacilityRowActions((path) => router.push(path)).filter(action => {
+      if (["view-location", "generate-report", "archive"].includes(action.id)) return false
+      if (action.id === "edit") return hasPermission("content", "update:any")
+      if (action.id === "delete") return hasPermission("content", "delete:any")
+      return true
+    }),
+    [router, hasPermission]
   )
 
   const handleAdvancedFilter = React.useCallback((filters: AdvancedFilter[]) => {
@@ -50,9 +55,9 @@ export default function HealthFacilitiesPage() {
   }, [])
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Health Facilities Management"
+    <div className="w-full min-w-0 space-y-6">
+      <FacilitySectionHeader section="directory"
+        title="Health facilities"
         description="Manage health facilities across Uganda's administrative hierarchy"
         actions={hasPermission("content", "create:any") ? [
           {
@@ -68,6 +73,9 @@ export default function HealthFacilitiesPage() {
         // Collection settings
         collectionName="health_facilities"
         loadPage={healthFacilitiesService.listFacilityTable}
+        appearance="workspace"
+        searchLabel="Search facilities"
+        title="Facilities library"
         columns={columns}
         expandable={true}
 
@@ -84,7 +92,7 @@ export default function HealthFacilitiesPage() {
         selectable={true}
         enableSelectAll={true}
         rowActions={facilityRowActions}
-        bulkActions={facilityBulkActions}
+        bulkActions={facilityBulkActions.filter(action => action.id === "bulk-export")}
 
         // Export/Import
         exportable={true}

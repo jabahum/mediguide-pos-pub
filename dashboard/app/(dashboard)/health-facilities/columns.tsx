@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { format } from "date-fns"
 import { CalendarDays, Shield, MapPin, Hash, Stethoscope } from "lucide-react"
 
@@ -37,8 +38,8 @@ export const createColumns = (): ExtendedColumnDef<HealthFacility>[] => [
     cell: ({ row }) => {
       const facility = row.original
       return (
-        <div className="flex flex-col space-y-1">
-          <span className="font-medium text-sm">{facility.name}</span>
+        <div className="flex min-w-[240px] max-w-xl flex-col gap-1">
+          <Link href={`/health-facilities/${facility.id}`} className="whitespace-normal break-words font-semibold hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{facility.name}</Link>
           <div className="flex items-center space-x-2 text-xs text-muted-foreground">
             <span className="font-mono">{facility.nhpi_code}</span>
           </div>

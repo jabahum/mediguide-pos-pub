@@ -15,7 +15,7 @@ export const healthSubDistrictsColumns: ExtendedColumnDef<HealthSubDistrictsWith
       <DataTableColumnHeader column={column} title="Health Sub-District" />
     ),
     cell: ({ row }) => (
-      <div className="font-medium">{row.getValue("name")}</div>
+      <div className="min-w-[160px] whitespace-normal break-words font-semibold">{row.getValue("name")}</div>
     ),
     enableSorting: true,
     enableHiding: false,
@@ -59,7 +59,7 @@ export const healthSubDistrictsColumns: ExtendedColumnDef<HealthSubDistrictsWith
       <DataTableColumnHeader column={column} title="NHPI Code" />
     ),
     cell: ({ row }) => (
-      <Badge variant="secondary" className="font-mono text-xs">
+      <Badge variant="secondary" className="max-w-xs whitespace-normal break-all font-mono text-xs">
         {row.getValue("nhpi_code")}
       </Badge>
     ),
@@ -71,7 +71,7 @@ export const healthSubDistrictsColumns: ExtendedColumnDef<HealthSubDistrictsWith
       <DataTableColumnHeader column={column} title="HSDT Code" />
     ),
     cell: ({ row }) => (
-      <Badge variant="outline" className="font-mono text-xs">
+      <Badge variant="outline" className="max-w-xs whitespace-normal break-all font-mono text-xs">
         {row.getValue("hsdt_code")}
       </Badge>
     ),

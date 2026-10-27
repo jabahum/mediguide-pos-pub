@@ -97,7 +97,7 @@ export function CreateRegionModal({ open, onClose, onSuccess, region }: CreateRe
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="max-h-[90dvh] overflow-y-auto rounded-2xl sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>{isEdit ? "Edit Region" : "Create Region"}</DialogTitle>
           <DialogDescription>

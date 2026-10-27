@@ -5,7 +5,7 @@ import { Plus } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { usePermissionContext } from "@/lib/permission-context"
 
-import { PageHeader } from "@/components/ui/page-header"
+import { FacilitySectionHeader } from "@/components/facilities/facility-section"
 import { EnhancedBackendDataTable } from "@/components/ui/enhanced-backend-data-table"
 import { SubcountiesWithExpanded } from "@/types/expanded"
 
@@ -83,22 +83,25 @@ export default function SubcountiesPage() {
   }, [loading, hasPermission, router])
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Subcounties Management"
+    <div className="w-full min-w-0 space-y-6">
+      <FacilitySectionHeader section="subcounties"
+        title="Subcounties"
         description="Manage subcounties within counties and districts"
-        actions={[
+        actions={hasPermission("content", "create:any") ? [
           {
             label: "Add Subcounty",
             onClick: openCreate,
             icon: <Plus className="h-4 w-4" />,
           },
-        ]}
+        ] : []}
       />
 
       <EnhancedBackendDataTable<SubcountiesWithExpanded>
         collectionName="subcounties"
         loadPage={healthFacilitiesService.listSubcounties}
+        appearance="workspace"
+        searchLabel="Search subcounties"
+        title="Subcounties library"
         columns={subcountiesColumns}
         expandable={true}
         searchable={true}
@@ -106,13 +109,13 @@ export default function SubcountiesPage() {
         selectable={true}
         exportable={true}
         availableFields={subcountiesAvailableFields}
-        rowActions={rowActions}
-        bulkActions={bulkActions}
+        rowActions={rowActions.filter(action => hasPermission("content", action.id === "edit" ? "update:any" : "delete:any"))}
+        bulkActions={hasPermission("content", "delete:any") ? bulkActions : []}
         persistColumnConfig={true}
         tableContext="subcounties-management"
       />
 
-      <AdminEntityModal
+      <AdminEntityModal collection="subcounties"
         open={modalOpen}
         onClose={closeModal}
         createRecord={healthFacilitiesService.createSubcounty}
