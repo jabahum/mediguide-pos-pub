@@ -20,6 +20,8 @@ import { ChartCard } from "@/components/dashboard/chart-card"
 import { EmptyState } from "@/components/ui/empty-state"
 import type { OverviewData } from "@/types/overview"
 
+import { mergeOverviewSeries } from "./overview-series"
+
 type SeriesProps = {
   users: OverviewData["series"]["usersByDay"]
   drugs: OverviewData["series"]["drugsByDay"]
@@ -27,28 +29,23 @@ type SeriesProps = {
 }
 
 export function OverviewSeriesChart({ users, drugs, facilities }: SeriesProps) {
-  const data = users.map((item, index) => ({
-    day: item.day,
-    users: item.total,
-    drugs: drugs[index]?.total ?? 0,
-    facilities: facilities[index]?.total ?? 0,
-  }))
+  const data = mergeOverviewSeries(users, drugs, facilities)
 
   if (data.length === 0) {
-    return <ChartCard title="30-Day Activity"><EmptyState title="No activity data yet" description="Daily activity will appear here when records are available." /></ChartCard>
+    return <ChartCard title="New records · last 30 days" description="Records created each day, rather than cumulative totals."><EmptyState title="No new record data yet" description="Daily activity will appear here when records are available." /></ChartCard>
   }
 
   return (
-    <ChartCard title="30-Day Activity">
+    <ChartCard title="New records · last 30 days" description="Records created each day, rather than cumulative totals.">
         <ChartContainer
-          className="h-[260px] w-full"
+          className="h-[320px] w-full"
           config={{
             users: { label: "Users", color: "var(--chart-1)" },
             drugs: { label: "Drugs", color: "var(--chart-2)" },
             facilities: { label: "Facilities", color: "var(--chart-3)" },
           }}
         >
-          <LineChart data={data} margin={{ left: 8, right: 16, top: 8 }}>
+          <LineChart accessibilityLayer data={data} margin={{ left: 8, right: 16, top: 8 }}>
             <CartesianGrid vertical={false} />
             <XAxis
               dataKey="day"
@@ -58,7 +55,7 @@ export function OverviewSeriesChart({ users, drugs, facilities }: SeriesProps) {
               minTickGap={20}
               tickFormatter={(value: string) => value.slice(5)}
             />
-            <YAxis tickLine={false} axisLine={false} tickMargin={8} />
+            <YAxis allowDecimals={false} tickLine={false} axisLine={false} tickMargin={8} />
             <ChartTooltip
               cursor={false}
               content={<ChartTooltipContent indicator="line" />}
@@ -130,30 +127,25 @@ export function OverviewEngagementChart({ engagement }: EngagementProps) {
   ]
 
   return (
-    <ChartCard title="Engagement (7d vs 30d)">
+    <ChartCard title="Feature interactions" description="Recorded usage events. The last 7 days are included in the 30-day counts.">
         <ChartContainer
-          className="h-[260px] w-full"
+          className="h-[320px] w-full"
           config={{
             last7: { label: "Last 7 days", color: "var(--chart-4)" },
             last30: { label: "Last 30 days", color: "var(--chart-5)" },
           }}
         >
-          <BarChart data={data} margin={{ left: 8, right: 16, top: 8 }}>
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="name"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-            />
-            <YAxis tickLine={false} axisLine={false} tickMargin={8} />
+          <BarChart accessibilityLayer data={data} layout="vertical" margin={{ left: 0, right: 16, top: 8 }}>
+            <CartesianGrid horizontal={false} />
+            <XAxis type="number" allowDecimals={false} tickLine={false} axisLine={false} />
+            <YAxis type="category" dataKey="name" width={100} tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
             <ChartTooltip
               cursor={false}
               content={<ChartTooltipContent indicator="dashed" />}
             />
             <ChartLegend content={<ChartLegendContent />} />
-            <Bar dataKey="last7" fill="var(--color-last7)" radius={[6, 6, 0, 0]} />
-            <Bar dataKey="last30" fill="var(--color-last30)" radius={[6, 6, 0, 0]} />
+            <Bar dataKey="last7" fill="var(--color-last7)" radius={[0, 4, 4, 0]} />
+            <Bar dataKey="last30" fill="var(--color-last30)" radius={[0, 4, 4, 0]} />
           </BarChart>
         </ChartContainer>
     </ChartCard>
@@ -162,13 +154,13 @@ export function OverviewEngagementChart({ engagement }: EngagementProps) {
 
 export function OverviewFeatureUsageChart({ data }: { data: NonNullable<OverviewData["featureUsage"]> }) {
   return (
-    <ChartCard title="App feature visits (7d vs 30d)">
+    <ChartCard title="App section visits" description="Recorded visits by signed-in users. The last 7 days are included in the 30-day counts.">
       {data.length === 0 ? <EmptyState title="No feature visits yet" description="Feature visits will appear after signed-in users open app sections." /> : (
         <ChartContainer className="w-full" style={{ height: Math.max(260, data.length * 36) }} config={{
           last7: { label: "Last 7 days", color: "var(--chart-4)" },
           last30: { label: "Last 30 days", color: "var(--chart-5)" },
         }}>
-          <BarChart data={data.map(item => ({ ...item, name: item.feature.replaceAll("_", " ") }))} layout="vertical" margin={{ left: 12, right: 16 }}>
+          <BarChart accessibilityLayer data={data.map(item => ({ ...item, name: item.feature.replaceAll("_", " ") }))} layout="vertical" margin={{ left: 12, right: 16 }}>
             <CartesianGrid horizontal={false} />
             <XAxis type="number" allowDecimals={false} />
             <YAxis type="category" dataKey="name" width={120} tickLine={false} axisLine={false} />
