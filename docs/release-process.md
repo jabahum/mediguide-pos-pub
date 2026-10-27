@@ -1,5 +1,19 @@
 # MediGuide platform release process
 
+## v2.1.24 dashboard usability release — 27 October 2026
+
+- Synchronizes all service versions to 2.1.24 and mobile to 2.1.24+77.
+- Refreshes dashboard workspaces, groups navigation, opens creation forms in
+  local dialogs, fixes breadcrumbs and tool-type filtering, and standardizes
+  table pagination and form actions.
+- Improves guideline review layout and bulk review paging, disease and content
+  hub management, and the screen-based clinical guidelines SOP.
+- Uses Node 22 and Webpack for Docker dashboard development with bounded
+  health probes. Production retains the existing standalone Node runtime.
+- Introduces no new database migrations relative to v2.1.23. Publish immutable
+  images and deploy through the protected production workflow; clinical
+  publication and mobile store rollout remain separate operations.
+
 ## v2.1.23 clinical tool usage release — 25 October 2026
 
 - Synchronizes all service versions to 2.1.23 and mobile to 2.1.23+76.

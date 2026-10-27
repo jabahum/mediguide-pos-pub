@@ -10008,7 +10008,7 @@ info:
     name: Proprietary
   termsOfService: https://mediguide.local/terms
   title: MediGuide Backend API
-  version: 2.1.23
+  version: 2.1.24
 paths:
   /analytics/accounts:
     get:
