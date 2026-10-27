@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
+import { DashboardLink as Link } from "@/components/dialogs/create-dialog-context";
 import { ArrowRight, ChevronLeft, ChevronRight, MoreHorizontal, RefreshCw, SearchX, Trash2, type LucideIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

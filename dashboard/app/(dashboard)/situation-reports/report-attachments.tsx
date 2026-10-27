@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import Link from "next/link"
+import { DashboardLink as Link } from "@/components/dialogs/create-dialog-context"
 import { AlertCircle, Eye, Plus } from "lucide-react"
 
 import { Button } from "@/components/ui/button"

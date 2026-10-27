@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useRouter } from "next/navigation"
+import { useDashboardRouter as useRouter } from "@/components/dialogs/create-dialog-context"
 import { notFound } from "next/navigation"
 import { ToolSectionHeader, ToolStatusBadge } from "@/components/clinical-tools/tool-section"
 import { Badge } from "@/components/ui/badge"

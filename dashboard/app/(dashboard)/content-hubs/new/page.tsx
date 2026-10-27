@@ -1,4 +1,5 @@
-import { ContentHubEditor } from "../content-hub-editor";
-export default function NewContentHubPage() {
-  return <ContentHubEditor />;
+import { redirect } from "next/navigation";
+
+export default function CreatePage() {
+  redirect("/content-hubs");
 }

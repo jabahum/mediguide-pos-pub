@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
-import { useRouter } from "next/navigation"
+import { useDashboardRouter as useRouter } from "@/components/dialogs/create-dialog-context"
 import { usePermissionContext } from "@/lib/permission-context"
 import Head from "next/head"
 import { Edit, Plus, TestTube } from "lucide-react"

@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useDashboardRouter as useRouter } from "@/components/dialogs/create-dialog-context"
 import { usePermissionContext } from "@/lib/permission-context"
 import { Plus } from "lucide-react"
 

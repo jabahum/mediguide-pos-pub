@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { DashboardLink as Link } from "@/components/dialogs/create-dialog-context";
+import { useDashboardRouter as useRouter } from "@/components/dialogs/create-dialog-context";
 import {
   Archive,
   ArchiveRestore,

@@ -1,3 +1,5 @@
-import { OutbreakEditor } from "../outbreak-editor"
+import { redirect } from "next/navigation";
 
-export default function NewOutbreakPage() { return <OutbreakEditor /> }
+export default function CreatePage() {
+  redirect("/outbreaks");
+}

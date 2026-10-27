@@ -2,7 +2,8 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useDashboardRouter as useRouter } from "@/components/dialogs/create-dialog-context"
+import { CreateDialogProvider } from "@/components/dialogs/create-dialog-provider"
 import { AppSidebar } from "@/components/app-sidebar"
 import {
   Breadcrumb,
@@ -39,10 +40,8 @@ import { usersService } from "@/services/user-management.service"
 
 export default function DashboardLayout({
   children,
-  createDialog,
 }: {
   children: React.ReactNode
-  createDialog: React.ReactNode
 }) {
   const router = useRouter()
   const userRole = getUserRole() ?? undefined
@@ -78,6 +77,7 @@ export default function DashboardLayout({
   return (
     <AuthGuard>
       <PermissionProvider userRole={userRole}>
+      <CreateDialogProvider>
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset>
@@ -136,9 +136,9 @@ export default function DashboardLayout({
           <div className="flex flex-1 flex-col gap-4 p-4 min-w-0 overflow-x-hidden">
             {children}
           </div>
-          {createDialog}
         </SidebarInset>
       </SidebarProvider>
+      </CreateDialogProvider>
       </PermissionProvider>
     </AuthGuard>
   )

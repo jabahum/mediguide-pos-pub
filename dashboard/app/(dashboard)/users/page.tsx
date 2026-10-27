@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useRouter } from "next/navigation"
+import { useDashboardRouter as useRouter } from "@/components/dialogs/create-dialog-context"
 import { Plus } from "lucide-react"
 
 import { UserSectionHeader } from "@/components/users/user-section"

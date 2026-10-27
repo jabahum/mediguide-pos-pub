@@ -1,7 +1,7 @@
 "use client"
 
 import { Plus, Settings } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useDashboardRouter as useRouter } from "@/components/dialogs/create-dialog-context"
 import { useCallback, useEffect } from "react"
 import { usePermissionContext } from "@/lib/permission-context"
 import { SupportSectionHeader } from "@/components/support/support-section"

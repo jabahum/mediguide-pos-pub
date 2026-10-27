@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { DashboardLink as Link } from "@/components/dialogs/create-dialog-context";
+import { useDashboardRouter as useRouter } from "@/components/dialogs/create-dialog-context";
 import { Plus, Layers, Search, SearchX, ArrowRight, Stethoscope, Activity, Users } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Badge } from "@/components/ui/badge";
