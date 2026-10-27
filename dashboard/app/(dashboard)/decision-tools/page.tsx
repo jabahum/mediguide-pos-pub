@@ -65,6 +65,7 @@ export default function DecisionToolsPage() {
       <BackendDataTable<DecisionToolWithRelations>
         key={typeFilter ?? "all"}
         collection="calculators"
+        queryScope={typeFilter || "all"}
         loadPage={loadPage}
         columns={columns}
         searchPlaceholder="Search tool name, description, type, or version…"

@@ -50,6 +50,7 @@ const DEFAULT_CONFIG = {
 
 export function BackendDataTable<TData extends BaseRecord = BaseRecord>({
   collection,
+  queryScope,
   columns,
   loadPage,
 
@@ -153,6 +154,7 @@ export function BackendDataTable<TData extends BaseRecord = BaseRecord>({
     exportData,
   } = useBackendTable<TData>({
     collection,
+    queryScope,
     loadPage,
     searchFields,
     rowActions,

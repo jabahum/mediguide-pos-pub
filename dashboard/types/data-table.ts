@@ -140,6 +140,8 @@ export interface UIOptions {
 
 // Main DataTable props - SIMPLIFIED
 export interface BackendDataTableProps<TData = BaseRecord> {
+  /** Separates cached results when an external chip or tab changes the loader. */
+  queryScope?: string
   // Core required
   collection: string
   columns: ColumnDef<TData>[]
@@ -265,6 +267,7 @@ export interface TableError {
 
 // Simplified hook interface
 export interface UseBackendTableConfig<TData = BaseRecord> {
+  queryScope?: string
   collection: string
   loadPage: DomainPageLoader<TData>
   searchFields?: string[]
