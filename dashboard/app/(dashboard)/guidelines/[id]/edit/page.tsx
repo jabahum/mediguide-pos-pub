@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 
 import { LoadingState } from "@/components/ui/loading-state";
 import { Button } from "@/components/ui/button";
-import { PageHeader } from "@/components/ui/page-header";
+import { GuidelineSectionHeader } from "@/components/guidelines/guideline-section";
 import { usePermissionContext } from "@/lib/permission-context";
 import { showToast } from "@/lib/toast";
 import {
@@ -103,8 +103,8 @@ export default function EditGuidelinePage() {
   const document = documentQuery.data;
   const assignments = classificationQuery.data?.items || [];
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <div className="w-full min-w-0 space-y-6">
+      <GuidelineSectionHeader
         title={`Edit ${document.title}`}
         description="Update v2 guideline document metadata."
       />

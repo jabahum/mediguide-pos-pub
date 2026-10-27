@@ -884,7 +884,8 @@ export default function GuidelineReviewPage() {
   );
 
   return (
-    <div className="space-y-4">
+    <div className="w-full min-w-0 space-y-4">
+      <Tabs value={tab} onValueChange={(value) => setTab(value as ReviewTab)}>
       <div className="sticky top-16 z-30 space-y-3 rounded-lg border bg-background/95 p-3 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/85">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 items-center gap-2">
@@ -982,14 +983,12 @@ export default function GuidelineReviewPage() {
             )}
           </div>
         </div>
-      </div>
-
-      <Tabs value={tab} onValueChange={(value) => setTab(value as ReviewTab)}>
-        <TabsList>
+        <TabsList className="grid h-auto w-full grid-cols-1 gap-1 rounded-xl p-1.5 sm:grid-cols-3 [&>button]:min-h-10">
           <TabsTrigger value="review">Review</TabsTrigger>
           <TabsTrigger value="bulk">Bulk approve low-risk</TabsTrigger>
           <TabsTrigger value="completeness">Completeness report</TabsTrigger>
         </TabsList>
+      </div>
 
         <TabsContent value="review" className="mt-3 space-y-3">
           <div className="grid grid-cols-3 gap-1 rounded-md bg-muted p-1 xl:hidden">

@@ -30,7 +30,7 @@ import {
 import { FileUpload } from "@/components/ui/file-upload";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PageHeader } from "@/components/ui/page-header";
+import { GuidelineSectionHeader } from "@/components/guidelines/guideline-section";
 import { usePermissionContext } from "@/lib/permission-context";
 import { showToast } from "@/lib/toast";
 import {
@@ -234,19 +234,20 @@ export default function CreateGuidelinePage() {
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <div className="w-full min-w-0 space-y-6">
+      <GuidelineSectionHeader
         title="Create Guideline"
-        description="Create the document, attach its first version, upload PDF or Markdown, and review the extraction."
+        description="Create a document, add its first edition, then prepare and review its content."
       />
 
       <nav
         aria-label="Guideline creation progress"
-        className="grid gap-2 md:grid-cols-4"
+        className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4"
       >
         {stageLabels.map((label, index) => (
           <div
             key={label}
+            aria-current={index === stage ? "step" : undefined}
             className={`flex items-center gap-3 rounded-lg border p-3 ${
               index === stage ? "border-primary bg-primary/5" : ""
             }`}

@@ -1,12 +1,15 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
-import { BellPlus, Eye, FilePlus2, Link2, Pencil, Trash2, Upload } from "lucide-react"
+import { BellPlus, Eye, FilePlus2, Link2, MoreHorizontal, Pencil, Trash2, Upload } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
+import { GuidelineStatusBadge } from "@/components/guidelines/guideline-section"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { GuidelinePublicationAction } from "./components/guideline-publication-action"
 import { Button } from "@/components/ui/button"
 import { DataTableColumnHeader } from "@/components/ui/datatable-column-header"
+import { getGuidelineWorkStatus, isDocumentPublished } from "./document-state"
 import {
   getDocumentCurrentVersion,
   getDocumentLatestVersion,
@@ -46,8 +49,9 @@ export function createGuidelinesColumns({
       accessorKey: "title",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Guideline" />,
       cell: ({ row }) => (
-        <div className="min-w-[240px] max-w-[360px] whitespace-normal break-words font-medium leading-5">
-          {row.original.title}
+        <div className="min-w-[200px] max-w-md whitespace-normal break-words">
+          <button type="button" className="text-left font-semibold leading-6 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" onClick={() => onView(row.original)}>{row.original.title}</button>
+          {row.original.source_org && <p className="mt-1 text-xs leading-5 text-muted-foreground">{row.original.source_org}</p>}
         </div>
       ),
       size: 360,
@@ -70,7 +74,7 @@ export function createGuidelinesColumns({
       accessorKey: "program_area",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Program Area" />,
       cell: ({ row }) => (
-        <div className="min-w-[180px] max-w-[260px] whitespace-normal break-words leading-5">
+        <div className="min-w-[120px] max-w-[200px] whitespace-normal break-words leading-5">
           {row.original.program_area || <span className="text-muted-foreground">—</span>}
         </div>
       ),
@@ -80,7 +84,7 @@ export function createGuidelinesColumns({
       accessorKey: "country",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Country" />,
       cell: ({ row }) => (
-        <div className="min-w-[120px] max-w-[170px] whitespace-normal break-words">
+        <div className="min-w-[80px] max-w-[160px] whitespace-normal break-words">
           {row.original.country || <span className="text-muted-foreground">—</span>}
         </div>
       ),
@@ -88,21 +92,15 @@ export function createGuidelinesColumns({
     },
     {
       id: "current_version",
-      header: "Current Version",
+      header: "Edition & status",
       accessorFn: (document) => getDocumentCurrentVersion(document)?.version || "",
       cell: ({ row }) => {
-        if (row.original.withdrawn_at) return <Badge variant="destructive">Withdrawn</Badge>
         const version = getDocumentCurrentVersion(row.original)
-        return version ? (
-          <div className="flex min-w-[170px] flex-wrap items-center gap-2">
-            <span>{version.version}</span>
-            <Badge variant={version.status === "published" ? "default" : "secondary"}>
-              {version.status}
-            </Badge>
-          </div>
-        ) : (
-          <span className="text-muted-foreground">No version</span>
-        )
+        const latest = getDocumentLatestVersion(row.original)
+        return <div className="min-w-[140px] space-y-2">
+          {row.original.withdrawn_at ? <GuidelineStatusBadge status="withdrawn" /> : version ? <div className="flex flex-wrap items-center gap-2"><span className="font-medium">v{version.version}</span><GuidelineStatusBadge status={version.status === "published" && version.id !== row.original.current_version_id ? "previously_published" : getGuidelineWorkStatus(version)} /></div> : <span className="text-sm text-muted-foreground">No version yet</span>}
+          {latest && latest.id !== version?.id && latest.status !== "published" && <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground"><span>Working v{latest.version}</span><GuidelineStatusBadge status={getGuidelineWorkStatus(latest)} /></div>}
+        </div>
       },
       size: 190,
     },
@@ -110,7 +108,7 @@ export function createGuidelinesColumns({
       accessorKey: "language",
       header: "Language",
       cell: ({ row }) => (
-        <div className="min-w-[90px] whitespace-normal break-words">
+        <div className="min-w-[60px] whitespace-normal break-words">
           {(row.original.language || "en").toUpperCase()}
         </div>
       ),
@@ -120,65 +118,26 @@ export function createGuidelinesColumns({
       accessorKey: "updated_at",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Updated" />,
       cell: ({ row }) => (
-        <div className="min-w-[110px]">{new Date(row.original.updated_at).toLocaleDateString()}</div>
+        <div className="min-w-[90px] text-xs text-muted-foreground">{Number.isFinite(Date.parse(row.original.updated_at)) ? <time dateTime={row.original.updated_at}>{new Date(row.original.updated_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</time> : "Not recorded"}</div>
       ),
       size: 130,
     },
     {
       id: "actions",
       enableHiding: false,
-      size: 250,
+      size: 160,
       cell: ({ row }) => (
-        <div className="flex min-w-[236px] justify-end gap-1">
-          <Button variant="ghost" size="icon" title="View" onClick={() => onView(row.original)}>
-            <Eye className="h-4 w-4" />
-          </Button>
-          {canUpdate && (
-            <>
-              <Button variant="ghost" size="icon" title="Edit" onClick={() => onEdit(row.original)}>
-                <Pencil className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                title="Create version"
-                onClick={() => onNewVersion(row.original)}
-              >
-                <FilePlus2 className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                title={isPublishedAsLink(row.original) ? "Set link" : "Upload PDF"}
-                disabled={!getDocumentLatestVersion(row.original)}
-                onClick={() => onUpload(row.original)}
-              >
-                {isPublishedAsLink(row.original) ? <Link2 className="h-4 w-4" /> : <Upload className="h-4 w-4" />}
-              </Button>
-            </>
-          )}
-          {canNotify && (
-            <Button
-              variant="ghost"
-              size="icon"
-              title={getDocumentCurrentVersion(row.original)?.status === "published" ? "Create notification campaign" : "Publish the current version before notifying users"}
-              disabled={getDocumentCurrentVersion(row.original)?.status !== "published"}
-              onClick={() => onNotify(row.original)}
-            >
-              <BellPlus className="h-4 w-4" />
-            </Button>
-          )}
-          {canDelete && (
-            <Button
-              variant="ghost"
-              size="icon"
-              title="Delete guideline"
-              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-              onClick={() => onDelete(row.original)}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          )}
+        <div className="flex items-center justify-end gap-1">
+          <Button variant="outline" size="sm" aria-label={`Open guideline: ${row.original.title}`} onClick={() => onView(row.original)}>Open<Eye className="ml-1 size-3.5" aria-hidden="true" /></Button>
+          {(canUpdate || canNotify || canDelete) && <DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" aria-label={`More actions for ${row.original.title}`}><MoreHorizontal className="size-4" aria-hidden="true" /></Button></DropdownMenuTrigger><DropdownMenuContent align="end">
+            {canUpdate && <>
+              <DropdownMenuItem onSelect={() => onEdit(row.original)}><Pencil className="mr-2 size-4" aria-hidden="true" />Edit details</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => onNewVersion(row.original)}><FilePlus2 className="mr-2 size-4" aria-hidden="true" />Create version</DropdownMenuItem>
+              <DropdownMenuItem disabled={!getDocumentLatestVersion(row.original)} onSelect={() => onUpload(row.original)}>{isPublishedAsLink(row.original) ? <Link2 className="mr-2 size-4" aria-hidden="true" /> : <Upload className="mr-2 size-4" aria-hidden="true" />}{isPublishedAsLink(row.original) ? "Set link" : "Upload source"}</DropdownMenuItem>
+            </>}
+            {canNotify && <DropdownMenuItem disabled={!isDocumentPublished(row.original)} onSelect={() => onNotify(row.original)}><BellPlus className="mr-2 size-4" aria-hidden="true" />Create notification campaign</DropdownMenuItem>}
+            {canDelete && <><DropdownMenuSeparator /><DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={() => onDelete(row.original)}><Trash2 className="mr-2 size-4" aria-hidden="true" />Delete guideline</DropdownMenuItem></>}
+          </DropdownMenuContent></DropdownMenu>}
           {canPublish && <GuidelinePublicationAction document={row.original} onChanged={onChanged} />}
         </div>
       ),

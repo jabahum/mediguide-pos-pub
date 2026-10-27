@@ -169,6 +169,8 @@ export interface BackendDataTableProps<TData = BaseRecord> {
 
 // Legacy interface for backward compatibility
 export interface EnhancedBackendDataTableProps<TData = BaseRecord> {
+  appearance?: UIOptions["appearance"]
+  searchLabel?: string
   // Required
   columns: ColumnDef<TData>[]
   loadPage: DomainPageLoader<TData>

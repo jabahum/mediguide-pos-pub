@@ -5,7 +5,7 @@ import { Plus } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 // Components
-import { PageHeader } from "@/components/ui/page-header"
+import { GuidelineSectionHeader } from "@/components/guidelines/guideline-section"
 import { EnhancedBackendDataTable } from "@/components/ui/enhanced-backend-data-table"
 
 // Page-specific imports
@@ -58,9 +58,9 @@ export default function GuidelineIndexPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="w-full min-w-0 space-y-6">
       {/* Page Header */}
-      <PageHeader
+      <GuidelineSectionHeader
         title="Guideline Index"
         description="Organize and manage the hierarchical structure of clinical guidelines"
         showBackButton={true}
@@ -77,6 +77,10 @@ export default function GuidelineIndexPage() {
       {/* Enhanced DataTable */}
       <EnhancedBackendDataTable<GuidelineIndexType>
         key={refreshKey}
+        appearance="workspace"
+        searchLabel="Search content index"
+        title="Content index"
+        searchPlaceholder="Search name or description…"
         collectionName="guideline_index"
 		loadPage={guidelineIndexService.listTable}
         columns={guidelineIndexColumns as ExtendedColumnDef<GuidelineIndexType>[]}

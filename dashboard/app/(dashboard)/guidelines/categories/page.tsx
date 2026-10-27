@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { Plus } from "lucide-react"
-import { PageHeader } from "@/components/ui/page-header"
+import { GuidelineSectionHeader } from "@/components/guidelines/guideline-section"
 import { EnhancedBackendDataTable } from "@/components/ui/enhanced-backend-data-table"
 import { CategoryCreateModal } from "./components/category-create-modal"
 import { CategoryEditModal } from "./components/category-edit-modal"
@@ -55,9 +55,9 @@ export default function GuidelineCategoriesPage() {
   }, [])
 
   return (
-    <div className="space-y-6">
+    <div className="w-full min-w-0 space-y-6">
       {/* Page Header */}
-      <PageHeader
+      <GuidelineSectionHeader
         title="Guideline Categories"
         description="Organize clinical guidelines into hierarchical categories for easy navigation and discovery"
         actions={hasPermission("content", "create:any") ? [
@@ -71,6 +71,10 @@ export default function GuidelineCategoriesPage() {
 
       {/* Enhanced DataTable */}
       <EnhancedBackendDataTable<GuidelineCategoriesWithParent>
+        appearance="workspace"
+        searchLabel="Search categories"
+        title="Category library"
+        searchPlaceholder="Search name or description…"
         collectionName="guideline_categories"
 		loadPage={guidelineCategoryService.listTable}
         columns={columns}

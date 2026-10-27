@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { Plus } from "lucide-react"
-import { PageHeader } from "@/components/ui/page-header"
+import { GuidelineSectionHeader } from "@/components/guidelines/guideline-section"
 import { EnhancedBackendDataTable } from "@/components/ui/enhanced-backend-data-table"
 import { TagCreateModal } from "./components/tag-create-modal"
 import { TagEditModal } from "./components/tag-edit-modal"
@@ -55,9 +55,9 @@ export default function GuidelineTagsPage() {
   }, [])
 
   return (
-    <div className="space-y-6">
+    <div className="w-full min-w-0 space-y-6">
       {/* Page Header */}
-      <PageHeader
+      <GuidelineSectionHeader
         title="Guideline Tags"
         description="Manage tags for organizing and categorizing clinical guidelines"
         actions={hasPermission("content", "create:any") ? [
@@ -71,6 +71,10 @@ export default function GuidelineTagsPage() {
 
       {/* Enhanced DataTable */}
       <EnhancedBackendDataTable<GuidelineTagsResponse>
+        appearance="workspace"
+        searchLabel="Search tags"
+        title="Tag library"
+        searchPlaceholder="Search name or description…"
         collectionName="guideline_tags"
 		loadPage={guidelineTagService.listTable}
         columns={columns}

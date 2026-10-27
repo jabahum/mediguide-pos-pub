@@ -85,7 +85,7 @@ export function GuidelineDocumentForm({
   }
 
   return (
-    <Card>
+    <Card className="rounded-xl shadow-xs">
       <CardContent className="space-y-5 pt-6">
         <div className="grid gap-5 md:grid-cols-2">
           <div className="space-y-2 md:col-span-2">

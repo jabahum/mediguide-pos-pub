@@ -40,7 +40,7 @@ interface EditorData {
 
 function EditorSkeleton() {
   return (
-    <div className="space-y-5">
+    <div className="w-full min-w-0 space-y-5">
       <Skeleton className="h-5 w-72" />
       <div className="space-y-2">
         <Skeleton className="h-9 w-96 max-w-full" />
@@ -151,7 +151,7 @@ export default function GuidelineMarkdownPage() {
   if (error) {
     const missing = error.status === 404
     return (
-      <div className="space-y-4">
+      <div className="w-full min-w-0 space-y-4">
         <Button variant="ghost" onClick={() => router.push("/guidelines")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to guidelines
@@ -177,7 +177,7 @@ export default function GuidelineMarkdownPage() {
   const published = data.version.status.toLowerCase() === "published"
 
   return (
-    <div className="space-y-5">
+    <div className="w-full min-w-0 space-y-5">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
