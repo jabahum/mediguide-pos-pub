@@ -1,13 +1,13 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { CloudCog, Loader2, LockKeyhole, Save, Send } from "lucide-react"
+import { CloudCog, Loader2, RefreshCw, LockKeyhole, Save, Send } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { PageHeader } from "@/components/ui/page-header"
+import { SettingsSectionHeader } from "@/components/settings/settings-section"
 import { Textarea } from "@/components/ui/textarea"
 import { emptyNotificationAction, NotificationActionFields } from "@/components/notifications/notification-action-fields"
 import { showToast } from "@/lib/toast"
@@ -24,8 +24,11 @@ export default function FirebaseSettingsPage() {
   const [enabled, setEnabled] = useState<boolean | null>(null)
   const [status, setStatus] = useState<FirebaseStatus | null>(null)
   const [template, setTemplate] = useState("")
+  const [loadedTemplate, setLoadedTemplate] = useState("")
+  const hasConfigEdits = template !== loadedTemplate
   const [etag, setEtag] = useState("")
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState("")
   const [saving, setSaving] = useState(false)
   const [sending, setSending] = useState(false)
   const [userId, setUserId] = useState("")
@@ -44,17 +47,22 @@ export default function FirebaseSettingsPage() {
       return
     }
     setLoading(true)
+    setLoadError("")
     try {
       const status = canReadStatus ? await firebaseService.status() : { enabled: true }
       setEnabled(status.enabled)
-      setStatus(status as FirebaseStatus)
+      setStatus(canReadStatus ? status as FirebaseStatus : null)
       if (status.enabled && canManageConfig) {
         const config = await firebaseService.remoteConfig()
-        setTemplate(JSON.stringify(config.template, null, 2))
+        const formatted = JSON.stringify(config.template, null, 2)
+        setTemplate(formatted)
+        setLoadedTemplate(formatted)
         setEtag(config.etag)
       }
     } catch (error) {
-      showToast.error("Firebase", error instanceof Error ? error.message : "Unable to load Firebase settings")
+      const message = error instanceof Error ? error.message : "Unable to load Firebase settings"
+      setLoadError(message)
+      showToast.error("Firebase", message)
     } finally {
       setLoading(false)
     }
@@ -79,7 +87,9 @@ export default function FirebaseSettingsPage() {
     try {
       const parsed = JSON.parse(template) as Record<string, unknown>
       const result = await firebaseService.updateRemoteConfig(parsed, etag, validateOnly)
-      setTemplate(JSON.stringify(result.template, null, 2))
+      const formatted = JSON.stringify(result.template, null, 2)
+      setTemplate(formatted)
+      if (!validateOnly) setLoadedTemplate(formatted)
       setEtag(result.etag)
       showToast.success("Remote Config", validateOnly ? "Template is valid" : "Template published")
     } catch (error) {
@@ -134,8 +144,8 @@ export default function FirebaseSettingsPage() {
 
   if (!canAdminister) {
     return (
-      <div className="space-y-6">
-        <PageHeader title="Firebase" description="Manage mobile notification configuration" />
+      <div className="w-full min-w-0 space-y-6">
+        <SettingsSectionHeader section="firebase" title="Firebase" description="Manage mobile notification configuration" />
         <Alert variant="destructive">
           <LockKeyhole className="h-4 w-4" />
           <AlertDescription>You do not have permission to manage Firebase configuration.</AlertDescription>
@@ -145,20 +155,24 @@ export default function FirebaseSettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader title="Firebase" description="Manage mobile Remote Config and test push delivery" />
-      {loading ? <div className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />Loading Firebase status…</div> : null}
+    <div className="w-full min-w-0 space-y-6">
+      <SettingsSectionHeader section="firebase" title="Firebase" description="Review channel health, manage mobile configuration, and test push notifications." actions={[{ label: "Refresh", variant: "outline", disabled: loading || saving || hasConfigEdits, icon: <RefreshCw className={loading ? "size-4 animate-spin" : "size-4"} aria-hidden="true" />, onClick: () => void load() }]} />
+      {loadError && <Alert variant="destructive"><AlertDescription className="flex flex-wrap items-center justify-between gap-3"><span>{loadError}</span><Button size="sm" variant="outline" onClick={() => void load()}>Try again</Button></AlertDescription></Alert>}
+      {loading ? <div role="status" className="flex items-center gap-2 rounded-xl border bg-muted/20 p-6 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />Loading Firebase status…</div> : null}
       {enabled === false ? (
         <Alert><CloudCog className="h-4 w-4" /><AlertDescription>Firebase is disabled. Configure FIREBASE_PROJECT_ID and FIREBASE_SERVICE_ACCOUNT_BASE64 on the backend.</AlertDescription></Alert>
       ) : null}
-      {enabled ? (
+      {enabled && !loading && !loadError ? (
         <>
-          {status ? <Card><CardHeader><CardTitle>Live channel health</CardTitle><CardDescription>Non-secret status reported by the backend.</CardDescription></CardHeader><CardContent className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4"><div><span className="text-muted-foreground">Project</span><p className="font-medium">{status.project_id || "Not configured"}</p></div><div><span className="text-muted-foreground">Last initialized</span><p className="font-medium">{status.last_successful_health_check_at ? new Date(status.last_successful_health_check_at).toLocaleString() : "Unavailable"}</p></div><div><span className="text-muted-foreground">Active devices</span><p className="font-medium">{status.active_device_count ?? 0}</p></div><div><span className="text-muted-foreground">Stale devices</span><p className="font-medium">{status.stale_device_count ?? 0}</p></div><div className="sm:col-span-2 lg:col-span-4 text-muted-foreground">{status.delivery_reporting}</div></CardContent></Card> : null}
-          {canManageConfig ? <Card>
+          {status ? <Card className="min-w-0 rounded-xl shadow-xs"><CardHeader><CardTitle>Live channel health</CardTitle><CardDescription>Non-secret status reported by the backend.</CardDescription></CardHeader><CardContent className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4"><div><span className="text-muted-foreground">Project</span><p className="font-medium">{status.project_id || "Not configured"}</p></div><div><span className="text-muted-foreground">Last initialized</span><p className="font-medium">{status.last_successful_health_check_at ? new Date(status.last_successful_health_check_at).toLocaleString() : "Unavailable"}</p></div><div><span className="text-muted-foreground">Active devices</span><p className="font-medium">{status.active_device_count ?? 0}</p></div><div><span className="text-muted-foreground">Stale devices</span><p className="font-medium">{status.stale_device_count ?? 0}</p></div><div className="sm:col-span-2 lg:col-span-4 text-muted-foreground">{status.delivery_reporting}</div></CardContent></Card> : null}
+          <div className="grid items-start gap-5" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 420px), 1fr))" }}>
+          {canManageConfig ? <Card className="min-w-0 rounded-xl shadow-xs">
             <CardHeader><CardTitle>Remote Config template</CardTitle><CardDescription>Edit the Firebase template with optimistic concurrency protection. Validate before publishing.</CardDescription></CardHeader>
             <CardContent className="space-y-4">
-              <Textarea className="min-h-[420px] font-mono text-xs" value={template} onChange={(event) => setTemplate(event.target.value)} spellCheck={false} />
-              <div className="flex gap-2">
+              <Textarea aria-label="Remote Config template" disabled={saving} className="min-h-[520px] font-mono text-xs leading-6" value={template} onChange={(event) => setTemplate(event.target.value)} spellCheck={false} />
+              <p className="text-xs text-muted-foreground">{hasConfigEdits ? "Unpublished edits. Validate before publishing, or reset edits to reload the configuration." : "No unpublished edits in the editor."}</p>
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" disabled={saving || !hasConfigEdits} onClick={() => setTemplate(loadedTemplate)}>Reset edits</Button>
                 <Button variant="outline" disabled={saving} onClick={addRolloutFlags}>Add rollout flags</Button>
                 <Button variant="outline" disabled={saving} onClick={() => void save(true)}>Validate</Button>
                 <Button disabled={saving || !etag} onClick={() => {
@@ -167,23 +181,24 @@ export default function FirebaseSettingsPage() {
               </div>
             </CardContent>
           </Card> : null}
-          {canTestPush ? <Card>
+          {canTestPush ? <Card className="min-w-0 rounded-xl shadow-xs">
             <CardHeader><CardTitle>Test push notification</CardTitle><CardDescription>Target an authenticated MediGuide user who has registered an Android or iOS installation.</CardDescription></CardHeader>
             <CardContent className="space-y-4">
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={currentUser} onChange={(event) => { setCurrentUser(event.target.checked); setPushResult(null) }} />Send to my current administrator devices</label>
-              {!currentUser ? <div className="space-y-2"><Label htmlFor="firebase-user-search">Recipient</Label><div className="flex gap-2"><Input id="firebase-user-search" placeholder="Search by name or email" value={recipientSearch} onChange={(event) => setRecipientSearch(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); void searchRecipients() } }} /><Button type="button" variant="outline" disabled={searching || recipientSearch.trim().length < 2} onClick={() => void searchRecipients()}>{searching ? <Loader2 className="h-4 w-4 animate-spin" /> : "Search"}</Button></div>{recipients.length ? <div className="space-y-2 rounded-md border p-2">{recipients.map((recipient) => <button type="button" key={recipient.id} className={`w-full rounded p-2 text-left text-sm ${userId === recipient.id ? "bg-muted" : "hover:bg-muted/60"}`} onClick={() => { setUserId(recipient.id); setPushResult(null) }}><span className="font-medium">{recipient.name}</span><span className="ml-2 text-muted-foreground">{recipient.email} · {recipient.device_count} device(s) · {recipient.platforms.join(", ") || "no active platform"}</span></button>)}</div> : null}</div> : null}
+              {!currentUser ? <div className="space-y-2"><Label htmlFor="firebase-user-search">Recipient</Label><div className="flex flex-wrap gap-2"><Input id="firebase-user-search" className="min-w-0 flex-1" placeholder="Search by name or email" value={recipientSearch} onChange={(event) => setRecipientSearch(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); void searchRecipients() } }} /><Button type="button" variant="outline" disabled={searching || recipientSearch.trim().length < 2} onClick={() => void searchRecipients()}>{searching ? <Loader2 className="h-4 w-4 animate-spin" /> : "Search"}</Button></div>{recipients.length ? <div className="space-y-2 rounded-md border p-2">{recipients.map((recipient) => <button type="button" key={recipient.id} aria-pressed={userId === recipient.id} className={`w-full rounded-lg p-3 text-left text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${userId === recipient.id ? "bg-muted" : "hover:bg-muted/60"}`} onClick={() => { setUserId(recipient.id); setPushResult(null) }}><span className="font-medium">{recipient.name}</span><span className="ml-2 text-muted-foreground">{recipient.email} · {recipient.device_count} device(s) · {recipient.platforms.join(", ") || "no active platform"}</span></button>)}</div> : null}</div> : null}
               <div className="space-y-2"><Label htmlFor="firebase-title">Title</Label><Input id="firebase-title" value={title} onChange={(event) => setTitle(event.target.value)} /></div>
               <div className="space-y-2"><Label htmlFor="firebase-body">Message</Label><Textarea id="firebase-body" value={body} onChange={(event) => setBody(event.target.value)} /></div>
               <NotificationActionFields value={action} onChange={setAction} />
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button variant="outline" disabled={sending || (!currentUser && !userId)} onClick={() => void sendPush(true)}>Validate delivery</Button>
                 <Button disabled={sending || (!currentUser && !userId)} onClick={() => {
                   if (window.confirm("Send this test push to every enabled installation registered to this user?")) void sendPush(false)
                 }}><Send className="mr-2 h-4 w-4" />Send push</Button>
               </div>
-              {pushResult ? <div className="overflow-x-auto rounded-md border"><table className="w-full text-sm"><thead><tr className="border-b text-left"><th className="p-2">Platform</th><th className="p-2">App version</th><th className="p-2">Result</th><th className="p-2">Error</th></tr></thead><tbody>{pushResult.devices.map((device) => <tr key={device.device_id} className="border-b last:border-0"><td className="p-2">{device.platform}</td><td className="p-2">{device.app_version || "—"}</td><td className="p-2">{device.state}</td><td className="p-2">{device.error_category || "—"}</td></tr>)}</tbody></table></div> : null}
+              {pushResult ? <div className="overflow-x-auto rounded-xl border"><table className="w-full text-sm"><thead className="bg-muted/40"><tr className="border-b text-left"><th className="px-4 py-3">Platform</th><th className="px-4 py-3">App version</th><th className="px-4 py-3">Result</th><th className="px-4 py-3">Error</th></tr></thead><tbody>{pushResult.devices.map((device) => <tr key={device.device_id} className="border-b last:border-0"><td className="px-4 py-3">{device.platform}</td><td className="px-4 py-3">{device.app_version || "—"}</td><td className="px-4 py-3">{device.state}</td><td className="px-4 py-3">{device.error_category || "—"}</td></tr>)}</tbody></table></div> : null}
             </CardContent>
           </Card> : null}
+          </div>
         </>
       ) : null}
     </div>

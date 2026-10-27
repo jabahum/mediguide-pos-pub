@@ -6,7 +6,7 @@ import { usePermissionContext } from "@/lib/permission-context"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { PageHeader } from "@/components/ui/page-header"
+import { SupportSectionHeader, SupportFormActions } from "@/components/support/support-section"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -155,7 +155,7 @@ export default function EditTagPage({ params }: EditTagPageProps) {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="w-full min-w-0 space-y-6">
         <div className="flex items-center gap-4">
           <Skeleton className="h-8 w-8" />
           <div className="space-y-2">
@@ -170,8 +170,8 @@ export default function EditTagPage({ params }: EditTagPageProps) {
 
   if (!tag) {
     return (
-      <div className="space-y-6">
-        <PageHeader
+      <div className="w-full min-w-0 space-y-6">
+        <SupportSectionHeader section="tags"
           title="Tag Not Found"
           description="The requested tag could not be found"
           showBackButton={true}
@@ -182,8 +182,8 @@ export default function EditTagPage({ params }: EditTagPageProps) {
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <div className="w-full min-w-0 space-y-6">
+      <SupportSectionHeader section="tags"
         title="Edit FAQ Tag"
         description={`Editing: ${tag.name}`}
         showBackButton={true}
@@ -198,15 +198,15 @@ export default function EditTagPage({ params }: EditTagPageProps) {
       />
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid gap-6 lg:grid-cols-3">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="min-w-0 space-y-6">
+          <div className="grid gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
             {/* Main Content */}
-            <div className="lg:col-span-2 space-y-6">
-              <Card>
+            <div className="min-w-0 space-y-5">
+              <Card className="min-w-0 rounded-xl shadow-xs">
                 <CardHeader>
                   <CardTitle>Tag Information</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="min-w-0 space-y-6">
                   <FormField
                     control={form.control}
                     name="name"
@@ -253,9 +253,9 @@ export default function EditTagPage({ params }: EditTagPageProps) {
             </div>
 
             {/* Sidebar Settings */}
-            <div className="space-y-6">
+            <div className="w-full min-w-0 space-y-6">
               {/* Current Tag Preview */}
-              <Card>
+              <Card className="min-w-0 rounded-xl shadow-xs">
                 <CardHeader>
                   <CardTitle>Current Tag</CardTitle>
                 </CardHeader>
@@ -284,7 +284,7 @@ export default function EditTagPage({ params }: EditTagPageProps) {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="min-w-0 rounded-xl shadow-xs">
                 <CardHeader>
                   <CardTitle>Display Settings</CardTitle>
                 </CardHeader>
@@ -354,6 +354,7 @@ export default function EditTagPage({ params }: EditTagPageProps) {
 
             </div>
           </div>
+          <SupportFormActions label="Save changes" loading={isSubmitting} onCancel={() => router.push("/support/faqs/tags")} />
         </form>
       </Form>
     </div>

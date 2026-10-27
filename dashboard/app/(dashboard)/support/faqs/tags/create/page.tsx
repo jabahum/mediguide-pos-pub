@@ -6,7 +6,7 @@ import { usePermissionContext } from "@/lib/permission-context"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { PageHeader } from "@/components/ui/page-header"
+import { SupportSectionHeader, SupportFormActions } from "@/components/support/support-section"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -107,8 +107,8 @@ export default function CreateTagPage() {
   }, [generateSlug, router])
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <div className="w-full min-w-0 space-y-6">
+      <SupportSectionHeader section="tags"
         title="Create FAQ Tag"
         description="Create a new tag to organize and categorize FAQs"
         showBackButton={true}
@@ -123,15 +123,15 @@ export default function CreateTagPage() {
       />
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid gap-6 lg:grid-cols-3">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="min-w-0 space-y-6">
+          <div className="grid gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
             {/* Main Content */}
-            <div className="lg:col-span-2 space-y-6">
-              <Card>
+            <div className="min-w-0 space-y-5">
+              <Card className="min-w-0 rounded-xl shadow-xs">
                 <CardHeader>
                   <CardTitle>Tag Information</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="min-w-0 space-y-6">
                   <FormField
                     control={form.control}
                     name="name"
@@ -178,8 +178,8 @@ export default function CreateTagPage() {
             </div>
 
             {/* Sidebar Settings */}
-            <div className="space-y-6">
-              <Card>
+            <div className="w-full min-w-0 space-y-6">
+              <Card className="min-w-0 rounded-xl shadow-xs">
                 <CardHeader>
                   <CardTitle>Display Settings</CardTitle>
                 </CardHeader>
@@ -249,6 +249,7 @@ export default function CreateTagPage() {
 
             </div>
           </div>
+          <SupportFormActions label="Create tag" loading={isSubmitting} onCancel={() => router.push("/support/faqs/tags")} />
         </form>
       </Form>
     </div>

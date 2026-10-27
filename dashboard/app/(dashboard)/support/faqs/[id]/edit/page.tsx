@@ -6,7 +6,7 @@ import { usePermissionContext } from "@/lib/permission-context"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { PageHeader } from "@/components/ui/page-header"
+import { SupportSectionHeader, SupportFormActions } from "@/components/support/support-section"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -196,7 +196,7 @@ export default function EditFAQPage({ params }: EditFAQPageProps) {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="w-full min-w-0 space-y-6">
         <div className="flex items-center gap-4">
           <Skeleton className="h-8 w-8" />
           <div className="space-y-2">
@@ -211,8 +211,8 @@ export default function EditFAQPage({ params }: EditFAQPageProps) {
 
   if (!faq) {
     return (
-      <div className="space-y-6">
-        <PageHeader
+      <div className="w-full min-w-0 space-y-6">
+        <SupportSectionHeader section="faqs"
           title="FAQ Not Found"
           description="The requested FAQ could not be found"
           showBackButton={true}
@@ -223,8 +223,8 @@ export default function EditFAQPage({ params }: EditFAQPageProps) {
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <div className="w-full min-w-0 space-y-6">
+      <SupportSectionHeader section="faqs"
         title="Edit FAQ"
         description={`Editing: ${faq.question.slice(0, 80)}${faq.question.length > 80 ? '...' : ''}`}
         showBackButton={true}
@@ -239,15 +239,15 @@ export default function EditFAQPage({ params }: EditFAQPageProps) {
       />
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid gap-6 lg:grid-cols-3">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="min-w-0 space-y-6">
+          <div className="grid gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
             {/* Main Content */}
-            <div className="lg:col-span-2 space-y-6">
-              <Card>
+            <div className="min-w-0 space-y-5">
+              <Card className="min-w-0 rounded-xl shadow-xs">
                 <CardHeader>
                   <CardTitle>FAQ Content</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="min-w-0 space-y-6">
                   <FormField
                     control={form.control}
                     name="question"
@@ -314,8 +314,8 @@ export default function EditFAQPage({ params }: EditFAQPageProps) {
             </div>
 
             {/* Sidebar Settings */}
-            <div className="space-y-6">
-              <Card>
+            <div className="w-full min-w-0 space-y-6">
+              <Card className="min-w-0 rounded-xl shadow-xs">
                 <CardHeader>
                   <CardTitle>Settings</CardTitle>
                 </CardHeader>
@@ -418,7 +418,7 @@ export default function EditFAQPage({ params }: EditFAQPageProps) {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="min-w-0 rounded-xl shadow-xs">
                 <CardHeader>
                   <CardTitle>Tags</CardTitle>
                 </CardHeader>
@@ -452,6 +452,7 @@ export default function EditFAQPage({ params }: EditFAQPageProps) {
 
             </div>
           </div>
+          <SupportFormActions label="Save changes" loading={isSubmitting} onCancel={() => router.push("/support/faqs")} />
         </form>
       </Form>
     </div>

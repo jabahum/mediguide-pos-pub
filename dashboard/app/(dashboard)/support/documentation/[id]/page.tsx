@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { PageHeader } from "@/components/ui/page-header"
+import { SupportSectionHeader } from "@/components/support/support-section"
 import { LoadingState } from "@/components/ui/loading-state"
 import { RichContent } from "@/components/ui/rich-content"
 import {
@@ -134,8 +134,8 @@ export default function ViewDocumentationPage({ params }: ViewDocumentationPageP
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <div className="w-full min-w-0 space-y-6">
+      <SupportSectionHeader section="documentation"
         title={documentationData.title}
         description="Documentation Details"
         showBackButton={true}
@@ -150,10 +150,10 @@ export default function ViewDocumentationPage({ params }: ViewDocumentationPageP
         ]}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,3fr)_minmax(280px,1fr)]">
         {/* Main Content */}
-        <div className="lg:col-span-3">
-          <Card>
+        <div className="min-w-0">
+          <Card className="min-w-0 rounded-xl shadow-xs">
             <CardHeader className="space-y-4">
               <div className="flex items-start justify-between">
                 <div className="space-y-2">
@@ -224,9 +224,9 @@ export default function ViewDocumentationPage({ params }: ViewDocumentationPageP
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
+        <div className="w-full min-w-0 space-y-6">
           {/* Status */}
-          <Card>
+          <Card className="min-w-0 rounded-xl shadow-xs">
             <CardHeader>
               <CardTitle className="text-base">Status</CardTitle>
             </CardHeader>
@@ -242,7 +242,7 @@ export default function ViewDocumentationPage({ params }: ViewDocumentationPageP
 
           {/* Tags */}
           {documentationData.tags && (
-            <Card>
+            <Card className="min-w-0 rounded-xl shadow-xs">
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">
                   <Tag className="h-4 w-4" />
@@ -262,7 +262,7 @@ export default function ViewDocumentationPage({ params }: ViewDocumentationPageP
           )}
 
           {/* Metadata */}
-          <Card>
+          <Card className="min-w-0 rounded-xl shadow-xs">
             <CardHeader>
               <CardTitle className="text-base">Details</CardTitle>
             </CardHeader>
@@ -303,7 +303,7 @@ export default function ViewDocumentationPage({ params }: ViewDocumentationPageP
           </Card>
 
           {/* Quick Actions */}
-          <Card>
+          <Card className="min-w-0 rounded-xl shadow-xs">
             <CardHeader>
               <CardTitle className="text-base">Actions</CardTitle>
             </CardHeader>

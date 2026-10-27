@@ -4,7 +4,7 @@ import { Plus, RotateCcw } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect } from "react"
 import { usePermissionContext } from "@/lib/permission-context"
-import { PageHeader } from "@/components/ui/page-header"
+import { SupportSectionHeader } from "@/components/support/support-section"
 import { EnhancedBackendDataTable } from "@/components/ui/enhanced-backend-data-table"
 import { columns } from "./columns"
 import { createTagRowActions, tagBulkActions } from "./tag-actions"
@@ -50,8 +50,8 @@ export default function FAQTagsPage() {
   }, [])
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <div className="w-full min-w-0 space-y-6">
+      <SupportSectionHeader section="tags"
         title="FAQ Tags"
         description="Manage tags for organizing and categorizing FAQs"
         showBackButton={true}
@@ -74,6 +74,9 @@ export default function FAQTagsPage() {
       <EnhancedBackendDataTable<FaqTagWithStats>
         collection="help-faq-tags"
         loadPage={FaqTagsService.loadPage.bind(FaqTagsService)}
+        appearance="workspace"
+        searchLabel="Search FAQ tags"
+        title="Tag library"
         columns={columns}
         searchable={true}
         searchFields={["name", "description", "slug"]}

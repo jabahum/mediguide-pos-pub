@@ -1,10 +1,11 @@
 "use client"
 
+import { useQueryClient } from "@tanstack/react-query"
 import { useState, useCallback, useMemo, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { usePermissionContext } from "@/lib/permission-context"
 
-import { PageHeader } from "@/components/ui/page-header"
+import { SupportSectionHeader } from "@/components/support/support-section"
 import { BackendDataTable } from "@/components/ui/backend-data-table"
 import { TicketReplyDialog } from "@/components/dialogs/ticket-reply-dialog"
 import { TicketStatusUpdateDialog } from "@/components/dialogs/ticket-status-update-dialog"
@@ -18,6 +19,7 @@ import { SupportTicketsService } from "@/services/support-tickets.service"
 
 export default function SupportPage() {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const { hasPermission, loading } = usePermissionContext()
   const [selectedTicket, setSelectedTicket] = useState<SupportTicketsWithExpanded | null>(null)
 
@@ -50,9 +52,14 @@ export default function SupportPage() {
   // Handle dialog completions (refresh data)
   const handleDialogClose = useCallback(() => {
     setSelectedTicket(null)
-    // DataTable will auto-refresh
+
   }, [])
 
+
+  const handleTicketChanged = useCallback(() => {
+    setSelectedTicket(null)
+    void queryClient.invalidateQueries({ queryKey: ["backend", "support_tickets"] })
+  }, [queryClient])
 
   // Create row actions with handlers
   const rowActions = useMemo(() => 
@@ -67,9 +74,9 @@ export default function SupportPage() {
 
 
   return (
-    <div className="space-y-6">
+    <div className="w-full min-w-0 space-y-6">
       {/* Page Header */}
-      <PageHeader
+      <SupportSectionHeader section="tickets"
         title="Support Tickets"
         description="Manage and respond to support tickets from mobile app users"
       />
@@ -79,11 +86,15 @@ export default function SupportPage() {
         collection="support_tickets"
         loadPage={({ page, perPage, search }) => SupportTicketsService.getTickets({ page, per_page: perPage, search })}
         columns={columns}
-        searchFields={["subject", "description", "category"]}
+        searchPlaceholder="Search ticket subject or description…"
+        searchFields={["subject", "description"]}
         rowActions={rowActions}
         bulkActions={supportTicketBulkActions}
         availableFields={supportTicketsAvailableFields}
         ui={{
+          appearance: "workspace",
+          title: "Ticket inbox",
+          searchLabel: "Search tickets",
           exportable: true
         }}
       />
@@ -96,7 +107,7 @@ export default function SupportPage() {
           setReplyDialogOpen(open)
           if (!open) handleDialogClose()
         }}
-        onReplyAdded={handleDialogClose}
+        onReplyAdded={handleTicketChanged}
       />
 
       <TicketStatusUpdateDialog
@@ -106,7 +117,7 @@ export default function SupportPage() {
           setStatusDialogOpen(open)
           if (!open) handleDialogClose()
         }}
-        onStatusUpdated={handleDialogClose}
+        onStatusUpdated={handleTicketChanged}
       />
 
       <TicketAssignDialog
@@ -116,7 +127,7 @@ export default function SupportPage() {
           setAssignDialogOpen(open)
           if (!open) handleDialogClose()
         }}
-        onTicketAssigned={handleDialogClose}
+        onTicketAssigned={handleTicketChanged}
       />
     </div>
   )

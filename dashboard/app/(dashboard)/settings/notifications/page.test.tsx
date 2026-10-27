@@ -2,6 +2,8 @@ import { cleanup, render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
+const access = vi.hoisted(() => ({ firebaseStatus: true }))
+
 const serviceMocks = vi.hoisted(() => ({
   listTemplates: vi.fn(),
   listCampaigns: vi.fn(),
@@ -14,7 +16,7 @@ const serviceMocks = vi.hoisted(() => ({
 }))
 
 vi.mock("@/lib/backend-client", () => ({
-  hasBackendPermission: () => true,
+  hasBackendPermission: (permission: string) => permission !== "firebase.status.read" || access.firebaseStatus,
 }))
 
 vi.mock("@/lib/permission-context", () => ({
@@ -41,6 +43,7 @@ import NotificationAdministrationPage from "./page"
 
 describe("NotificationAdministrationPage", () => {
   beforeEach(() => {
+    access.firebaseStatus = true
     serviceMocks.listTemplates.mockResolvedValue({ items: [], page: 1, per_page: 50, total_items: 0, total_pages: 0 })
     serviceMocks.listCampaigns.mockResolvedValue({ items: [], page: 1, per_page: 50, total_items: 0, total_pages: 0 })
     serviceMocks.firebaseStatus.mockResolvedValue({ enabled: false })
@@ -83,4 +86,14 @@ describe("NotificationAdministrationPage", () => {
     await waitFor(() => expect(serviceMocks.estimateAudience).toHaveBeenCalledWith({ all_eligible: true }))
     expect(screen.getByText((_, element) => element?.tagName === "P" && element.textContent === "12 eligible users · 8 active devices")).toBeInTheDocument()
   })
+  it("reports unknown Firebase health rather than disabled when status access is unavailable", async () => {
+    access.firebaseStatus = false
+    render(<NotificationAdministrationPage />)
+    await screen.findByText(/approval resolves and freezes the audience/i)
+    await userEvent.click(screen.getByRole("tab", { name: "Channels" }))
+    expect(screen.getByText("Status unavailable")).toBeInTheDocument()
+    expect(screen.getByText("Channel status is unavailable for this account.")).toBeInTheDocument()
+    expect(serviceMocks.firebaseStatus).not.toHaveBeenCalled()
+  })
+
 })

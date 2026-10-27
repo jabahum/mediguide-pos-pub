@@ -4,7 +4,7 @@ import { Plus, Settings } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect } from "react"
 import { usePermissionContext } from "@/lib/permission-context"
-import { PageHeader } from "@/components/ui/page-header"
+import { SupportSectionHeader } from "@/components/support/support-section"
 import { EnhancedBackendDataTable } from "@/components/ui/enhanced-backend-data-table"
 import { columns } from "./columns"
 import { createFaqRowActions, faqBulkActions } from "./faq-actions"
@@ -35,8 +35,8 @@ export default function FAQsPage() {
   }, [])
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <div className="w-full min-w-0 space-y-6">
+      <SupportSectionHeader section="faqs"
         title="FAQ Management"
         description="Manage frequently asked questions and knowledge base"
         actions={[
@@ -57,6 +57,9 @@ export default function FAQsPage() {
       <EnhancedBackendDataTable<FaqsWithExpanded>
         collection="help-faqs"
         loadPage={FaqService.loadPage.bind(FaqService)}
+        appearance="workspace"
+        searchLabel="Search FAQs"
+        title="FAQ library"
         columns={columns}
         searchable={true}
         searchFields={["question", "answer", "keywords"]}

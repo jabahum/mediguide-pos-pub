@@ -6,7 +6,7 @@ import { usePermissionContext } from "@/lib/permission-context"
 import { format } from "date-fns"
 import { MessageSquare, User, Clock, AlertCircle, Plus, ArrowLeft, Edit } from "lucide-react"
 
-import { PageHeader } from "@/components/ui/page-header"
+import { SupportSectionHeader } from "@/components/support/support-section"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -93,9 +93,7 @@ export default function TicketViewPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <LoadingState message="Loading ticket..." />
-      </div>
+      <div className="w-full min-w-0 space-y-6"><SupportSectionHeader title="Support ticket" description="Loading ticket details and conversation…" /><div className="flex min-h-[300px] items-center justify-center rounded-xl border bg-muted/20"><LoadingState message="Loading ticket..." /></div></div>
     )
   }
 
@@ -119,9 +117,9 @@ export default function TicketViewPage() {
   const priorityConfig = TICKET_PRIORITY_CONFIG[ticket.priority]
 
   return (
-    <div className="space-y-6">
+    <div className="w-full min-w-0 space-y-6">
       {/* Page Header */}
-      <PageHeader
+      <SupportSectionHeader section="tickets"
         title={ticket.subject}
         description={`Support Ticket #${ticket.id}`}
         showBackButton={true}
@@ -147,15 +145,15 @@ export default function TicketViewPage() {
         ]}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
         {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="min-w-0 space-y-5">
           {/* Ticket Info Card */}
-          <Card>
+          <Card className="min-w-0 rounded-xl shadow-xs">
             <CardHeader>
-              <div className="flex items-start justify-between">
+              <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Badge variant="outline" className={statusConfig.color}>
                       {statusConfig.label}
                     </Badge>
@@ -171,7 +169,7 @@ export default function TicketViewPage() {
                 </div>
                 
                 {/* Quick Status Actions */}
-                <div className="flex gap-1">
+                <div className="flex flex-wrap gap-2">
                   {ticket.status !== "in_progress" && (
                     <Button
                       size="sm"
@@ -209,10 +207,10 @@ export default function TicketViewPage() {
           </Card>
 
           {/* Replies Section */}
-          <Card>
+          <Card className="min-w-0 rounded-xl shadow-xs">
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <CardTitle className="flex flex-wrap items-center gap-2">
                   <MessageSquare className="h-5 w-5" />
                   Replies ({replies.length})
                 </CardTitle>
@@ -227,10 +225,10 @@ export default function TicketViewPage() {
             </CardHeader>
             <CardContent>
               {replies.length > 0 ? (
-                <div className="space-y-6">
+                <div className="w-full min-w-0 space-y-6">
                   {replies.map((reply, index) => (
                     <div key={reply.id}>
-                      <div className="flex gap-4">
+                      <div className="flex min-w-0 gap-3 sm:gap-4">
                         <Avatar className="h-10 w-10">
                           <AvatarImage src={reply.expand?.user_id?.avatar} />
                           <AvatarFallback>
@@ -252,7 +250,7 @@ export default function TicketViewPage() {
                             )}
                           </div>
                           <RichContent
-                            className="prose prose-sm max-w-none bg-muted/30 p-4 rounded-lg"
+                            className="prose prose-sm max-w-none break-words rounded-xl bg-muted/30 p-4"
                             html={reply.message}
                           />
                         </div>
@@ -283,9 +281,9 @@ export default function TicketViewPage() {
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
+        <div className="w-full min-w-0 space-y-6">
           {/* Ticket Details */}
-          <Card>
+          <Card className="min-w-0 rounded-xl shadow-xs">
             <CardHeader>
               <CardTitle>Ticket Details</CardTitle>
             </CardHeader>
@@ -300,7 +298,7 @@ export default function TicketViewPage() {
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <p className="text-sm font-medium truncate">
                         {ticket.expand?.user_id?.name || ticket.expand?.user_id?.email || "Unknown"}
                       </p>
