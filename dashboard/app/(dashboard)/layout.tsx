@@ -39,8 +39,10 @@ import { usersService } from "@/services/user-management.service"
 
 export default function DashboardLayout({
   children,
+  createDialog,
 }: {
   children: React.ReactNode
+  createDialog: React.ReactNode
 }) {
   const router = useRouter()
   const userRole = getUserRole() ?? undefined
@@ -134,6 +136,7 @@ export default function DashboardLayout({
           <div className="flex flex-1 flex-col gap-4 p-4 min-w-0 overflow-x-hidden">
             {children}
           </div>
+          {createDialog}
         </SidebarInset>
       </SidebarProvider>
       </PermissionProvider>
