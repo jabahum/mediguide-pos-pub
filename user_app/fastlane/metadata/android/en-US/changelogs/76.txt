@@ -1,0 +1,3 @@
+- Clearer navigation labels and consistent filter chips.
+- Improved clinical tool icons and category filtering.
+- Refined language and theme settings sheets.
