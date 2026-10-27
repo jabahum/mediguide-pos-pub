@@ -12,11 +12,12 @@ import {
   Settings,
   BarChart3,
   Pill,
-  AlertTriangle,
   Calculator,
   Building2,
-  TestTube,
-  HeadphonesIcon
+  HeadphonesIcon,
+  Layers,
+  Stethoscope,
+  ChevronRight,
 } from "lucide-react"
 
 import {
@@ -41,39 +42,23 @@ import { usePermissionContext } from "@/lib/permission-context"
 import { hasBackendPermission } from "@/lib/backend-client"
 import type { PermissionAction } from "@/types/permissions"
 
-// Utility function to find if current pathname belongs to a menu item
-function findActiveMenuItem(pathname: string, navItems: typeof data.navMain) {
-  for (let i = 0; i < navItems.length; i++) {
-    const item = navItems[i]
+// Match whole route segments, so /users-other never activates /users.
+function matchesNavigationPath(pathname: string, url: string) {
+  return url !== "#" && (pathname === url || (url !== "/" && pathname.startsWith(`${url}/`)))
+}
 
-    // Check if any sub-item matches the current pathname (exact match)
-    if (item.items) {
-      const hasActiveChild = item.items.some(subItem => pathname === subItem.url)
-      if (hasActiveChild) {
-        return i
-      }
-
-      // Check if current pathname starts with any sub-item URL (for nested routes)
-      const hasNestedActiveChild = item.items.some(subItem => {
-        if (subItem.url === "/") return false // Skip root to avoid matching everything
-        return pathname.startsWith(subItem.url + "/") || pathname === subItem.url
-      })
-      if (hasNestedActiveChild) {
-        return i
+function findActiveMenuItem(pathname: string, navItems: NavItem[]) {
+  let activeIndex = -1
+  let longestMatch = -1
+  navItems.forEach((item, index) => {
+    for (const url of [item.url, ...(item.items?.map(child => child.url) || [])]) {
+      if (matchesNavigationPath(pathname, url) && url.length > longestMatch) {
+        activeIndex = index
+        longestMatch = url.length
       }
     }
-
-    // Check if the main item URL matches (for overview pages)
-    if (pathname === item.url && item.url !== "#") {
-      return i
-    }
-
-    // Check if current pathname starts with the main item URL (for nested routes)
-    if (item.url !== "#" && item.url !== "/" && pathname.startsWith(item.url + "/")) {
-      return i
-    }
-  }
-  return -1
+  })
+  return activeIndex
 }
 
 type NavSubItem = {
@@ -109,30 +94,29 @@ const data: { navMain: NavItem[] } = {
     },
     {
       title: "Clinical Guidelines",
-      url: "#",
+      url: "/guidelines",
       icon: FileText,
       permission: { resource: "content", action: "read:any" },
-      items: [
-        { title: "All Guidelines", url: "/guidelines" },
-        { title: "Create Guideline", url: "/guidelines/create", permission: { resource: "content", action: "create:any" } },
-        { title: "Categories", url: "/guidelines/categories" },
-        { title: "Document Kinds", url: "/guidelines/document-kinds" },
-        { title: "Diseases", url: "/diseases", backendPermissions: ["disease.taxonomy.read", "disease.taxonomy.manage"] },
-        { title: "Content Hubs", url: "/content-hubs", backendPermissions: ["content_hub.read", "content_hub.manage"] },
-        { title: "Tags", url: "/guidelines/tags" },
-        { title: "Abbreviations", url: "/guidelines/abbreviations" },
-      ],
+    },
+    {
+      title: "Diseases",
+      url: "/diseases",
+      icon: Stethoscope,
+      permission: { resource: "content", action: "read:any" },
+      backendPermissions: ["disease.taxonomy.read", "disease.taxonomy.manage"],
+    },
+    {
+      title: "Content Hubs",
+      url: "/content-hubs",
+      icon: Layers,
+      permission: { resource: "content", action: "read:any" },
+      backendPermissions: ["content_hub.read", "content_hub.manage"],
     },
     {
       title: "Drug Index",
-      url: "#",
+      url: "/drugs",
       icon: Pill,
       permission: { resource: "content", action: "read:any" },
-      items: [
-        { title: "All Drugs", url: "/drugs" },
-        { title: "Categories", url: "/drugs/categories" },
-        { title: "Tags", url: "/drugs/tags" },
-      ],
     },
     {
       title: "Outbreak Management",
@@ -147,65 +131,33 @@ const data: { navMain: NavItem[] } = {
     },
     {
       title: "Decision Tools",
-      url: "#",
+      url: "/decision-tools",
       icon: Calculator,
       permission: { resource: "content", action: "read:any" },
-      items: [
-        { title: "All Tools", url: "/decision-tools" },
-        { title: "Clinical Review", url: "/decision-tools/review", backendPermissions: ["calculator.review"] },
-        { title: "Calculators", url: "/decision-tools/calculators" },
-        { title: "Categories", url: "/decision-tools/categories" },
-      ],
     },
     {
       title: "User Management",
-      url: "#",
+      url: "/users",
       icon: Users,
       permission: { resource: "users", action: "read:any" },
-      items: [
-        { title: "All Users", url: "/users" },
-        { title: "Roles & Permissions", url: "/users/roles", permission: { resource: "roles", action: "read:any" } },
-      ],
     },
     {
       title: "Health Facilities",
-      url: "#",
+      url: "/health-facilities",
       icon: Building2,
       permission: { resource: "content", action: "read:any" },
-      items: [
-        { title: "All Facilities", url: "/health-facilities" },
-        { title: "Add Facility", url: "/health-facilities/create", permission: { resource: "content", action: "create:any" } },
-        { title: "Regions", url: "/health-facilities/regions" },
-        { title: "Health Sub-Regions", url: "/health-facilities/health-sub-regions" },
-        { title: "Districts", url: "/health-facilities/districts" },
-        { title: "Counties", url: "/health-facilities/counties" },
-        { title: "Health Sub-Districts", url: "/health-facilities/health-sub-districts" },
-        { title: "Subcounties", url: "/health-facilities/subcounties" },
-        { title: "Parishes", url: "/health-facilities/parishes" },
-        { title: "Ownership Types", url: "/health-facilities/ownership-types" },
-        { title: "Authorities", url: "/health-facilities/authorities" },
-        { title: "Facility Levels", url: "/health-facilities/facility-levels" },
-      ],
     },
     {
       title: "Support",
-      url: "#",
+      url: "/support",
       icon: HeadphonesIcon,
       permission: { resource: "content", action: "read:any" },
-      items: [
-        { title: "Support Tickets", url: "/support" },
-        { title: "Documentation", url: "/support/documentation" },
-        { title: "FAQs", url: "/support/faqs" },
-      ],
     },
     {
       title: "Settings",
-      url: "#",
+      url: "/settings",
       icon: Settings,
-      items: [
-        { title: "Notifications", url: "/settings/notifications", backendPermissions: ["notification.publish", "notification.template.read", "notification.campaign.read", "firebase.status.read"] },
-        { title: "Firebase", url: "/settings/firebase", backendPermissions: ["firebase.status.read", "firebase.push.test", "firebase.config.manage"] },
-      ],
+      backendPermissions: ["notification.publish", "notification.template.read", "notification.campaign.read", "notification.analytics.read", "firebase.status.read", "firebase.push.test", "firebase.config.manage"],
     },
   ],
 }
@@ -233,39 +185,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   // Find which menu item should be active/open based on current pathname
   const activeMenuIndex = findActiveMenuItem(pathname, visibleNav)
-
-  // State to track which menu items are open
-  const [openItems, setOpenItems] = React.useState<Set<number>>(() => {
-    const initialOpen = new Set<number>()
-
-    // Always open the dashboard (index 0) by default
-    initialOpen.add(0)
-
-    // Open the menu item that contains the active route
-    if (activeMenuIndex !== -1) {
-      initialOpen.add(activeMenuIndex)
-    }
-
-    return initialOpen
-  })
-
-  React.useEffect(() => {
-    if (activeMenuIndex !== -1) {
-      setOpenItems(prev => new Set(prev).add(activeMenuIndex))
-    }
-  }, [activeMenuIndex])
-
-  const toggleMenuItem = React.useCallback((index: number) => {
-    setOpenItems(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(index)) {
-        newSet.delete(index)
-      } else {
-        newSet.add(index)
-      }
-      return newSet
-    })
-  }, [])
 
   return (
     <Sidebar {...props}>
@@ -301,8 +220,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               if (!item.items?.length && item.url !== "#") {
                 return (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={pathname === item.url}>
-                      <Link href={item.url}>
+                    <SidebarMenuButton asChild isActive={activeMenuIndex === index}>
+                      <Link href={item.url} aria-current={activeMenuIndex === index ? "page" : undefined}>
                         <item.icon className="mr-2 size-4" />
                         {item.title}
                       </Link>
@@ -311,19 +230,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 )
               }
 
-              // Render as collapsible for items with subitems
+              const activeChild = item.items
+                ?.filter(child => matchesNavigationPath(pathname, child.url))
+                .sort((left, right) => right.url.length - left.url.length)[0]
+              // Keep untabbed destinations accessible through their submenu.
               return (
                 <Collapsible
-                  key={item.title}
-                  open={openItems.has(index)}
-                  onOpenChange={() => toggleMenuItem(index)}
+                  key={`${item.title}-${pathname}`}
+                  defaultOpen={activeMenuIndex === index}
                   className="group/collapsible"
                 >
                   <SidebarMenuItem>
                     <CollapsibleTrigger asChild>
-                      <SidebarMenuButton>
+                      <SidebarMenuButton isActive={activeMenuIndex === index}>
                         <item.icon className="mr-2 size-4" />
                         {item.title}
+                        <ChevronRight aria-hidden="true" className="ml-auto size-4 transition-transform group-data-[state=open]/collapsible:rotate-90" />
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
                     {item.items?.length ? (
@@ -333,9 +255,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                             <SidebarMenuSubItem key={subItem.title}>
                               <SidebarMenuSubButton
                                 asChild
-                                isActive={pathname === subItem.url}
+                                isActive={activeChild?.url === subItem.url}
                               >
-                                <Link href={subItem.url}>{subItem.title}</Link>
+                                <Link href={subItem.url} aria-current={activeChild?.url === subItem.url ? "page" : undefined}>{subItem.title}</Link>
                               </SidebarMenuSubButton>
                             </SidebarMenuSubItem>
                           ))}
