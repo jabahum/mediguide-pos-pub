@@ -26,7 +26,7 @@ services:
     image: "${DASHBOARD_DEV_IMAGE:-mediguide-dashboard:development}"
     # Named dependency volumes survive image rebuilds. Sync them with the
     # bind-mounted lockfile before starting Next.js.
-    command: ["sh", "-c", "bun install --frozen-lockfile && exec bun run dev"]
+    command: ["sh", "-c", "bun install --frozen-lockfile && exec npm run dev:docker"]
     build:
       context: ../dashboard
       dockerfile: Dockerfile.dev
@@ -46,10 +46,10 @@ services:
     tty: true
     stdin_open: true
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- \"http://127.0.0.1:3000$$NEXT_PUBLIC_DASHBOARD_BASE_PATH\" >/dev/null || exit 1"]
-      interval: 10s
+      test: ["CMD", "node", "scripts/dev-healthcheck.mjs"]
+      interval: 15s
       timeout: 5s
-      start_period: 20s
+      start_period: 90s
       retries: 6
 
   guidelines:
