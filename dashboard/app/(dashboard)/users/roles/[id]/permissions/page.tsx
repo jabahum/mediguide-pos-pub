@@ -7,11 +7,11 @@
 
 import * as React from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { Save, RotateCcw, AlertTriangle, CheckCircle } from 'lucide-react'
+import { Save, RotateCcw, AlertTriangle, ShieldCheck } from 'lucide-react'
 
-import { PageHeader } from '@/components/ui/page-header'
+import { UserSectionHeader, UserStatusBadge } from '@/components/users/user-section'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-// import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 // import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -40,6 +40,8 @@ export default function RolePermissionsPage() {
     }
   }, [permLoading, hasPermission, router])
 
+  const canEdit = hasPermission("roles", "update:any")
+
   // Role data state
   const [role, setRole] = React.useState<RolesResponse | null>(null)
   const [roleLoading, setRoleLoading] = React.useState(true)
@@ -48,6 +50,8 @@ export default function RolePermissionsPage() {
   // Permission management
   const {
     rolePermissions,
+    setRolePermissions,
+    loadRolePermissions,
     updateRolePermissions,
     applyPermissionTemplate,
     validatePermissions,
@@ -56,10 +60,10 @@ export default function RolePermissionsPage() {
     initialized
   } = useRolePermissionManagement(roleId)
 
-  // Local permission state for editing
-  const [editingPermissions, setEditingPermissions] = React.useState<RolePermissions>({})
-  const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState(false)
-  const [validationResult, setValidationResult] = React.useState<PermissionValidationResult | null>(null)
+  const [draft, setDraft] = React.useState<{ roleId: string; permissions: RolePermissions } | null>(null)
+  const editingPermissions = draft?.roleId === roleId ? draft.permissions : rolePermissions
+  const hasUnsavedChanges = JSON.stringify(editingPermissions) !== JSON.stringify(rolePermissions)
+  const validationResult = React.useMemo(() => validatePermissions(editingPermissions) as PermissionValidationResult, [editingPermissions, validatePermissions])
   const [saving, setSaving] = React.useState(false)
 
   // Load role data
@@ -87,47 +91,28 @@ export default function RolePermissionsPage() {
     loadRole()
   }, [roleId])
 
-  // Sync editing permissions with loaded permissions
-  React.useEffect(() => {
-    if (rolePermissions && !hasUnsavedChanges) {
-      setEditingPermissions(JSON.parse(JSON.stringify(rolePermissions)))
-    }
-  }, [rolePermissions, hasUnsavedChanges])
-
-  // Validate permissions on change
-  React.useEffect(() => {
-    if (Object.keys(editingPermissions).length > 0) {
-      const result = validatePermissions(editingPermissions)
-      setValidationResult(result as PermissionValidationResult)
-    }
-  }, [editingPermissions, validatePermissions])
-
-  // Track unsaved changes
-  React.useEffect(() => {
-    const hasChanges = JSON.stringify(editingPermissions) !== JSON.stringify(rolePermissions)
-    setHasUnsavedChanges(hasChanges)
-  }, [editingPermissions, rolePermissions])
-
-  // Handle permission changes
-  const handlePermissionsChange = React.useCallback((newPermissions: RolePermissions) => {
-    setEditingPermissions(newPermissions)
-  }, [])
+  const handlePermissionsChange = React.useCallback((permissions: RolePermissions) => {
+    setDraft({ roleId, permissions })
+  }, [roleId])
 
   // Handle template application
   const handleApplyTemplate = React.useCallback(async (templateKey: string) => {
+    if (!canEdit || saving) return
+    setSaving(true)
     try {
       const result = await applyPermissionTemplate(roleId, templateKey)
       if (result.success) {
-        // Reload permissions to get the new template
-        setHasUnsavedChanges(false)
+        const next = await loadRolePermissions(roleId)
+        if (next) { setRolePermissions(next); setDraft(null) }
       }
     } catch (error) {
       console.error('Failed to apply template:', error)
-    }
-  }, [applyPermissionTemplate, roleId])
+    } finally { setSaving(false) }
+  }, [applyPermissionTemplate, roleId, canEdit, saving, loadRolePermissions, setRolePermissions])
 
   // Handle save
   const handleSave = React.useCallback(async () => {
+    if (!canEdit || saving) return
     if (!validationResult?.isValid) {
       showToast.error('Validation Failed', 'Please fix validation errors before saving')
       return
@@ -138,7 +123,8 @@ export default function RolePermissionsPage() {
       const result = await updateRolePermissions(roleId, editingPermissions)
 
       if (result.success) {
-        setHasUnsavedChanges(false)
+        setRolePermissions(editingPermissions)
+        setDraft(null)
         showToast.success('Success', 'Role permissions updated successfully')
       }
     } catch (error) {
@@ -146,35 +132,30 @@ export default function RolePermissionsPage() {
     } finally {
       setSaving(false)
     }
-  }, [roleId, editingPermissions, updateRolePermissions, validationResult])
+  }, [roleId, editingPermissions, updateRolePermissions, validationResult, canEdit, saving, setRolePermissions])
 
   // Handle reset
   const handleReset = React.useCallback(() => {
     if (rolePermissions) {
-      setEditingPermissions(JSON.parse(JSON.stringify(rolePermissions)))
-      setHasUnsavedChanges(false)
+      setDraft(null)
     }
   }, [rolePermissions])
 
-  // Handle back navigation
-  const handleBack = React.useCallback(() => {
-    if (hasUnsavedChanges) {
-      if (window.confirm('You have unsaved changes. Are you sure you want to leave?')) {
-        router.push('/users/roles')
-      }
-    } else {
-      router.push('/users/roles')
-    }
+  // Keep the existing unsaved-change check for the section navigation as well.
+  const handleNavigate = React.useCallback((href: string) => {
+    if (!hasUnsavedChanges || window.confirm('You have unsaved changes. Are you sure you want to leave?')) router.push(href)
   }, [router, hasUnsavedChanges])
+  const handleBack = React.useCallback(() => handleNavigate('/users/roles'), [handleNavigate])
 
   // Loading state
-  if (roleLoading || !initialized) {
+  if (!roleError && !permissionError && (roleLoading || !initialized)) {
     return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-start">
+      <div className="w-full min-w-0 space-y-6">
+        <UserSectionHeader section="roles" icon={ShieldCheck} title="Role permissions" showBackButton onBack={handleBack} />
+        <div role="status" aria-label="Loading role permissions" className="flex justify-between items-start">
           <div className="space-y-2">
             <Skeleton className="h-8 w-64" />
-            <Skeleton className="h-4 w-96" />
+            <Skeleton className="h-4 w-full max-w-96" />
           </div>
           <div className="flex space-x-2">
             <Skeleton className="h-9 w-20" />
@@ -182,8 +163,8 @@ export default function RolePermissionsPage() {
           </div>
         </div>
 
-        <div className="space-y-6">
-          <Card>
+        <div className="w-full min-w-0 space-y-6">
+          <Card className="min-w-0 rounded-xl shadow-xs">
             <CardHeader>
               <Skeleton className="h-6 w-48" />
             </CardHeader>
@@ -200,8 +181,8 @@ export default function RolePermissionsPage() {
   // Error state
   if (roleError || permissionError) {
     return (
-      <div className="space-y-6">
-        <PageHeader
+      <div className="w-full min-w-0 space-y-6">
+        <UserSectionHeader section="roles" icon={ShieldCheck} onNavigate={handleNavigate}
           title="Permission Management"
           description="Role permissions could not be loaded"
           showBackButton={true}
@@ -222,8 +203,8 @@ export default function RolePermissionsPage() {
   // No role found
   if (!role) {
     return (
-      <div className="space-y-6">
-        <PageHeader
+      <div className="w-full min-w-0 space-y-6">
+        <UserSectionHeader section="roles" icon={ShieldCheck} onNavigate={handleNavigate}
           title="Permission Management"
           description="Role not found"
           showBackButton={true}
@@ -244,14 +225,14 @@ export default function RolePermissionsPage() {
   const effectivePermissions = role?.key ? getEffectivePermissions(role.key) : undefined
 
   return (
-    <div className="space-y-6">
+    <div className="w-full min-w-0 space-y-6">
       {/* Page Header */}
-      <PageHeader
-        title={`Manage Permissions: ${role.name}`}
-        description={`Configure access control and permissions for the ${role.name} role`}
+      <UserSectionHeader section="roles" icon={ShieldCheck} onNavigate={handleNavigate}
+        title={role.name}
+        description="Configure resource access, review the proposed permissions, and save your changes."
         showBackButton={true}
         onBack={handleBack}
-        actions={[
+        actions={canEdit ? [
           {
             label: "Reset Changes",
             onClick: handleReset,
@@ -265,8 +246,10 @@ export default function RolePermissionsPage() {
             disabled: !hasUnsavedChanges || saving || !validationResult?.isValid,
             icon: <Save className="h-4 w-4" />
           }
-        ]}
+        ] : []}
       />
+
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-muted/20 p-4"><div><h2 className="text-sm font-semibold">Role access configuration</h2><p className="mt-1 text-sm text-muted-foreground">{canEdit ? "Use the builder to edit access, then preview before saving." : "Read-only access. You can review this role’s configured permissions."}</p></div><Badge variant="outline">{saving ? "Saving…" : hasUnsavedChanges ? "Unsaved changes" : "No unsaved changes"}</Badge></div>
 
       {/* Unsaved Changes Warning */}
       {hasUnsavedChanges && (
@@ -310,30 +293,18 @@ export default function RolePermissionsPage() {
       )}
 
       {/* Role Info Card */}
-      <Card>
+      <Card className="min-w-0 rounded-xl shadow-xs">
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
+          <CardTitle className="flex flex-wrap items-center justify-between gap-3 text-base">
             <span>Role Information</span>
-            <div className="flex items-center gap-2">
-              {role.isActive ? (
-                <>
-                  <CheckCircle className="h-4 w-4 text-green-600" />
-                  <span className="text-sm text-green-600">Active</span>
-                </>
-              ) : (
-                <>
-                  <AlertTriangle className="h-4 w-4 text-orange-600" />
-                  <span className="text-sm text-orange-600">Inactive</span>
-                </>
-              )}
-            </div>
+            <UserStatusBadge status={role.isActive ? "active" : "inactive"} />
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             <div>
               <strong>Role Key:</strong>
-              <code className="ml-2 px-2 py-1 bg-muted rounded text-xs">
+              <code className="ml-2 break-all rounded bg-muted px-2 py-1 text-xs">
                 {role.key}
               </code>
             </div>
@@ -354,7 +325,7 @@ export default function RolePermissionsPage() {
 
       {/* Permission Management Tabs */}
       <Tabs defaultValue="builder" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-xl p-1.5">
           <TabsTrigger value="builder">Permission Builder</TabsTrigger>
           <TabsTrigger value="preview">Permission Preview</TabsTrigger>
         </TabsList>
@@ -363,8 +334,8 @@ export default function RolePermissionsPage() {
           <PermissionBuilder
             permissions={editingPermissions}
             onChange={handlePermissionsChange}
-            disabled={saving}
-            showTemplates={true}
+            disabled={saving || !canEdit}
+            showTemplates={canEdit}
             onApplyTemplate={handleApplyTemplate}
           />
         </TabsContent>
@@ -378,12 +349,7 @@ export default function RolePermissionsPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Help Text */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Permission Management Help</CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm text-muted-foreground space-y-2">
+      <details className="rounded-xl border bg-muted/20"><summary className="cursor-pointer px-5 py-4 text-sm font-semibold">How permissions work</summary><div className="grid gap-4 border-t p-5 text-sm leading-6 text-muted-foreground md:grid-cols-2 xl:grid-cols-3">
           <p>
             <strong>Resources:</strong> System components like users, roles, content, etc. that can be accessed.
           </p>
@@ -397,10 +363,10 @@ export default function RolePermissionsPage() {
             <strong>Attributes:</strong> Fine-grained control over which fields can be accessed. Use &quot;*&quot; for all fields, &quot;!field&quot; to deny specific fields.
           </p>
           <p>
-            <strong>Templates:</strong> Pre-configured permission sets for common roles. Apply a template to quickly set up permissions.
+            <strong>Templates:</strong> Pre-configured permission sets for common roles. Templates save immediately and replace the configured permissions.
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </details>
     </div>
   )
 }

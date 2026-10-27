@@ -89,7 +89,7 @@ export function PermissionPreview({
   return (
     <div className={className}>
       {/* Summary Header */}
-      <Card className="mb-4">
+      <Card className="mb-4 min-w-0 rounded-xl shadow-xs">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5" />
@@ -134,7 +134,7 @@ export function PermissionPreview({
       </Card>
 
       {/* Detailed Permissions */}
-      <Card>
+      <Card className="min-w-0 rounded-xl shadow-xs">
         <CardHeader>
           <CardTitle>Detailed Permissions</CardTitle>
           <p className="text-sm text-muted-foreground">
@@ -213,7 +213,7 @@ function ResourcePermissionSummary({
           
           <div className="space-y-2 ml-6">
             {actionPermissions.map(({ action, attributes }) => (
-              <div key={action} className="flex items-center justify-between p-2 bg-muted/30 rounded">
+              <div key={action} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-muted/30 p-3">
                 <div className="flex items-center gap-2">
                   <Badge variant="outline" className="text-xs">
                     {PERMISSION_ACTIONS[action]}

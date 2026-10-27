@@ -7,9 +7,10 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { Save } from "lucide-react"
 
-import { PageHeader } from "@/components/ui/page-header"
+import { UserSectionHeader, UserFormNavigation } from "@/components/users/user-section"
 import { usePermissionContext } from "@/lib/permission-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -168,8 +169,8 @@ export default function CreateUserPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <div className="w-full min-w-0 space-y-6">
+      <UserSectionHeader
         title="Create New User"
         description="Add a new healthcare worker to the MediGuide platform"
         showBackButton={true}
@@ -184,9 +185,10 @@ export default function CreateUserPage() {
         ]}
       />
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <UserFormNavigation />
+      <form onSubmit={handleSubmit(onSubmit)} className="grid min-w-0 items-start gap-5 xl:grid-cols-2">
         {/* Personal Information */}
-        <Card>
+        <Card id="user-personal" className="min-w-0 scroll-mt-24 rounded-xl shadow-xs">
           <CardHeader>
             <CardTitle>Personal Information</CardTitle>
           </CardHeader>
@@ -313,7 +315,7 @@ export default function CreateUserPage() {
         </Card>
 
         {/* Professional Information */}
-        <Card>
+        <Card id="user-professional" className="min-w-0 scroll-mt-24 rounded-xl shadow-xs">
           <CardHeader>
             <CardTitle>Professional Information</CardTitle>
           </CardHeader>
@@ -326,7 +328,7 @@ export default function CreateUserPage() {
                   control={control}
                   render={({ field }) => (
                     <Select value={field.value} onValueChange={field.onChange} disabled={rolesLoading}>
-                      <SelectTrigger className={`w-full ${errors.role ? "border-destructive" : ""}`}>
+                      <SelectTrigger id="role" className={`w-full ${errors.role ? "border-destructive" : ""}`}>
                         <SelectValue placeholder={rolesLoading ? "Loading roles..." : "Select role"} />
                       </SelectTrigger>
                       <SelectContent>
@@ -351,7 +353,7 @@ export default function CreateUserPage() {
                   control={control}
                   render={({ field }) => (
                     <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="w-full">
+                      <SelectTrigger id="status" className="w-full">
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
                       <SelectContent>
@@ -452,7 +454,7 @@ export default function CreateUserPage() {
         </Card>
 
         {/* Location Information */}
-        <Card>
+        <Card id="user-location" className="min-w-0 scroll-mt-24 rounded-xl shadow-xs">
           <CardHeader>
             <CardTitle>Location Information</CardTitle>
           </CardHeader>
@@ -539,7 +541,7 @@ export default function CreateUserPage() {
         </Card>
 
         {/* System Settings */}
-        <Card>
+        <Card id="user-settings" className="min-w-0 scroll-mt-24 rounded-xl shadow-xs">
           <CardHeader>
             <CardTitle>System Settings</CardTitle>
           </CardHeader>
@@ -552,7 +554,7 @@ export default function CreateUserPage() {
                   control={control}
                   render={({ field }) => (
                     <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="w-full">
+                      <SelectTrigger id="preferredLanguage" className="w-full">
                         <SelectValue placeholder="Select language" />
                       </SelectTrigger>
                       <SelectContent>
@@ -605,7 +607,7 @@ export default function CreateUserPage() {
         </Card>
 
         {/* Hidden submit button for form handling */}
-        <button type="submit" className="hidden" disabled={isLoading} aria-label="Submit form" />
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-muted/20 p-4 xl:col-span-2"><p className="text-sm text-muted-foreground">Review the account details before saving.</p><div className="flex gap-2"><Button type="button" variant="outline" disabled={isLoading} onClick={handleCancel}>Cancel</Button><Button type="submit" disabled={isLoading}><Save className="size-4" aria-hidden="true" />{isLoading ? "Creating…" : "Create user"}</Button></div></div>
       </form>
     </div>
   )

@@ -1,10 +1,11 @@
 "use client"
 
 import * as React from "react"
+import { useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
-import { Plus } from "lucide-react"
+import { ShieldCheck, Plus } from "lucide-react"
 
-import { PageHeader } from "@/components/ui/page-header"
+import { UserSectionHeader } from "@/components/users/user-section"
 import { BackendDataTable } from "@/components/ui/backend-data-table"
 import { usePermissionContext } from "@/lib/permission-context"
 
@@ -22,6 +23,8 @@ import { rolesService } from "@/services/user-management.service"
 
 export default function RolesPage() {
   const router = useRouter()
+  const queryClient = useQueryClient()
+  const refreshTable = React.useCallback(() => queryClient.invalidateQueries({ queryKey: ["backend", "roles"] }), [queryClient])
   const { hasPermission, loading: permLoading } = usePermissionContext()
 
   React.useEffect(() => {
@@ -72,22 +75,24 @@ export default function RolesPage() {
         return
       }
 
-      await deleteRole(role.id)
+      const result = await deleteRole(role.id)
+      if (result.success) await refreshTable()
     } catch (error) {
       console.error('Failed to delete role:', error)
     }
-  }, [deleteRole, getRoleAssignmentInfo])
+  }, [deleteRole, getRoleAssignmentInfo, refreshTable])
 
   const handleToggleStatus = React.useCallback(async (role: Role) => {
     try {
-      await updateRole(role.id, {
+      const result = await updateRole(role.id, {
         description: role.description,
         isActive: !role.isActive,
       })
+      if (result.success) await refreshTable()
     } catch (error) {
       console.error('Failed to toggle role status:', error)
     }
-  }, [updateRole])
+  }, [updateRole, refreshTable])
 
   const handleManagePermissions = React.useCallback((role: Role) => {
     router.push(`/users/roles/${role.id}/permissions`)
@@ -96,13 +101,17 @@ export default function RolesPage() {
   // Form submission handlers
   const handleCreateSubmit = React.useCallback(async (data: CreateRoleFormData & { key: string }) => {
     const result = await createRole(data)
+    if (!result.success) throw new Error(result.message || "The role could not be saved")
+    await refreshTable()
     if (result.success) {
       setModalStates(prev => ({ ...prev, createOpen: false }))
     }
-  }, [createRole])
+  }, [createRole, refreshTable])
 
   const handleEditSubmit = React.useCallback(async (id: string, data: EditRoleFormData) => {
     const result = await updateRole(id, data)
+    if (!result.success) throw new Error(result.message || "The role could not be saved")
+    await refreshTable()
     if (result.success) {
       setModalStates(prev => ({
         ...prev,
@@ -110,7 +119,7 @@ export default function RolesPage() {
         selectedRole: null,
       }))
     }
-  }, [updateRole])
+  }, [updateRole, refreshTable])
 
   // Create row actions with handlers
   const roleRowActions = React.useMemo(() => 
@@ -125,11 +134,11 @@ export default function RolesPage() {
 
 
   return (
-    <div className="space-y-6">
+    <div className="w-full min-w-0 space-y-6">
       {/* Page Header */}
-      <PageHeader
+      <UserSectionHeader section="roles" icon={ShieldCheck}
         title="Roles & Permissions"
-        description="Manage system roles and their permissions"
+        description="Organize access roles, review their status, and configure what each role can do."
         actions={hasPermission("roles", "create:any") ? [
           {
             label: "Add Role",
@@ -147,12 +156,15 @@ export default function RolesPage() {
           return { items: result.items, page: result.page, perPage: result.per_page, totalItems: result.total_items, totalPages: result.total_pages }
         }}
         columns={columns}
-        searchFields={["name", "key", "description"]}
-        searchPlaceholder="Search roles by name, key, or description..."
+        searchFields={["name", "key"]}
+        searchPlaceholder="Search role name or key…"
         rowActions={roleRowActions}
         bulkActions={[]} // No bulk actions for roles
         availableFields={rolesAvailableFields}
         ui={{
+          appearance: "workspace",
+          title: "Role library",
+          searchLabel: "Search roles",
           pageSize: 10,
           exportable: true,
         }}

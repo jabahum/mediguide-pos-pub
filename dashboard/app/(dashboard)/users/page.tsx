@@ -4,7 +4,7 @@ import * as React from "react"
 import { useRouter } from "next/navigation"
 import { Plus } from "lucide-react"
 
-import { PageHeader } from "@/components/ui/page-header"
+import { UserSectionHeader } from "@/components/users/user-section"
 import { BackendDataTable } from "@/components/ui/backend-data-table"
 import { usePermissionContext } from "@/lib/permission-context"
 import { createColumns, User } from "./columns"
@@ -37,19 +37,15 @@ export default function UsersPage() {
     [router]
   )
 
-  const handleSelectionChange = React.useCallback((selectedUsers: User[]) => {
-    console.log('Selected users:', selectedUsers)
-  }, [])
-
   const handleError = React.useCallback((error: Error) => {
     console.error('Users table error:', error)
   }, [])
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="User Management"
-        description="Manage frontline health workers and their access to the system"
+    <div className="w-full min-w-0 space-y-6">
+      <UserSectionHeader
+        title="User management"
+        description="Find people, review account status, and manage their access to MediGuide."
         actions={hasPermission("users", "create:any") ? [
           {
             label: "Add User",
@@ -69,17 +65,19 @@ export default function UsersPage() {
           return { items: result.items, page: result.page, perPage: result.per_page, totalItems: result.total_items, totalPages: result.total_pages }
         }}
         columns={columns}
-        searchFields={["name", "email", "phone", "organization", "jobTitle"]}
-        searchPlaceholder="Search users by name, email, phone, organization, or job title..."
+        searchFields={["name", "email", "phone"]}
+        searchPlaceholder="Search name, email, or phone…"
         rowActions={userRowActions}
         bulkActions={userBulkActions}
         availableFields={usersAvailableFields}
         ui={{
+          appearance: "workspace",
+          title: "User directory",
+          searchLabel: "Search users",
           pageSize: 20,
           exportable: true,
           importable: true,
         }}
-        onSelect={handleSelectionChange}
         onError={handleError}
       />
     </div>

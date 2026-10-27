@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Loader2, Shield } from "lucide-react"
 
@@ -49,7 +49,11 @@ export function CreateRoleModal({
     },
   })
 
+  const name = useWatch({ control: form.control, name: "name" })
+  const [submitError, setSubmitError] = React.useState("")
+
   const handleSubmit = async (data: CreateRoleFormData) => {
+    setSubmitError("")
     try {
       // Generate key from name before submitting
       const roleData = {
@@ -61,7 +65,7 @@ export function CreateRoleModal({
       onOpenChange(false)
     } catch (error) {
       // Error handling is done in the parent component
-      console.error('Failed to create role:', error)
+      setSubmitError(error instanceof Error ? error.message : "Could not create the role")
     }
   }
 
@@ -70,13 +74,14 @@ export function CreateRoleModal({
       onOpenChange(newOpen)
       if (!newOpen) {
         form.reset()
+        setSubmitError("")
       }
     }
   }
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-h-[90dvh] overflow-y-auto rounded-2xl sm:max-w-xl">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Shield className="h-5 w-5" />
@@ -111,6 +116,8 @@ export function CreateRoleModal({
               )}
             />
 
+            <div className="rounded-xl border bg-muted/20 p-3 text-xs"><p className="font-medium text-muted-foreground">Generated role key</p><code className="mt-1 block break-all">{generateRoleKey(name) || "Enter a role name"}</code></div>
+
             {/* Description */}
             <FormField
               control={form.control}
@@ -139,7 +146,7 @@ export function CreateRoleModal({
               control={form.control}
               name="isActive"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                <FormItem className="flex flex-row items-center justify-between rounded-xl border bg-muted/20 p-4">
                   <div className="space-y-0.5">
                     <FormLabel>Active Role</FormLabel>
                     <FormDescription>
@@ -157,8 +164,10 @@ export function CreateRoleModal({
               )}
             />
 
+            {submitError && <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{submitError}</p>}
+
             {/* Action Buttons */}
-            <div className="flex justify-end space-x-2 pt-4">
+            <div className="flex flex-wrap justify-end gap-2 border-t pt-4">
               <Button
                 type="button"
                 variant="outline"
