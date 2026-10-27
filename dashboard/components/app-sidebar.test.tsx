@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react"
+import { cleanup, render, screen, within } from "@testing-library/react"
 import { afterEach, beforeEach, expect, it, vi } from "vitest"
 const access = vi.hoisted(() => ({ pathname: "/", all: true, loading: false, client: new Set<string>(), backend: new Set<string>() }))
 vi.mock("next/navigation", () => ({ usePathname: () => access.pathname }))
@@ -98,4 +98,35 @@ it("waits for permission loading before showing protected menu items", () => {
   expect(screen.queryByRole("link", { name: "Clinical Guidelines" })).not.toBeInTheDocument()
   expect(screen.queryByRole("button", { name: "Outbreak Management" })).not.toBeInTheDocument()
   expect(screen.getByRole("link", { name: /MediGuide\s*Dashboard/ })).toBeInTheDocument()
+})
+
+
+it("groups destinations by workflow while keeping direct page links", () => {
+  renderSidebar()
+  const groups = [
+    ["Overview", ["Dashboard"]],
+    ["Clinical Resources", ["Clinical Guidelines", "Diseases", "Content Hubs", "Drug Index", "Decision Tools"]],
+    ["Operations", ["Outbreak Management", "Health Facilities"]],
+    ["Administration", ["User Management", "Support", "Settings"]],
+  ] as const
+  expect(screen.getAllByRole("group").map(group => group.getAttribute("aria-label"))).toEqual(groups.map(([name]) => name))
+  for (const [name, links] of groups) {
+    const group = within(screen.getByRole("group", { name }))
+    expect(group.getAllByRole("link").map(link => link.textContent)).toEqual(links)
+  }
+})
+
+it("hides groups with no permitted destinations", () => {
+  access.all = false
+  access.backend = new Set(["situation_report.read"])
+  renderSidebar()
+  expect(screen.getAllByRole("group").map(group => group.getAttribute("aria-label"))).toEqual(["Overview", "Operations"])
+  expect(screen.getByRole("link", { name: "Outbreak Management" })).toHaveAttribute("href", "/situation-reports")
+  expect(screen.queryByRole("link", { name: "Health Facilities" })).not.toBeInTheDocument()
+})
+
+it("hides all navigation groups while permissions are loading", () => {
+  access.loading = true
+  renderSidebar()
+  expect(screen.queryByRole("group")).not.toBeInTheDocument()
 })

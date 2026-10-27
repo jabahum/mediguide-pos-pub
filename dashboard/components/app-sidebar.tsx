@@ -23,6 +23,7 @@ import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -53,7 +54,10 @@ function findActiveMenuItem(pathname: string, navItems: NavItem[]) {
   return activeIndex
 }
 
+const navigationGroups = ["Overview", "Clinical Resources", "Operations", "Administration"] as const
+
 type NavItem = {
+  group: typeof navigationGroups[number]
   title: string
   url: string
   icon: React.ComponentType<{ className?: string }>
@@ -67,19 +71,21 @@ const data: { navMain: NavItem[] } = {
   navMain: [
     {
       title: "Dashboard",
+      group: "Overview",
       url: "/",
       activePaths: ["/analytics/accounts"],
       icon: BarChart3,
-
     },
     {
       title: "Clinical Guidelines",
+      group: "Clinical Resources",
       url: "/guidelines",
       icon: FileText,
       permission: { resource: "content", action: "read:any" },
     },
     {
       title: "Diseases",
+      group: "Clinical Resources",
       url: "/diseases",
       icon: Stethoscope,
       permission: { resource: "content", action: "read:any" },
@@ -87,6 +93,7 @@ const data: { navMain: NavItem[] } = {
     },
     {
       title: "Content Hubs",
+      group: "Clinical Resources",
       url: "/content-hubs",
       icon: Layers,
       permission: { resource: "content", action: "read:any" },
@@ -94,12 +101,14 @@ const data: { navMain: NavItem[] } = {
     },
     {
       title: "Drug Index",
+      group: "Clinical Resources",
       url: "/drugs",
       icon: Pill,
       permission: { resource: "content", action: "read:any" },
     },
     {
       title: "Outbreak Management",
+      group: "Operations",
       url: "/outbreaks",
       activePaths: ["/outbreaks", "/situation-reports"],
       icon: Activity,
@@ -107,30 +116,35 @@ const data: { navMain: NavItem[] } = {
     },
     {
       title: "Decision Tools",
+      group: "Clinical Resources",
       url: "/decision-tools",
       icon: Calculator,
       permission: { resource: "content", action: "read:any" },
     },
     {
       title: "User Management",
+      group: "Administration",
       url: "/users",
       icon: Users,
       permission: { resource: "users", action: "read:any" },
     },
     {
       title: "Health Facilities",
+      group: "Operations",
       url: "/health-facilities",
       icon: Building2,
       permission: { resource: "content", action: "read:any" },
     },
     {
       title: "Support",
+      group: "Administration",
       url: "/support",
       icon: HeadphonesIcon,
       permission: { resource: "content", action: "read:any" },
     },
     {
       title: "Settings",
+      group: "Administration",
       url: "/settings",
       icon: Settings,
       backendPermissions: ["notification.publish", "notification.template.read", "notification.campaign.read", "notification.analytics.read", "firebase.status.read", "firebase.push.test", "firebase.config.manage"],
@@ -152,8 +166,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       .map(item => item.url === "/outbreaks" ? { ...item, url: outbreakLandingPath(hasBackendPermission) } : item)
   }, [loading, hasPermission])
 
-  // Find which menu item should be active/open based on current pathname
-  const activeMenuIndex = findActiveMenuItem(pathname, visibleNav)
+  // Resolve the active item before grouping to preserve longest route matching.
+  const activeMenuItem = visibleNav[findActiveMenuItem(pathname, visibleNav)]
 
   return (
     <Sidebar {...props}>
@@ -182,20 +196,28 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarMenu>
-            {visibleNav.map((item, index) => (
-              <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton asChild isActive={activeMenuIndex === index}>
-                  <Link href={item.url} aria-current={activeMenuIndex === index ? "page" : undefined}>
-                    <item.icon className="mr-2 size-4" />
-                    {item.title}
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarGroup>
+        {navigationGroups.map(group => {
+          const items = visibleNav.filter(item => item.group === group)
+          if (!items.length) return null
+
+          return (
+            <SidebarGroup key={group} role="group" aria-label={group}>
+              <SidebarGroupLabel>{group}</SidebarGroupLabel>
+              <SidebarMenu>
+                {items.map(item => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild isActive={activeMenuItem === item} tooltip={item.title}>
+                      <Link href={item.url} aria-current={activeMenuItem === item ? "page" : undefined}>
+                        <item.icon className="size-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroup>
+          )
+        })}
       </SidebarContent>
       <SidebarRail />
     </Sidebar>
