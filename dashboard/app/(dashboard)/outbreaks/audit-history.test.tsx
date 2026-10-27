@@ -48,13 +48,13 @@ test("history is paged by the server", async () => {
   reports.audit.mockImplementation(async (_id: string, number: number) => (number === 1 ? page(first, 1, 6) : page([statusChange], 2, 6)));
   render(<AuditHistory entity="situation_report" id="r1" />);
 
-  expect(await screen.findByText("Showing 1–5 of 6")).toBeTruthy();
+  expect(await screen.findByText("Showing 1 to 5 of 6 results")).toBeTruthy();
   expect(reports.audit).toHaveBeenLastCalledWith("r1", 1, 5);
   fireEvent.click(screen.getByRole("button", { name: "Next" }));
 
   expect(await screen.findByText("Published")).toBeTruthy();
   expect(reports.audit).toHaveBeenLastCalledWith("r1", 2, 5);
-  expect(screen.getByText("Showing 6–6 of 6")).toBeTruthy();
+  expect(screen.getByText("Showing 6 to 6 of 6 results")).toBeTruthy();
   expect(screen.getByText("Pending review → Published")).toBeTruthy();
 });
 

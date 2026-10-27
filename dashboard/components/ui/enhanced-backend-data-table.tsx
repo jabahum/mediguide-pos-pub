@@ -37,6 +37,8 @@ export function EnhancedBackendDataTable<TData extends BaseRecord = BaseRecord>(
     importable = false,
 
     // Legacy UI
+    appearance,
+    searchLabel,
     title,
     description,
 
@@ -61,6 +63,8 @@ export function EnhancedBackendDataTable<TData extends BaseRecord = BaseRecord>(
       bulkActions={selectable ? bulkActions : []}
       availableFields={availableFields}
       ui={{
+        appearance,
+        searchLabel,
         pageSize: defaultPageSize,
         exportable,
         importable,

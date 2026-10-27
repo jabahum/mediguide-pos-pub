@@ -1,6 +1,8 @@
 "use client"
 
 import * as React from "react"
+import { useQueryClient } from "@tanstack/react-query"
+import { facilityOptionsQueryKey } from "@/lib/facility-query-keys"
 import { useForm, ControllerRenderProps } from "react-hook-form"
 
 import { Button } from "@/components/ui/button"
@@ -48,6 +50,7 @@ interface AdminEntityModalProps {
   open: boolean
   onClose: () => void
   entityLabel: string
+  collection?: string
   fields: AdminFieldDef[]
   record?: Record<string, unknown> | null
   onSuccess?: () => void
@@ -70,12 +73,15 @@ export function AdminEntityModal({
   open,
   onClose,
   entityLabel,
+  collection,
   fields,
   record,
   onSuccess,
   createRecord,
   updateRecord,
 }: AdminEntityModalProps) {
+  const queryClient = useQueryClient()
+  const [saveError, setSaveError] = React.useState("")
   const [isLoading, setIsLoading] = React.useState(false)
   const isEdit = !!record
 
@@ -86,6 +92,7 @@ export function AdminEntityModal({
   React.useEffect(() => {
     if (!open) return
     form.reset(buildDefaults(fields, record))
+    setSaveError("")
   }, [open, record, fields, form])
 
   const validate = (values: FormValues): { ok: boolean; firstError?: string } => {
@@ -106,6 +113,7 @@ export function AdminEntityModal({
     if (!result.ok) return
 
     setIsLoading(true)
+    setSaveError("")
     try {
       const payload: Record<string, string> = {}
       for (const f of fields) {
@@ -120,6 +128,8 @@ export function AdminEntityModal({
         showToast.success("Success", `${entityLabel} created successfully`)
       }
 
+      if (collection) await queryClient.invalidateQueries({ queryKey: ["backend", collection] })
+      await queryClient.invalidateQueries({ queryKey: facilityOptionsQueryKey })
       onSuccess?.()
       form.reset(buildDefaults(fields))
       onClose()
@@ -129,6 +139,7 @@ export function AdminEntityModal({
         error instanceof Error
           ? error.message
           : `Failed to ${isEdit ? "update" : "create"} ${entityLabel.toLowerCase()}`
+      setSaveError(message)
       showToast.error("Error", message)
     } finally {
       setIsLoading(false)
@@ -136,6 +147,7 @@ export function AdminEntityModal({
   }
 
   const handleClose = () => {
+    if (isLoading) return
     form.reset(buildDefaults(fields))
     onClose()
   }
@@ -161,7 +173,6 @@ export function AdminEntityModal({
   }
 
   // Layout: text fields with span="half" pair up; everything else is full-width
-  const layout: { kind: "single"; field: AdminFieldDef }[] | { kind: "pair"; a: AdminFieldDef; b: AdminFieldDef }[] = []
   type Row = { kind: "single"; field: AdminFieldDef } | { kind: "pair"; a: AdminFieldDef; b: AdminFieldDef }
   const rows: Row[] = []
   for (let i = 0; i < fields.length; i++) {
@@ -174,11 +185,10 @@ export function AdminEntityModal({
       rows.push({ kind: "single", field: f })
     }
   }
-  void layout
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[425px]">
+    <Dialog open={open} onOpenChange={nextOpen => { if (!nextOpen) handleClose() }}>
+      <DialogContent className="max-h-[90dvh] overflow-y-auto rounded-2xl sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>
             {isEdit ? `Edit ${entityLabel}` : `Create ${entityLabel}`}
@@ -196,6 +206,8 @@ export function AdminEntityModal({
             onSubmit={form.handleSubmit(onSubmit)}
             className="space-y-4"
           >
+            <p className="text-xs text-muted-foreground">Fields marked * are required</p>
+            <fieldset disabled={isLoading} className="space-y-4">
             {rows.map((row, idx) => {
               if (row.kind === "pair") {
                 return (
@@ -207,7 +219,7 @@ export function AdminEntityModal({
                         name={def.name}
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{def.label}</FormLabel>
+                            <FormLabel>{def.label}{def.required !== false ? " *" : " (optional)"}</FormLabel>
                             <FormControl>{renderField(def, field)}</FormControl>
                             <FormMessage />
                           </FormItem>
@@ -225,7 +237,7 @@ export function AdminEntityModal({
                   name={def.name}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{def.label}</FormLabel>
+                      <FormLabel>{def.label}{def.required !== false ? " *" : " (optional)"}</FormLabel>
                       <FormControl>{renderField(def, field)}</FormControl>
                       <FormMessage />
                     </FormItem>
@@ -234,7 +246,9 @@ export function AdminEntityModal({
               )
             })}
 
-            <DialogFooter>
+            </fieldset>
+            {saveError && <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{saveError}</p>}
+            <DialogFooter className="border-t pt-4">
               <Button
                 type="button"
                 variant="outline"

@@ -2,16 +2,19 @@
 
 import * as React from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileStack, Pencil, Plus, Trash2 } from "lucide-react";
+import { FileStack, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+import { usePagination } from "@/hooks/use-client-pagination";
+import { TablePagination } from "@/components/ui/table-pagination";
 import { ConfirmDialog } from "@/components/dialogs/confirm-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
-import { PageHeader } from "@/components/ui/page-header";
+import { GuidelineSectionHeader, GuidelineStatusBadge } from "@/components/guidelines/guideline-section";
 import {
   Table,
   TableBody,
@@ -45,6 +48,7 @@ export default function GuidelineDocumentKindsPage() {
   const [editing, setEditing] = React.useState<DocumentKind | null>(null);
   const [deleting, setDeleting] = React.useState<DocumentKind | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
+  const [search, setSearch] = React.useState("");
 
   React.useEffect(() => {
     if (!permissionsLoading && !hasPermission("content", "read:any")) router.replace("/");
@@ -98,16 +102,19 @@ export default function GuidelineDocumentKindsPage() {
     }
   }
 
+  const kinds = kindsQuery.data || [];
+  const visibleKinds = kinds.filter((kind) => [kind.name, kind.slug, kind.description].filter(Boolean).join(" ").toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()));
+  const pagination = usePagination(visibleKinds);
+
   if (permissionsLoading || kindsQuery.isLoading) {
     return <LoadingState message="Loading document kinds..." />;
   }
 
-  const kinds = kindsQuery.data || [];
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <div className="w-full min-w-0 space-y-6">
+      <GuidelineSectionHeader
         title="Document Kinds"
-        description="Kinds of guideline documents, such as guidelines, forms and SOPs. Each kind is a tab on the guidelines list and a document type for outbreak typed resources."
+        description="Organize document types and choose whether readers see structured content, a file, or a link."
         actions={
           canManage
             ? [{ label: "Add Document Kind", onClick: () => openDialog(null), icon: <Plus className="h-4 w-4" /> }]
@@ -115,9 +122,11 @@ export default function GuidelineDocumentKindsPage() {
         }
       />
 
+      <section aria-label="Find document kinds" className="rounded-xl border bg-card p-4 shadow-xs sm:p-5"><label htmlFor="document-kind-search" className="mb-2 block text-xs font-medium">Search document kinds</label><div className="relative"><Search className="pointer-events-none absolute left-3 top-3 size-4 text-muted-foreground" aria-hidden="true" /><Input id="document-kind-search" type="search" className="h-10 rounded-lg pl-9" placeholder="Search name, slug, or description…" value={search} onChange={(event) => { setSearch(event.target.value); pagination.setPage(1); }} /></div></section>
       {kindsQuery.isError ? (
-        <div className="rounded-md border border-destructive p-4 text-sm text-destructive">
+        <div role="alert" className="rounded-xl border border-destructive/25 bg-destructive/5 p-6 text-sm text-destructive">
           {errorMessage(kindsQuery.error)}
+          <Button variant="outline" className="mt-3 block" onClick={() => { void kindsQuery.refetch() }}>Try again</Button>
         </div>
       ) : kinds.length === 0 ? (
         <EmptyState
@@ -126,11 +135,11 @@ export default function GuidelineDocumentKindsPage() {
           description="Add a kind so guideline documents can be grouped."
           action={canManage ? { label: "Add Document Kind", onClick: () => openDialog(null) } : undefined}
         />
-      ) : (
-        <Card>
+      ) : !visibleKinds.length ? <EmptyState icon={FileStack} title="No matching document kinds" description="Try another name or clear your search." action={{ label: "Clear search", onClick: () => setSearch("") }} /> : (
+        <Card className="overflow-hidden rounded-xl shadow-xs">
           <CardContent className="p-0">
             <Table>
-              <TableHeader>
+              <TableHeader className="bg-muted/40">
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Slug</TableHead>
@@ -142,13 +151,13 @@ export default function GuidelineDocumentKindsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {kinds.map((kind) => {
+                {pagination.visible.map((kind) => {
                   const inUse = kind.guideline_document_count + kind.outbreak_resource_count
                   return (
-                  <TableRow key={kind.id}>
+                  <TableRow key={kind.id} className="[&>td]:py-4">
                     <TableCell>
                       <div className="flex flex-wrap items-center gap-2 font-medium">
-                        {kind.name}
+                        {canManage ? <button className="text-left font-semibold hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" onClick={() => openDialog(kind)}>{kind.name}</button> : kind.name}
                         {kind.publish_as_uploaded ? (
                           <Badge variant="outline" className="font-normal">As uploaded</Badge>
                         ) : null}
@@ -165,9 +174,7 @@ export default function GuidelineDocumentKindsPage() {
                     <TableCell className="text-right tabular-nums">{kind.outbreak_resource_count}</TableCell>
                     <TableCell className="text-right tabular-nums">{kind.sort_order}</TableCell>
                     <TableCell>
-                      <Badge variant={kind.status === "active" ? "default" : "secondary"}>
-                        {kind.status === "active" ? "Active" : "Inactive"}
-                      </Badge>
+                      <GuidelineStatusBadge status={kind.status} />
                     </TableCell>
                     {canManage ? (
                       <TableCell>
@@ -202,6 +209,7 @@ export default function GuidelineDocumentKindsPage() {
         </Card>
       )}
 
+      {!kindsQuery.isError && <TablePagination label="Document kind pages" page={pagination.page} pageSize={pagination.pageSize} totalItems={pagination.total} onPageChange={pagination.setPage} onPageSizeChange={pagination.setPageSize} />}
       <DocumentKindDialog
         open={dialogOpen}
         kind={editing}

@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { PageHeader } from "@/components/ui/page-header"
+import { ToolSectionHeader, ToolWorkflowGuide } from "@/components/clinical-tools/tool-section"
 import { ClinicalToolWorkspace } from "@/components/clinical-tools/clinical-tool-workspace"
 import { clinicalToolService, type ClinicalToolAuditEntry, type ClinicalToolVersion } from "@/services/clinical-tool.service"
 import { ClinicalToolAuditEntryItem } from "@/components/clinical-tools/audit-entry"
@@ -56,7 +56,7 @@ export default function ClinicalToolAuthorPage({ params }: { params: Promise<{ i
   const changed = (next: ClinicalToolVersion) => { setVersion(next); setVersions((items) => items.some((item) => item.id === next.id) ? items.map((item) => item.id === next.id ? next : item) : [next, ...items]) }
   const published = versions.find((item) => item.status === "published")
   const reviewActivity = (
-    <Card>
+    <Card className="min-w-0 rounded-xl shadow-xs">
       <CardHeader>
         <CardTitle>Review activity</CardTitle>
         <CardDescription>Changes and review comments for this version. Comments cannot be edited once added.</CardDescription>
@@ -84,13 +84,14 @@ export default function ClinicalToolAuthorPage({ params }: { params: Promise<{ i
   )
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <div className="w-full min-w-0 space-y-6">
+      <ToolSectionHeader showNavigation={false}
         title={tool?.name ?? "Clinical tool"}
         description="Authoring workspace: write, test, review and publish this tool's definition."
         showBackButton
         onBack={() => router.push(`/decision-tools/${id}`)}
       />
+      <ToolWorkflowGuide step={2} />
       {tool && <RiskLevelNotice level={tool.risk_level} />}
       {loading ? (
         <p className="text-sm text-muted-foreground">Loading version history…</p>

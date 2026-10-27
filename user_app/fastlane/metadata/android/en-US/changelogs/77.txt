@@ -1,0 +1,2 @@
+- Platform maintenance release accompanying dashboard improvements.
+- No mobile feature changes in this version.

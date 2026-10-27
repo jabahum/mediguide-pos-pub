@@ -5,7 +5,7 @@ import { Plus } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { usePermissionContext } from "@/lib/permission-context"
 
-import { PageHeader } from "@/components/ui/page-header"
+import { FacilitySectionHeader } from "@/components/facilities/facility-section"
 import { EnhancedBackendDataTable } from "@/components/ui/enhanced-backend-data-table"
 import { HealthSubRegionsWithRegion } from "@/types/expanded"
 
@@ -77,22 +77,25 @@ export default function HealthSubRegionsPage() {
   }, [loading, hasPermission, router])
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Health Sub-Regions Management"
+    <div className="w-full min-w-0 space-y-6">
+      <FacilitySectionHeader section="health-sub-regions"
+        title="Health sub-regions"
         description="Manage health sub-regions within administrative regions"
-        actions={[
+        actions={hasPermission("content", "create:any") ? [
           {
             label: "Add Health Sub-Region",
             onClick: openCreate,
             icon: <Plus className="h-4 w-4" />,
           },
-        ]}
+        ] : []}
       />
 
       <EnhancedBackendDataTable<HealthSubRegionsWithRegion>
         collectionName="health_sub_regions"
         loadPage={healthFacilitiesService.listHealthSubRegions}
+        appearance="workspace"
+        searchLabel="Search health sub regions"
+        title="Health sub regions library"
         columns={healthSubRegionsColumns}
         expandable={true}
         searchable={true}
@@ -100,13 +103,13 @@ export default function HealthSubRegionsPage() {
         selectable={true}
         exportable={true}
         availableFields={healthSubRegionsAvailableFields}
-        rowActions={rowActions}
-        bulkActions={bulkActions}
+        rowActions={rowActions.filter(action => hasPermission("content", action.id === "edit" ? "update:any" : "delete:any"))}
+        bulkActions={hasPermission("content", "delete:any") ? bulkActions : []}
         persistColumnConfig={true}
         tableContext="health-sub-regions-management"
       />
 
-      <AdminEntityModal
+      <AdminEntityModal collection="health_sub_regions"
         open={modalOpen}
         onClose={closeModal}
         createRecord={healthFacilitiesService.createHealthSubRegion}

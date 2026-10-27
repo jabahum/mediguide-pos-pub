@@ -101,7 +101,8 @@ test("edits and removes an attachment", async () => {
   );
 
   vi.spyOn(window, "confirm").mockReturnValue(true);
-  fireEvent.click(screen.getByRole("button", { name: "Remove" }));
+  // Saving is asynchronous; wait until the dialog releases the attachment list.
+  fireEvent.click(await screen.findByRole("button", { name: "Remove" }));
   await waitFor(() => expect(reports.removeAttachment).toHaveBeenCalledWith("r1", "a1", 3));
   expect(onChanged).toHaveBeenCalledTimes(2);
 });

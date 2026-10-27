@@ -103,7 +103,7 @@ export function TicketAssignDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-h-[90dvh] overflow-y-auto rounded-2xl sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>Assign Ticket</DialogTitle>
           <DialogDescription>

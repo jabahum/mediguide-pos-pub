@@ -21,10 +21,10 @@ export const columns: ColumnDef<SupportTicketsWithExpanded>[] = [
       const subject = row.getValue("subject") as string
       const ticket = row.original
       return (
-        <div className="max-w-[300px]">
+        <div className="min-w-[240px] max-w-xl">
           <Link 
             href={`/support/${ticket.id}`}
-            className="font-medium text-primary hover:underline truncate block"
+            className="block whitespace-normal break-words font-semibold hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {subject}
           </Link>

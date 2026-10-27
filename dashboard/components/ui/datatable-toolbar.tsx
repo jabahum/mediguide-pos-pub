@@ -37,11 +37,13 @@ import {
 } from "@/components/ui/select"
 import { ActiveFiltersPopup } from "@/components/ui/active-filters-popup"
 import { FilterValueInput } from "@/components/ui/datatable-filter-value-input"
-import { snakeToTitleCase } from "@/lib/utils"
+import { cn, snakeToTitleCase } from "@/lib/utils"
 
 interface DataTableToolbarComponentProps<TData extends BaseRecord>
   extends DataTableToolbarProps<TData> {
   table: Table<TData>
+  appearance?: "default" | "workspace"
+  searchLabel?: string
   title?: string
   description?: string
   exportFormats?: ExportFormat[]
@@ -55,6 +57,8 @@ interface DataTableToolbarComponentProps<TData extends BaseRecord>
 }
 
 export function DataTableToolbar<TData extends BaseRecord>({
+  appearance = "default",
+  searchLabel = "Search records",
   table,
   title,
   description,
@@ -179,11 +183,11 @@ export function DataTableToolbar<TData extends BaseRecord>({
 
 
   return (
-    <div className="space-y-4">
+    <div className={cn("space-y-4", appearance === "workspace" && "rounded-xl border bg-card p-4 shadow-xs sm:p-5")}>
       {/* Header */}
       {(title || description) && (
         <div>
-          {title && <h2 className="text-2xl font-bold tracking-tight">{title}</h2>}
+          {title && <h2 className={appearance === "workspace" ? "text-base font-semibold" : "text-2xl font-bold tracking-tight"}>{title}</h2>}
           {description && (
             <p className="text-muted-foreground">{description}</p>
           )}
@@ -191,18 +195,23 @@ export function DataTableToolbar<TData extends BaseRecord>({
       )}
 
       {/* Main toolbar */}
-      <div className="flex items-center justify-between">
-        <div className="flex flex-1 items-center space-x-2">
+      <div className={appearance === "workspace" ? "flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between" : "flex items-center justify-between"}>
+        <div className={appearance === "workspace" ? "flex min-w-0 flex-1 flex-wrap items-end gap-2" : "flex flex-1 items-center space-x-2"}>
           {/* Global search */}
           {searchable && (
-            <div className="relative w-full max-w-sm">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <div className={appearance === "workspace" ? "min-w-0 basis-full sm:flex-1 sm:basis-auto" : "relative w-full max-w-sm"}>
+              {appearance === "workspace" && <p className="mb-2 text-xs font-medium">{searchLabel}</p>}
+              <div className="relative">
+              <Search aria-hidden="true" className={cn("pointer-events-none absolute left-2 top-2.5 h-4 w-4 text-muted-foreground", appearance === "workspace" && "left-3 top-3")} />
               <Input
+                aria-label={appearance === "workspace" ? searchLabel : undefined}
+                type={appearance === "workspace" ? "search" : undefined}
                 placeholder={searchPlaceholder}
                 value={globalFilter}
                 onChange={(e) => setGlobalFilter(e.target.value)}
-                className="pl-8"
+                className={cn("pl-8", appearance === "workspace" && "h-10 rounded-lg pl-9")}
               />
+              </div>
             </div>
           )}
 
@@ -210,7 +219,7 @@ export function DataTableToolbar<TData extends BaseRecord>({
           {availableFields.length > 0 && (
             <DropdownMenu open={showAdvancedFilter} onOpenChange={setShowAdvancedFilter}>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className={appearance === "workspace" ? "h-10" : undefined}>
                   <Plus className="mr-2 h-4 w-4" />
                   Add Filter
                   <ChevronDown className="ml-2 h-4 w-4" />
@@ -325,7 +334,7 @@ export function DataTableToolbar<TData extends BaseRecord>({
 
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className={appearance === "workspace" ? "flex flex-wrap items-center gap-2 lg:shrink-0" : "flex items-center space-x-2"}>
           {/* Export */}
           {exportFormats.length > 0 && onExport && (
             <DropdownMenu open={showExport} onOpenChange={setShowExport}>

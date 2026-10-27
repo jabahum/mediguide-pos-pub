@@ -21,7 +21,7 @@ export const countiesColumns: ExtendedColumnDef<CountiesWithDistrict>[] = [
       />
     ),
     cell: ({ row }) => (
-      <div className="font-medium">{row.getValue("name")}</div>
+      <div className="min-w-[160px] whitespace-normal break-words font-semibold">{row.getValue("name")}</div>
     ),
     enableSorting: true,
     enableHiding: false,
@@ -78,7 +78,7 @@ export const countiesColumns: ExtendedColumnDef<CountiesWithDistrict>[] = [
       />
     ),
     cell: ({ row }) => (
-      <Badge variant="secondary" className="font-mono text-xs">
+      <Badge variant="secondary" className="max-w-xs whitespace-normal break-all font-mono text-xs">
         {row.getValue("nhpi_code")}
       </Badge>
     ),
@@ -96,7 +96,7 @@ export const countiesColumns: ExtendedColumnDef<CountiesWithDistrict>[] = [
       />
     ),
     cell: ({ row }) => (
-      <Badge variant="outline" className="font-mono text-xs">
+      <Badge variant="outline" className="max-w-xs whitespace-normal break-all font-mono text-xs">
         {row.getValue("hsdt_code")}
       </Badge>
     ),

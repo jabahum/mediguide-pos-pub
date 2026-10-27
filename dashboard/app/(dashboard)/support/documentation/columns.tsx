@@ -1,5 +1,7 @@
 "use client"
 
+import Link from "next/link"
+import { SupportStatusBadge } from "@/components/support/support-section"
 import { Badge } from "@/components/ui/badge"
 import { DataTableColumnHeader } from "@/components/ui/datatable-column-header"
 import { DocumentationResponse, DocumentationStatusOptions } from "@/types/backend-types"
@@ -20,12 +22,12 @@ export const documentationColumns: ExtendedColumnDef<DocumentationResponse>[] = 
     cell: ({ row }) => {
       const title = row.getValue("title") as string
       return (
-        <div className="max-w-[300px]">
-          <div className="font-medium truncate" title={title}>
+        <div className="min-w-[260px] max-w-xl">
+          <Link href={`/support/documentation/${row.original.id}`} className="whitespace-normal break-words font-semibold hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" title={title}>
             {title}
-          </div>
+          </Link>
           {row.original.description && (
-            <div className="text-xs text-muted-foreground truncate mt-1" title={row.original.description}>
+            <div className="mt-1 line-clamp-2 whitespace-normal text-xs leading-5 text-muted-foreground" title={row.original.description}>
               {row.original.description}
             </div>
           )}
@@ -77,19 +79,7 @@ export const documentationColumns: ExtendedColumnDef<DocumentationResponse>[] = 
     cell: ({ row }) => {
       const status = row.getValue("status") as DocumentationStatusOptions
       
-      const statusConfig = {
-        [DocumentationStatusOptions.draft]: { label: "Draft", variant: "outline" as const },
-        [DocumentationStatusOptions.published]: { label: "Published", variant: "default" as const },
-        [DocumentationStatusOptions.archived]: { label: "Archived", variant: "secondary" as const }
-      }
-
-      const config = statusConfig[status] || statusConfig[DocumentationStatusOptions.draft]
-
-      return (
-        <Badge variant={config.variant}>
-          {config.label}
-        </Badge>
-      )
+      return <SupportStatusBadge status={status} />
     },
     enableSorting: true,
     filterFn: "equals",

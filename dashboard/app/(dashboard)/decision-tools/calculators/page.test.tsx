@@ -44,10 +44,11 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe("Clinical tools runner", () => {
-  it("shows the summary as one compact strip", async () => {
+  it("shows catalog counts without claiming every active tool has a published definition", async () => {
     render(<CalculatorsPage />);
-    expect(await screen.findByText("Published tools")).toBeInTheDocument();
-    expect(screen.getByText("JSON schema v1")).toBeInTheDocument();
+    expect(await screen.findByText("Loaded active tools")).toBeInTheDocument();
+    expect(screen.getByText("Matching search")).toBeInTheDocument();
+    expect(screen.queryByText("Published tools")).not.toBeInTheDocument();
   });
 
   it("marks the chosen tool and scrolls its panel into view", async () => {
@@ -95,4 +96,36 @@ describe("Clinical tools runner", () => {
       "You can send up to 5 requests an hour. Try again later.",
     ));
   });
+});
+
+it("allows retrying a failed catalog request instead of showing it as an empty catalog", async () => {
+  const { calculatorService } = await import("@/services/calculator.service");
+  vi.mocked(calculatorService.list).mockRejectedValueOnce(new Error("offline"));
+  render(<CalculatorsPage />);
+  expect(await screen.findByRole("alert")).toHaveTextContent("Could not load the tool catalog.");
+  expect(screen.queryByText("No active tools are available yet.")).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+  expect(await screen.findByRole("button", { name: /BMI Calculator/ })).toBeInTheDocument();
+});
+
+it("searches names and offers guidance when no tools match", async () => {
+  render(<CalculatorsPage />);
+  await screen.findByRole("button", { name: /BMI Calculator/ });
+  fireEvent.change(screen.getByRole("textbox", { name: "Search clinical tools" }), { target: { value: "no matching tool" } });
+  expect(screen.getByText("No tools match your search. Try another name or keyword.")).toBeInTheDocument();
+  fireEvent.change(screen.getByRole("textbox", { name: "Search clinical tools" }), { target: { value: "BMI" } });
+  expect(screen.getByRole("button", { name: /BMI Calculator/ })).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: /APGAR/ })).not.toBeInTheDocument();
+});
+
+it("retries loading a published definition without selecting a different tool", async () => {
+  const { clinicalToolService } = await import("@/services/clinical-tool.service");
+  vi.mocked(clinicalToolService.definition).mockClear();
+  vi.mocked(clinicalToolService.definition).mockRejectedValueOnce(new Error("unavailable"));
+  render(<CalculatorsPage />);
+  expect(await screen.findByText("Native clinical tool unavailable")).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+  expect(await screen.findByText("Loading reviewed schema…")).toBeInTheDocument();
+  expect(clinicalToolService.definition).toHaveBeenCalledTimes(2);
+  expect(clinicalToolService.definition).toHaveBeenLastCalledWith("t1");
 });

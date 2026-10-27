@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, use, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useDashboardRouter as useRouter } from "@/components/dialogs/create-dialog-context";
 import { usePermissionContext } from "@/lib/permission-context";
 import { Edit, FileText, Trash2, Plus } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";

@@ -1,5 +1,7 @@
 "use client"
 
+import Link from "next/link"
+import { SupportStatusBadge } from "@/components/support/support-section"
 import type { ColumnDef } from "@tanstack/react-table"
 import { Badge } from "@/components/ui/badge"
 import { DataTableColumnHeader } from "@/components/ui/datatable-column-header"
@@ -16,9 +18,9 @@ export const columns: ColumnDef<FaqsWithExpanded>[] = [
     cell: ({ row }) => {
       const question = row.getValue("question") as string
       return (
-        <div className="font-medium line-clamp-2 max-w-[350px]" title={question}>
+        <Link href={`/support/faqs/${row.original.id}`} className="block min-w-[240px] max-w-xl whitespace-normal break-words font-semibold hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" title={question}>
           {question}
-        </div>
+        </Link>
       )
     },
     enableSorting: true,
@@ -34,20 +36,7 @@ export const columns: ColumnDef<FaqsWithExpanded>[] = [
     cell: ({ row }) => {
       const status = row.getValue("status") as string
       
-      const statusConfig = {
-        draft: { label: "Draft", variant: "secondary" as const },
-        review: { label: "Review", variant: "default" as const },
-        published: { label: "Published", variant: "default" as const },
-        archived: { label: "Archived", variant: "outline" as const },
-      }
-      
-      const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.draft
-      
-      return (
-        <Badge variant={config.variant} className="font-medium">
-          {config.label}
-        </Badge>
-      )
+      return <SupportStatusBadge status={status} />
     },
     filterFn: (row, id, value) => {
       return value.includes(row.getValue(id))

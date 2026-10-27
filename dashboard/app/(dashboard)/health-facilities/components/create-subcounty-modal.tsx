@@ -116,7 +116,7 @@ export function CreateSubcountyModal({ open, onClose, onSuccess }: CreateSubcoun
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="max-h-[90dvh] overflow-y-auto rounded-2xl sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>Create Subcounty</DialogTitle>
           <DialogDescription>

@@ -94,10 +94,10 @@ export function PermissionBuilder({
   const resources = Object.values(SYSTEM_RESOURCES)
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-6">
       {/* Templates Section */}
       {showTemplates && (
-        <Card>
+        <Card className="min-w-0 rounded-xl shadow-xs">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
@@ -119,17 +119,17 @@ export function PermissionBuilder({
               ))}
             </div>
             <p className="text-sm text-muted-foreground mt-2">
-              Apply pre-configured permission templates to quickly set up common role configurations.
+              Templates save immediately and replace the role’s configured permissions. Unsaved builder changes are replaced.
             </p>
           </CardContent>
         </Card>
       )}
 
       {/* View Mode Toggle */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h3 className="text-lg font-medium">Permission Configuration</h3>
         <Select value={viewMode} onValueChange={(value: 'matrix' | 'advanced') => setViewMode(value)}>
-          <SelectTrigger className="w-40">
+          <SelectTrigger aria-label="Permission editor view" className="w-40">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -142,12 +142,13 @@ export function PermissionBuilder({
       <Tabs value={viewMode} onValueChange={(value: string) => setViewMode(value as 'matrix' | 'advanced')}>
         <TabsContent value="matrix" className="space-y-4">
           {/* Resource Selection */}
-          <div className="flex flex-wrap gap-2 mb-4">
+          <div className="mb-4 flex flex-wrap gap-2 rounded-xl border bg-muted/20 p-3">
             {resources.map((resource) => (
               <Button
                 key={resource.key}
                 variant={selectedResource === resource.key ? "default" : "outline"}
                 size="sm"
+                aria-pressed={selectedResource === resource.key}
                 onClick={() => setSelectedResource(resource.key)}
                 disabled={disabled}
               >
@@ -205,7 +206,7 @@ function ResourcePermissionMatrix({
   }, [permissions, onChange, resource.key])
 
   return (
-    <Card>
+    <Card className="min-w-0 rounded-xl shadow-xs">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Shield className="h-4 w-4" />
@@ -218,7 +219,7 @@ function ResourcePermissionMatrix({
         {Object.entries(ACTION_GROUPS).map(([groupName, actions]) => (
           <div key={groupName} className="space-y-2">
             <h4 className="font-medium capitalize">{groupName} Permissions</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid gap-4 lg:grid-cols-2">
               {actions.map((action) => (
                 <ActionPermissionControl
                   key={action}
@@ -270,9 +271,9 @@ function ActionPermissionControl({
   const isRestricted = granted && !attributes.includes('*')
 
   return (
-    <div className="space-y-3 p-3 border rounded-lg">
+    <div className="min-w-0 space-y-3 rounded-xl border bg-muted/10 p-4">
       {/* Action Toggle */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center space-x-2">
           <Checkbox
             id={`${resource.key}-${action}`}
@@ -479,7 +480,7 @@ function AdvancedPermissionView({ permissions, onChange, disabled }: AdvancedPer
   }, [onChange])
 
   return (
-    <Card>
+    <Card className="min-w-0 rounded-xl shadow-xs">
       <CardHeader>
         <CardTitle>Advanced Permission Editor</CardTitle>
         <p className="text-sm text-muted-foreground">

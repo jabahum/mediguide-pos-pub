@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
+import { DashboardLink as Link } from "@/components/dialogs/create-dialog-context";
 import { useRouter } from "next/navigation";
 import {
   AlertCircle,
@@ -741,6 +741,8 @@ export function OutbreakEditor({ id }: { id?: string }) {
           ) : null}
         </div>
       </div>
+
+
       {item ? (
         <Card>
           <CardHeader className="space-y-4">
@@ -1216,7 +1218,7 @@ export function OutbreakEditor({ id }: { id?: string }) {
               />
             </CardContent>
           </Card>
-          <Card>
+          <Card id="resources" className="scroll-mt-24">
             <CardHeader>
               <CardTitle>Typed resources</CardTitle>
             </CardHeader>

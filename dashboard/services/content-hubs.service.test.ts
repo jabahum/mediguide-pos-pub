@@ -15,6 +15,16 @@ import {
 describe("disease and content-hub administration services", () => {
   beforeEach(() => send.mockReset());
 
+  it("passes directory pagination and status while preserving existing list defaults", async () => {
+    send.mockResolvedValue({ items: [] });
+    await diseaseService.list("cholera", "archived", { page: 3, per_page: 20 });
+    expect(send).toHaveBeenLastCalledWith("/api/v2/diseases", { query: { page: 3, per_page: 20, search: "cholera", status: "archived" } });
+    await diseaseService.list("", "active");
+    expect(send).toHaveBeenLastCalledWith("/api/v2/diseases", { query: { page: 1, per_page: 100, search: "", status: "active" } });
+    await contentHubService.list({ page: 2, per_page: 20, status: "draft", search: "care" });
+    expect(send).toHaveBeenLastCalledWith("/api/v2/content-hubs", { query: { page: 2, per_page: 20, status: "draft", search: "care" } });
+  });
+
   it("uses typed disease taxonomy and assignment endpoints", async () => {
     send.mockResolvedValueOnce({ id: "disease-1" }).mockResolvedValueOnce([]);
 

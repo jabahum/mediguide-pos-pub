@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { notFound } from "next/navigation"
-import { PageHeader } from "@/components/ui/page-header"
+import { DrugSectionHeader } from "@/components/drugs/drug-section"
 import { DrugForm } from "@/components/forms/drug-form"
 import { DrugsResponse, DrugCategoriesResponse, DrugTagsResponse } from "@/types/backend-types"
 import { useDomainCrud } from "@/hooks/use-domain-crud"
@@ -93,7 +93,7 @@ export default function DrugEditPage({ params, searchParams }: DrugEditPageProps
   if (loadingData) {
     return (
       <div className="space-y-6">
-        <PageHeader
+        <DrugSectionHeader showNavigation={false}
           title="Loading..."
           showBackButton={true}
           onBack={() => resolvedParams?.id && router.push(`/drugs/${resolvedParams.id}`)}
@@ -122,15 +122,15 @@ export default function DrugEditPage({ params, searchParams }: DrugEditPageProps
     : "Update the drug information and clinical details"
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <div className="w-full min-w-0 space-y-6">
+      <DrugSectionHeader showNavigation={false}
         title={pageTitle}
         description={pageDescription}
         showBackButton={true}
         onBack={() => resolvedParams?.id && router.push(`/drugs/${resolvedParams.id}`)}
       />
 
-      <div className="max-w-4xl">
+      <div className="w-full min-w-0">
         <div className="bg-card rounded-lg border p-6">
           <DrugForm
             mode="edit"

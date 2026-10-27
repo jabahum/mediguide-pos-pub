@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { Plus, Tags, Edit, Trash2, Eye } from "lucide-react"
 
 // Components
-import { PageHeader } from "@/components/ui/page-header"
+import { DrugSectionHeader } from "@/components/drugs/drug-section"
 import { BackendDataTable } from "@/components/ui/backend-data-table"
 
 // Dialogs
@@ -170,11 +170,12 @@ export default function DrugTagsPage() {
   // Removed unused handlers
 
   return (
-    <div className="space-y-6">
+    <div className="w-full min-w-0 space-y-6">
       {/* Page Header */}
-      <PageHeader
+      <DrugSectionHeader
+        icon={Tags}
         title="Drug Tags"
-        description="Manage flexible tagging system for drugs including clinical, administrative, regulatory, and safety tags"
+        description="Label medications for clinical use, safety, regulation, and administration."
         actions={hasPermission("content", "create:any") ? [
           {
             label: "Add Tag",
@@ -189,11 +190,15 @@ export default function DrugTagsPage() {
         collection="drug_tags"
         loadPage={drugReferenceService.listTagsTable}
         columns={tagColumns}
+        searchPlaceholder="Search tag name or description…"
         searchFields={["name", "description"]}
         rowActions={tagRowActions}
         bulkActions={tagBulkActions}
         availableFields={tagAvailableFields}
         ui={{
+          appearance: "workspace",
+          searchLabel: "Search tags",
+          title: "Tag library",
           exportable: true,
           importable: true
         }}

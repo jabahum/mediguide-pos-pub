@@ -51,12 +51,13 @@ export function useBackendTable<TData extends BaseRecord = BaseRecord>(
     "backend",
     config.collection,
     {
+      scope: config.queryScope,
       page: currentPage,
       perPage: currentPageSize,
       search: globalFilter,
       filters: advancedFilters,
     }
-  ], [config.collection, currentPage, currentPageSize, globalFilter, advancedFilters])
+  ], [config.collection, config.queryScope, currentPage, currentPageSize, globalFilter, advancedFilters])
 
   const query = useQuery({
     queryKey,

@@ -5,7 +5,7 @@ import { Plus } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { usePermissionContext } from "@/lib/permission-context"
 
-import { PageHeader } from "@/components/ui/page-header"
+import { FacilitySectionHeader } from "@/components/facilities/facility-section"
 import { EnhancedBackendDataTable } from "@/components/ui/enhanced-backend-data-table"
 import { OwnershipTypesResponse } from "@/types/backend-types"
 
@@ -70,35 +70,38 @@ export default function OwnershipTypesPage() {
   }, [loading, hasPermission, router])
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Ownership Types Management"
+    <div className="w-full min-w-0 space-y-6">
+      <FacilitySectionHeader section="ownership-types"
+        title="Ownership types"
         description="Manage ownership types for health facilities (Government, Private, NGO, etc.)"
-        actions={[
+        actions={hasPermission("content", "create:any") ? [
           {
             label: "Add Ownership Type",
             onClick: openCreate,
             icon: <Plus className="h-4 w-4" />,
           },
-        ]}
+        ] : []}
       />
 
       <EnhancedBackendDataTable<OwnershipTypesResponse>
         collectionName="ownership_types"
         loadPage={healthFacilitiesService.listOwnershipTypes}
+        appearance="workspace"
+        searchLabel="Search ownership types"
+        title="Ownership types library"
         columns={ownershipTypesColumns}
         searchable={true}
         searchFields={["name", "code"]}
         selectable={true}
         exportable={true}
         availableFields={ownershipTypesAvailableFields}
-        rowActions={rowActions}
-        bulkActions={bulkActions}
+        rowActions={rowActions.filter(action => hasPermission("content", action.id === "edit" ? "update:any" : "delete:any"))}
+        bulkActions={hasPermission("content", "delete:any") ? bulkActions : []}
         persistColumnConfig={true}
         tableContext="ownership-types-management"
       />
 
-      <AdminEntityModal
+      <AdminEntityModal collection="ownership_types"
         open={modalOpen}
         onClose={closeModal}
         createRecord={healthFacilitiesService.createOwnershipType}

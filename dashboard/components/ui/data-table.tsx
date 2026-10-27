@@ -14,6 +14,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 import { ChevronDown, Search, SearchX } from "lucide-react"
+import { DataTablePagination } from "@/components/ui/datatable-pagination"
 import { EmptyState } from "@/components/ui/empty-state"
 
 import { Button } from "@/components/ui/button"
@@ -24,6 +25,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
+import { cn, snakeToTitleCase } from "@/lib/utils"
 import {
   Table,
   TableBody,
@@ -39,6 +41,11 @@ interface DataTableProps<TData, TValue> {
   searchKey?: keyof TData
   searchPlaceholder?: string
   tableClassName?: string
+  appearance?: "default" | "workspace"
+  toolbarContent?: React.ReactNode
+  initialSorting?: SortingState
+  recordLabel?: string
+  tableLabel?: string
 }
 
 export function DataTable<TData, TValue>({
@@ -47,8 +54,12 @@ export function DataTable<TData, TValue>({
   searchKey,
   searchPlaceholder = "Filter...",
   tableClassName,
+  appearance = "default",
+  toolbarContent,
+  initialSorting = [],
+  tableLabel,
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [sorting, setSorting] = React.useState<SortingState>(initialSorting)
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
@@ -56,6 +67,7 @@ export function DataTable<TData, TValue>({
   const table = useReactTable({
     data,
     columns,
+    initialState: { pagination: { pageSize: 20 } },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -73,8 +85,9 @@ export function DataTable<TData, TValue>({
   })
 
   return (
-    <div className="w-full">
-      <div className="flex items-center py-4">
+    <div className={cn("w-full min-w-0", appearance === "workspace" && "space-y-4")}>
+      <div className={appearance === "workspace" ? "flex flex-wrap items-center justify-between gap-3" : "flex items-center py-4"}>
+        {toolbarContent}
         {searchKey && (
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -108,16 +121,16 @@ export function DataTable<TData, TValue>({
                       column.toggleVisibility(!!value)
                     }
                   >
-                    {column.id}
+                    {appearance === "workspace" ? snakeToTitleCase(column.id) : column.id}
                   </DropdownMenuCheckboxItem>
                 )
               })}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <div className="rounded-md border">
-        <Table className={tableClassName}>
-          <TableHeader>
+      <div className={cn("rounded-md border", appearance === "workspace" && "overflow-hidden rounded-xl bg-card shadow-xs")}>
+        <Table className={tableClassName} aria-label={tableLabel}>
+          <TableHeader className={appearance === "workspace" ? "bg-muted/40" : undefined}>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
@@ -143,7 +156,7 @@ export function DataTable<TData, TValue>({
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell key={cell.id} className={appearance === "workspace" ? "px-4 py-4" : undefined}>
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
@@ -170,30 +183,12 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
-        </div>
-        <div className="space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
+      <DataTablePagination
+        table={table}
+        paginationInfo={{ page: table.getState().pagination.pageIndex + 1, perPage: table.getState().pagination.pageSize, totalItems: table.getFilteredRowModel().rows.length, totalPages: table.getPageCount(), hasNextPage: table.getCanNextPage(), hasPreviousPage: table.getCanPreviousPage() }}
+        onPageChange={page => table.setPageIndex(page - 1)}
+        onPageSizeChange={size => { table.setPageSize(size); table.setPageIndex(0) }}
+      />
     </div>
   )
 }

@@ -34,6 +34,7 @@ const ACTIONS: Record<string, string> = {
  */
 export function HubAuditHistory({ hubId, templates, refreshKey }: { hubId: string; templates: HubTemplate[]; refreshKey?: unknown }) {
   const [page, setPage] = React.useState(1);
+  const [pageSize, setPageSize] = React.useState(DEFAULT_PAGE_SIZE);
   const [history, setHistory] = React.useState<Page<HubAudit> | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState("");
@@ -44,12 +45,12 @@ export function HubAuditHistory({ hubId, templates, refreshKey }: { hubId: strin
     setLoading(true);
     setError("");
     contentHubService
-      .audit(hubId, page, DEFAULT_PAGE_SIZE)
+      .audit(hubId, page, pageSize)
       .then((result) => { if (current) setHistory(result); })
       .catch((value) => { if (current) setError(value instanceof Error ? value.message : "Unable to load the audit history"); })
       .finally(() => { if (current) setLoading(false); });
     return () => { current = false; };
-  }, [hubId, page, refreshKey]);
+  }, [hubId, page, pageSize, refreshKey]);
 
   const templateNames = React.useMemo(() => new Map(templates.map((value) => [value.id, value.name])), [templates]);
   const items = history?.items || [];
@@ -73,15 +74,17 @@ export function HubAuditHistory({ hubId, templates, refreshKey }: { hubId: strin
         ) : null}
         <PaginationControls
           label="Audit history"
+          loading={loading}
           pagination={{
             visible: items,
-            offset: (page - 1) * DEFAULT_PAGE_SIZE,
+            offset: (page - 1) * pageSize,
             page,
             pageCount: Math.max(1, history?.total_pages || 1),
-            pageSize: DEFAULT_PAGE_SIZE,
+            pageSize,
             total: history?.total_items || 0,
             setPage,
-            showIndex: (index) => setPage(Math.floor(index / DEFAULT_PAGE_SIZE) + 1),
+            setPageSize: size => { setPageSize(size); setPage(1); },
+            showIndex: (index) => setPage(Math.floor(index / pageSize) + 1),
           }}
         />
       </CardContent>

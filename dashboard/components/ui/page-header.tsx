@@ -60,6 +60,7 @@ export function PageHeader({
                 variant="ghost"
                 size="sm"
                 onClick={onBack}
+                aria-label="Go back"
                 className="flex items-center justify-center h-8 w-8 p-0 hover:bg-muted"
               >
                 <ArrowLeft className="h-4 w-4" />

@@ -3,13 +3,12 @@
 import * as React from "react"
 import { useParams, useRouter } from "next/navigation"
 import { format } from "date-fns"
-import { Edit, Map, FileText, Copy, Building2, Shield, MapPin, Hash, Calendar } from "lucide-react"
+import { Edit, Copy, Building2, Shield, MapPin, Hash, Calendar } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { PageHeader } from "@/components/ui/page-header"
+import { FacilitySectionHeader } from "@/components/facilities/facility-section"
 import { useDomainRecord } from "@/hooks/use-domain-record"
 import { healthFacilitiesService } from "@/services/health-facilities.service"
 import { showToast } from "@/lib/toast"
@@ -78,22 +77,14 @@ export default function FacilityDetailsPage() {
     }
   }
 
-  const handleViewOnMap = () => {
-    showToast.info("Map View", `Opening map view for ${facility?.name}`)
-  }
-
-  const handleGenerateReport = () => {
-    showToast.info("Report", `Generating report for ${facility?.name}`)
-  }
-
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <PageHeader
+      <div className="w-full min-w-0 space-y-6">
+        <FacilitySectionHeader section="directory"
           title="Health Facility Details"
           description="Loading facility information..."
           showBackButton={true}
-          onBack={() => router.back()}
+          onBack={() => router.push("/health-facilities")}
         />
         <div className="flex items-center justify-center py-12">
           <div className="text-muted-foreground">Loading...</div>
@@ -104,12 +95,12 @@ export default function FacilityDetailsPage() {
 
   if (!facility) {
     return (
-      <div className="space-y-6">
-        <PageHeader
+      <div className="w-full min-w-0 space-y-6">
+        <FacilitySectionHeader section="directory"
           title="Health Facility Details"
           description="Facility not found"
           showBackButton={true}
-          onBack={() => router.back()}
+          onBack={() => router.push("/health-facilities")}
         />
         <div className="flex items-center justify-center py-12">
           <div className="text-muted-foreground">Facility not found</div>
@@ -121,30 +112,18 @@ export default function FacilityDetailsPage() {
   const { expand } = facility
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <div className="w-full min-w-0 space-y-6">
+      <FacilitySectionHeader section="directory"
         title={facility.name}
         description="Health facility details and administrative information"
         showBackButton={true}
-        onBack={() => router.back()}
+        onBack={() => router.push("/health-facilities")}
         actions={[
           ...(hasPermission("content", "update:any") ? [{
             label: "Edit Facility",
             onClick: () => router.push(`/health-facilities/${facilityId}/edit`),
             icon: <Edit className="h-4 w-4" />
           }] : []),
-          {
-            label: "View on Map",
-            onClick: handleViewOnMap,
-            icon: <Map className="h-4 w-4" />,
-            variant: "outline" as const
-          },
-          {
-            label: "Generate Report",
-            onClick: handleGenerateReport,
-            icon: <FileText className="h-4 w-4" />,
-            variant: "outline" as const
-          },
           {
             label: "Copy Codes",
             onClick: handleCopyCodes,
@@ -154,11 +133,11 @@ export default function FacilityDetailsPage() {
         ]}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid items-start gap-5 xl:grid-cols-2">
         {/* Main Information */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="contents">
           {/* Basic Information */}
-          <Card>
+          <Card className="min-w-0 rounded-xl shadow-xs">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Building2 className="h-5 w-5" />
@@ -169,7 +148,7 @@ export default function FacilityDetailsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Facility Name</label>
-                  <p className="text-sm font-medium">{facility.name}</p>
+                  <p className="break-words text-sm font-medium">{facility.name}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Facility Level</label>
@@ -187,7 +166,7 @@ export default function FacilityDetailsPage() {
                   <label className="text-sm font-medium text-muted-foreground">NHPI Code</label>
                   <div className="flex items-center space-x-2 mt-1">
                     <Hash className="h-3 w-3 text-muted-foreground" />
-                    <code className="text-sm font-mono bg-muted px-2 py-1 rounded">
+                    <code className="break-all text-sm font-mono bg-muted px-2 py-1 rounded">
                       {facility.nhpi_code}
                     </code>
                   </div>
@@ -196,7 +175,7 @@ export default function FacilityDetailsPage() {
                   <label className="text-sm font-medium text-muted-foreground">HSDT Code</label>
                   <div className="flex items-center space-x-2 mt-1">
                     <Hash className="h-3 w-3 text-muted-foreground" />
-                    <code className="text-sm font-mono bg-muted px-2 py-1 rounded">
+                    <code className="break-all text-sm font-mono bg-muted px-2 py-1 rounded">
                       {facility.hsdt_code}
                     </code>
                   </div>
@@ -206,7 +185,7 @@ export default function FacilityDetailsPage() {
           </Card>
 
           {/* Classification */}
-          <Card>
+          <Card className="min-w-0 rounded-xl shadow-xs">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Shield className="h-5 w-5" />
@@ -256,7 +235,7 @@ export default function FacilityDetailsPage() {
           </Card>
 
           {/* Location Hierarchy */}
-          <Card>
+          <Card className="min-w-0 rounded-xl shadow-xs">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <MapPin className="h-5 w-5" />
@@ -320,10 +299,10 @@ export default function FacilityDetailsPage() {
           </Card>
         </div>
 
-        {/* Sidebar Information */}
-        <div className="space-y-6">
+        {/* Record information */}
+        <div className="contents">
           {/* System Information */}
-          <Card>
+          <Card className="min-w-0 rounded-xl shadow-xs">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Calendar className="h-5 w-5" />
@@ -347,53 +326,14 @@ export default function FacilityDetailsPage() {
               )}
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Facility ID</label>
-                <code className="text-sm font-mono bg-muted px-2 py-1 rounded block mt-1">
+                <code className="break-all text-sm font-mono bg-muted px-2 py-1 rounded block mt-1">
                   {facility.id}
                 </code>
               </div>
             </CardContent>
           </Card>
 
-          {/* Quick Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <Button 
-                variant="outline" 
-                className="w-full justify-start" 
-                onClick={() => router.push(`/health-facilities/${facilityId}/edit`)}
-              >
-                <Edit className="h-4 w-4 mr-2" />
-                Edit Facility
-              </Button>
-              <Button 
-                variant="outline" 
-                className="w-full justify-start" 
-                onClick={handleViewOnMap}
-              >
-                <Map className="h-4 w-4 mr-2" />
-                View on Map
-              </Button>
-              <Button 
-                variant="outline" 
-                className="w-full justify-start" 
-                onClick={handleGenerateReport}
-              >
-                <FileText className="h-4 w-4 mr-2" />
-                Generate Report
-              </Button>
-              <Button 
-                variant="outline" 
-                className="w-full justify-start" 
-                onClick={handleCopyCodes}
-              >
-                <Copy className="h-4 w-4 mr-2" />
-                Copy Codes
-              </Button>
-            </CardContent>
-          </Card>
+
         </div>
       </div>
     </div>

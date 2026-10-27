@@ -26,13 +26,13 @@ const twelve = Array.from({ length: 12 }, (_, index) => `Item ${index + 1}`);
 
 test("shows five items per page and moves between pages", () => {
   render(<List items={twelve} pageSize={5} />);
-  expect(screen.getByText("Showing 1–5 of 12")).toBeTruthy();
+  expect(screen.getByText("Showing 1 to 5 of 12 results")).toBeTruthy();
   expect(screen.queryByText("Item 6")).toBeNull();
 
   fireEvent.click(screen.getByRole("button", { name: "Next" }));
   fireEvent.click(screen.getByRole("button", { name: "Next" }));
   expect(screen.getByText("Page 3 of 3")).toBeTruthy();
-  expect(screen.getByText("Showing 11–12 of 12")).toBeTruthy();
+  expect(screen.getByText("Showing 11 to 12 of 12 results")).toBeTruthy();
 });
 
 test("jumps to the page holding a given item", () => {
@@ -50,9 +50,10 @@ test("stays on a valid page when items are removed", () => {
   expect(screen.getByText("Item 6")).toBeTruthy();
 });
 
-test("hides the controls when everything fits on one page", () => {
+test("keeps consistent disabled navigation when everything fits on one page", () => {
   render(<List items={twelve.slice(0, 3)} pageSize={5} />);
-  expect(screen.queryByRole("navigation")).toBeNull();
+  expect(screen.getByRole("navigation", { name: "Items pages" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
   render(<List items={twelve} />);
   expect(screen.getAllByText("Item 12")).toHaveLength(1);
 });

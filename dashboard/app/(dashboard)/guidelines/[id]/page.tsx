@@ -21,7 +21,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoadingState } from "@/components/ui/loading-state";
-import { PageHeader } from "@/components/ui/page-header";
+import { getGuidelineWorkStatus } from "../document-state";
+import { GuidelineSectionHeader, GuidelineStatusBadge } from "@/components/guidelines/guideline-section";
 import { RichContent } from "@/components/ui/rich-content";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePermissionContext } from "@/lib/permission-context";
@@ -205,21 +206,12 @@ export default function GuidelineDetailsPage() {
   const asLink = isPublishedAsLink(document);
 
   return (
-    <div className="space-y-6">
-      {document.withdrawn_at && (
-        <div className="rounded-md border border-destructive p-4 space-y-2">
-          <Badge variant="destructive">Withdrawn</Badge>
-          <p className="text-sm whitespace-pre-wrap break-words">{document.withdrawal_reason}</p>
-          <p className="text-sm text-muted-foreground">Withdrawn {new Date(document.withdrawn_at).toLocaleString()} · By {document.withdrawn_by}</p>
-        </div>
-      )}
-      {hasBackendPermission("guideline.publish") && <GuidelinePublicationAction document={document} onChanged={refresh} />}
-      {canUpdate && hasBackendPermission("guideline.markdown.edit") && <GuidelineRevisionAction document={document} onChanged={refresh} />}
-      <PageHeader
+    <div className="w-full min-w-0 space-y-6">
+      <GuidelineSectionHeader
         title={document.title}
         description={
           document.description ||
-          "V2 guideline document and extraction versions."
+          "Manage editions, source documents, and publication readiness."
         }
         actions={
           canUpdate
@@ -239,6 +231,16 @@ export default function GuidelineDetailsPage() {
             : []
         }
       />
+      {document.withdrawn_at && (
+        <div className="rounded-md border border-destructive p-4 space-y-2">
+          <Badge variant="destructive">Withdrawn</Badge>
+          <p className="text-sm whitespace-pre-wrap break-words">{document.withdrawal_reason}</p>
+          <p className="text-sm text-muted-foreground">Withdrawn {new Date(document.withdrawn_at).toLocaleString()} · By {document.withdrawn_by}</p>
+        </div>
+      )}
+      {hasBackendPermission("guideline.publish") && <GuidelinePublicationAction document={document} onChanged={refresh} />}
+      {canUpdate && hasBackendPermission("guideline.markdown.edit") && <GuidelineRevisionAction document={document} onChanged={refresh} />}
+
 
       <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-5">
         {[
@@ -296,24 +298,16 @@ export default function GuidelineDetailsPage() {
                   ),
                 );
               return (
-                <div key={version.id} id={`version-${version.id}`} className="rounded-lg border p-4">
+                <div key={version.id} id={`version-${version.id}`} className="rounded-xl border bg-card p-4 sm:p-5">
                   {version.source_version_id && <p className="mb-2 text-sm text-muted-foreground">Revision of version {document.versions.find(item => item.id === version.source_version_id)?.version || version.source_version_id}. Previous approvals do not carry over.</p>}
                   {!!version.revision_warnings?.length && <ul className="mb-3 list-disc pl-5 text-sm text-muted-foreground">{version.revision_warnings.map((warning, index) => <li key={index}>{warning}</li>)}</ul>}
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <span className="font-semibold">
                           Version {version.version}
                         </span>
-                        <Badge
-                          variant={
-                            version.status === "published"
-                              ? "default"
-                              : "secondary"
-                          }
-                        >
-                          {document.withdrawn_at && document.withdrawn_version_id === version.id ? "Withdrawn" : version.status === "published" && document.current_version_id !== version.id ? "Previously published" : version.status}
-                        </Badge>
+                        <GuidelineStatusBadge status={document.withdrawn_at && document.withdrawn_version_id === version.id ? "withdrawn" : version.status === "published" && document.current_version_id !== version.id ? "previously_published" : getGuidelineWorkStatus(version)} />
                       </div>
                       <div className="mt-1 text-xs text-muted-foreground">
                         Published: {version.publication_date || "not set"} ·
@@ -505,7 +499,7 @@ export default function GuidelineDetailsPage() {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="sections">
-              <TabsList>
+              <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-xl p-1.5 [&>button]:min-h-10">
                 <TabsTrigger value="sections">Sections</TabsTrigger>
                 <TabsTrigger
                   value="markdown"

@@ -1,5 +1,7 @@
 "use client"
 
+import { usePagination } from "@/hooks/use-client-pagination"
+import { TablePagination } from "@/components/ui/table-pagination"
 import { useQuery } from "@tanstack/react-query"
 import { hasBackendPermission } from "@/lib/backend-client"
 import { calculatorService } from "@/services/calculator.service"
@@ -15,6 +17,8 @@ export function ToolUsage({ toolId }: { toolId: string }) {
     enabled: allowed,
     staleTime: 60_000,
   })
+
+  const pages = usePagination([...(query.data?.daily || [])].reverse())
 
   if (!allowed) return <p className="text-sm text-muted-foreground">Analytics permission is required to view tool usage.</p>
 
@@ -54,13 +58,14 @@ export function ToolUsage({ toolId }: { toolId: string }) {
               <table className="w-full text-sm">
                 <caption className="sr-only">Tool sessions by UTC date over the last 30 days</caption>
                 <thead><tr className="border-b text-left"><th className="py-2 font-medium">Date (UTC)</th><th className="py-2 text-right font-medium">Sessions</th><th aria-label="Relative usage" className="w-1/2" /></tr></thead>
-                <tbody>{[...(data.daily ?? [])].reverse().map(day => <tr key={day.date} className="border-b last:border-0">
+                <tbody>{pages.visible.map(day => <tr key={day.date} className="border-b last:border-0">
                   <td className="py-2">{day.date}</td>
                   <td className="py-2 text-right tabular-nums">{day.sessions ?? 0}</td>
                   <td className="pl-4" aria-hidden="true"><div className="h-2 rounded bg-primary/70" style={{ width: `${((day.sessions ?? 0) / maximum) * 100}%` }} /></td>
                 </tr>)}</tbody>
               </table>
             </div>
+            <TablePagination label="Daily usage pages" page={pages.page} pageSize={pages.pageSize} totalItems={pages.total} onPageChange={pages.setPage} onPageSizeChange={pages.setPageSize} />
           </CardContent>
         </Card>
       </>}

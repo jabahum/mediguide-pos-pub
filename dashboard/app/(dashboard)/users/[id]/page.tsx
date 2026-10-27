@@ -2,9 +2,9 @@
 
 import * as React from "react"
 import { useRouter, useParams } from "next/navigation"
-import { Edit, Mail, Phone, MapPin, Building2, Shield, Globe, Clock, FileText } from "lucide-react"
+import { Edit, Mail, Phone, MapPin, Building2, Globe, FileText, type LucideIcon } from "lucide-react"
 
-import { PageHeader } from "@/components/ui/page-header"
+import { UserSectionHeader, UserStatusBadge } from "@/components/users/user-section"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -14,8 +14,13 @@ import { useDomainRecord } from "@/hooks/use-domain-record"
 import { usersService } from "@/services/user-management.service"
 import { UsersResponse } from "@/types/backend-types"
 
+import { usePermissionContext } from "@/lib/permission-context"
+import { EmptyState } from "@/components/ui/empty-state"
+import { snakeToTitleCase } from "@/lib/utils"
+
 export default function UserProfilePage() {
   const router = useRouter()
+  const { hasPermission } = usePermissionContext()
   const params = useParams()
   const userId = params.id as string
 
@@ -53,325 +58,55 @@ export default function UserProfilePage() {
     router.push('/users')
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-      case 'inactive': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-      case 'suspended': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-      case 'pending_activation': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
-    }
+  const formatDate = (value?: string) => {
+    if (!value || Number.isNaN(Date.parse(value))) return "Not recorded"
+    return new Date(value).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })
   }
 
-  const formatRole = (role: string) => {
-    return role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-  }
+  const header = <UserSectionHeader title={user?.name || "User profile"} description="Contact details, professional information, and account access." showBackButton onBack={handleBack}
+    actions={user && hasPermission("users", "update:any") ? [{ label: "Edit user", onClick: handleEdit, icon: <Edit className="size-4" aria-hidden="true" /> }] : []} />
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'Not set'
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
+  if (isLoading) return <div className="w-full min-w-0 space-y-6">{header}<div role="status" className="space-y-5"><span className="sr-only">Loading user profile…</span><Skeleton className="h-48 w-full rounded-xl" /><div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">{[1, 2, 3].map(item => <Skeleton key={item} className="h-64 w-full rounded-xl" />)}</div></div></div>
+  if (!user) return <div className="w-full min-w-0 space-y-6">{header}<Card className="rounded-xl"><CardContent><EmptyState title="User not found" description="The account could not be loaded. Return to the directory to find another user." action={{ label: "Back to users", onClick: handleBack }} /></CardContent></Card></div>
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-start">
-          <div className="space-y-2">
-            <Skeleton className="h-8 w-48" />
-            <Skeleton className="h-4 w-96" />
-          </div>
-          <div className="flex space-x-2">
-            <Skeleton className="h-9 w-20" />
-            <Skeleton className="h-9 w-28" />
-          </div>
+  const hasLocation = Boolean(user.country || user.state || user.city || user.address || user.postalCode)
+  const roleLabel = user.role ? snakeToTitleCase(user.role) : "No role recorded"
+
+  return <div className="w-full min-w-0 space-y-6">
+    {header}
+    <Card className="min-w-0 rounded-xl shadow-xs">
+      <CardContent className="space-y-5 pt-6">
+        <div className="flex flex-col gap-4 border-b pb-5 sm:flex-row sm:items-start sm:gap-5">
+          <Avatar className="size-16 shrink-0 rounded-2xl"><AvatarImage src={user.avatar || undefined} alt={user.name} /><AvatarFallback className="rounded-2xl bg-primary/5 text-lg font-semibold text-primary">{(user.name || "?").split(" ").map(part => part[0]).join("").toUpperCase().slice(0, 2)}</AvatarFallback></Avatar>
+          <div className="min-w-0 flex-1 space-y-2"><h2 className="break-words text-xl font-semibold">{user.name}</h2><p className="text-sm text-muted-foreground">{user.jobTitle || "Job title not recorded"}{user.organization ? ` · ${user.organization}` : ""}</p><div className="flex flex-wrap items-center gap-2"><UserStatusBadge status={user.status} /><Badge variant="outline">{roleLabel}</Badge></div></div>
+          <div className="flex flex-wrap gap-2 sm:max-w-xs sm:justify-end"><Badge variant="outline">{user.email_verified ? "Email verified" : "Email unverified"}</Badge><Badge variant="outline">{user.verified ? "Account approved" : "Account not approved"}</Badge></div>
         </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex flex-col items-center space-y-4">
-                <Skeleton className="h-24 w-24 rounded-full" />
-                <Skeleton className="h-6 w-32" />
-                <Skeleton className="h-4 w-24" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <div className="lg:col-span-2 space-y-6">
-            <Card>
-              <CardHeader>
-                <Skeleton className="h-6 w-48" />
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-3/4" />
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (!user) {
-    return (
-      <div className="space-y-6">
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">User not found</p>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        title={`User Profile: ${user.name}`}
-        description="View user information and activity"
-        showBackButton={true}
-        onBack={handleBack}
-        actions={[
-          {
-            label: "Edit User",
-            onClick: handleEdit,
-            icon: <Edit className="h-4 w-4" />
-          }
-        ]}
-      />
-
-      <div className="space-y-6">
-        {/* Contact Information with User Profile */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Mail className="h-5 w-5" />
-              <span>Contact Information</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* User Profile Section */}
-            <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6 pb-6 border-b border-border">
-              <Avatar className="h-24 w-24 flex-shrink-0">
-                <AvatarImage 
-                  src={user.avatar || `/avatars/${user.id}.png`} 
-                  alt={user.name}
-                />
-                <AvatarFallback className="text-lg">
-                  {user.name
-                    .split(' ')
-                    .map(n => n[0])
-                    .join('')
-                    .toUpperCase()
-                    .slice(0, 2)
-                  }
-                </AvatarFallback>
-              </Avatar>
-              
-              <div className="text-center sm:text-left space-y-2">
-                <h3 className="text-2xl font-semibold">{user.name}</h3>
-                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-2">
-                  <Badge className={getStatusColor(user.status)}>
-                    {user.status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                  </Badge>
-                  <span className="text-sm text-muted-foreground">
-                    {formatRole(user.role)}
-                  </span>
-                </div>
-              </div>
-            </div>
-            
-            {/* Contact Details */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Email</label>
-                <p className="flex items-center space-x-2 mt-1">
-                  <Mail className="h-4 w-4" />
-                  <span>{user.email}</span>
-                  {user.email_verified && <Badge variant="secondary">Email verified</Badge>}
-                  {user.verified && <Badge variant="secondary">Account approved</Badge>}
-                </p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Phone</label>
-                <p className="flex items-center space-x-2 mt-1">
-                  <Phone className="h-4 w-4" />
-                  <span>{user.phone}</span>
-                </p>
-              </div>
-              {user.alternativePhone && (
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Alternative Phone</label>
-                  <p className="flex items-center space-x-2 mt-1">
-                    <Phone className="h-4 w-4" />
-                    <span>{user.alternativePhone}</span>
-                  </p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-          {/* Professional Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Building2 className="h-5 w-5" />
-                <span>Professional Information</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Role</label>
-                  <p className="flex items-center space-x-2 mt-1">
-                    <Shield className="h-4 w-4" />
-                    <span>{formatRole(user.role)}</span>
-                  </p>
-                </div>
-                {user.organization && (
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Organization</label>
-                    <p>{user.organization}</p>
-                  </div>
-                )}
-                {user.department && (
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Department</label>
-                    <p>{user.department}</p>
-                  </div>
-                )}
-                {user.jobTitle && (
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Job Title</label>
-                    <p>{user.jobTitle}</p>
-                  </div>
-                )}
-                {user.licenseNumber && (
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">License Number</label>
-                    <p>{user.licenseNumber}</p>
-                  </div>
-                )}
-              </div>
-              
-              {user.specialization && (
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Specialization</label>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    <Badge variant="outline">
-                      {user.specialization}
-                    </Badge>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Location Information */}
-          {(user.country || user.state || user.city || user.address) && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <MapPin className="h-5 w-5" />
-                  <span>Location Information</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {user.country && (
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">Country</label>
-                      <p>{user.country}</p>
-                    </div>
-                  )}
-                  {user.state && (
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">State/Region</label>
-                      <p>{user.state}</p>
-                    </div>
-                  )}
-                  {user.city && (
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">City</label>
-                      <p>{user.city}</p>
-                    </div>
-                  )}
-                  {user.address && (
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">Address</label>
-                      <p>{user.address}</p>
-                    </div>
-                  )}
-                  {user.postalCode && (
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">Postal Code</label>
-                      <p>{user.postalCode}</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* System Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Globe className="h-5 w-5" />
-                <span>System Information</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {user.preferredLanguage && (
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Preferred Language</label>
-                    <p>{user.preferredLanguage}</p>
-                  </div>
-                )}
-                {user.timezone && (
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Timezone</label>
-                    <p className="flex items-center space-x-2">
-                      <Clock className="h-4 w-4" />
-                      <span>{user.timezone}</span>
-                    </p>
-                  </div>
-                )}
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Member Since</label>
-                  <p>{formatDate(user.created)}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Last Updated</label>
-                  <p>{formatDate(user.updated)}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Additional Notes */}
-          {user.notes && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <FileText className="h-5 w-5" />
-                  <span>Additional Notes</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">{user.notes}</p>
-              </CardContent>
-            </Card>
-          )}
-      </div>
+        <dl className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          <div className="min-w-0"><dt className="flex items-center gap-2 text-xs font-medium text-muted-foreground"><Mail className="size-4" aria-hidden="true" />Email address</dt><dd className="mt-2 break-all text-sm font-medium">{user.email ? <a href={`mailto:${user.email}`} className="hover:underline">{user.email}</a> : "Not recorded"}</dd></div>
+          <div><dt className="flex items-center gap-2 text-xs font-medium text-muted-foreground"><Phone className="size-4" aria-hidden="true" />Phone number</dt><dd className="mt-2 text-sm font-medium">{user.phone ? <a href={`tel:${user.phone}`} className="hover:underline">{user.phone}</a> : "Not recorded"}</dd></div>
+          {user.alternativePhone && <div><dt className="text-xs font-medium text-muted-foreground">Alternative phone</dt><dd className="mt-2 text-sm font-medium"><a href={`tel:${user.alternativePhone}`} className="hover:underline">{user.alternativePhone}</a></dd></div>}
+        </dl>
+      </CardContent>
+    </Card>
+    <div className="grid gap-5" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))" }}>
+      <ProfileSection title="Professional information" icon={Building2} items={[
+        { label: "Role", value: roleLabel }, { label: "Organization", value: user.organization },
+        { label: "Department", value: user.department }, { label: "Job title", value: user.jobTitle },
+        { label: "License number", value: user.licenseNumber }, { label: "Specialization", value: user.specialization },
+      ]} />
+      {hasLocation && <ProfileSection title="Location information" icon={MapPin} items={[
+        { label: "Country", value: user.country }, { label: "State / region", value: user.state }, { label: "City", value: user.city },
+        { label: "Address", value: user.address }, { label: "Postal code", value: user.postalCode },
+      ]} />}
+      <ProfileSection title="System information" icon={Globe} items={[
+        { label: "Preferred language", value: user.preferredLanguage }, { label: "Timezone", value: user.timezone },
+        { label: "Member since", value: formatDate(user.created) }, { label: "Last updated", value: formatDate(user.updated) },
+      ]} />
     </div>
-  )
+    {user.notes && <Card className="rounded-xl shadow-xs"><CardHeader><CardTitle className="flex items-center gap-2 text-base"><FileText className="size-5 text-muted-foreground" aria-hidden="true" />Additional notes</CardTitle></CardHeader><CardContent><p className="whitespace-pre-wrap break-words text-sm leading-7 text-muted-foreground">{user.notes}</p></CardContent></Card>}
+  </div>
+}
+
+function ProfileSection({ title, icon: Icon, items }: { title: string; icon: LucideIcon; items: { label: string; value?: string }[] }) {
+  return <Card className="min-w-0 rounded-xl shadow-xs"><CardHeader><CardTitle className="flex items-center gap-2 text-base"><Icon className="size-5 text-muted-foreground" aria-hidden="true" />{title}</CardTitle></CardHeader><CardContent><dl className="divide-y">{items.map(item => <div key={item.label} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] gap-3 py-3 first:pt-0 last:pb-0"><dt className="text-xs leading-6 text-muted-foreground">{item.label}</dt><dd className="break-words text-sm font-medium leading-6">{item.value || "Not recorded"}</dd></div>)}</dl></CardContent></Card>
 }

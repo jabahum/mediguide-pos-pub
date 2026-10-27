@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import Link from "next/link"
+import { DashboardLink as Link } from "@/components/dialogs/create-dialog-context"
 import { CheckCircle2, ExternalLink, Loader2, Save, ShieldCheck } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -272,6 +272,7 @@ export function SituationReportEditor({ id }: { id?: string }) {
         <Button variant="outline" asChild><Link href="/situation-reports">Back to list</Link></Button>
       </div>
     </div>
+
 
     {item ? <Card>
       <CardHeader className="space-y-4">

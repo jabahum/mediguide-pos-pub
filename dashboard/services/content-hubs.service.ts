@@ -138,9 +138,9 @@ const client = () => getBackendClient();
 const json = (value: unknown) => JSON.stringify(value);
 
 export const diseaseService = {
-  list(search = "", status = "") {
+  list(search = "", status = "", pagination: { page?: number; per_page?: number } = {}) {
     return client().send<Page<Disease>>("/api/v2/diseases", {
-      query: { page: 1, per_page: 100, search, status },
+      query: { page: 1, per_page: 100, ...pagination, search, status },
     });
   },
   get(id: string) {
@@ -201,6 +201,8 @@ export const contentDiseaseService = {
 export const contentHubService = {
   list(
     query: {
+      page?: number;
+      per_page?: number;
       search?: string;
       status?: string;
       disease_id?: string;

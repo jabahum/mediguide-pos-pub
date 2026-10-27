@@ -1,2 +1,5 @@
-import { SituationReportEditor } from "../situation-report-editor"
-export default function NewSituationReportPage() { return <SituationReportEditor /> }
+import { redirect } from "next/navigation";
+
+export default function CreatePage() {
+  redirect("/situation-reports");
+}

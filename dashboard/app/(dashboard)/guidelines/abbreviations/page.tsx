@@ -4,7 +4,7 @@ import * as React from "react"
 import { Plus } from "lucide-react"
 
 // Components
-import { PageHeader } from "@/components/ui/page-header"
+import { GuidelineSectionHeader } from "@/components/guidelines/guideline-section"
 import { BackendDataTable } from "@/components/ui/backend-data-table"
 
 // Page-specific imports
@@ -59,9 +59,9 @@ export default function AbbreviationsPage() {
   }, [])
 
   return (
-    <div className="space-y-6">
+    <div className="w-full min-w-0 space-y-6">
       {/* Page Header */}
-      <PageHeader
+      <GuidelineSectionHeader
         title="Medical Abbreviations"
         description="Comprehensive database of medical abbreviations and their meanings for quick reference"
         actions={hasPermission("content", "create:any") ? [
@@ -78,11 +78,15 @@ export default function AbbreviationsPage() {
         collection="abbreviations"
 		loadPage={abbreviationService.listTable}
         columns={abbreviationsColumns}
+        searchPlaceholder="Search abbreviation, meaning, or description…"
         searchFields={["abbreviation", "meaning", "description"]}
         rowActions={abbreviationRowActions}
         bulkActions={abbreviationBulkActions}
         availableFields={abbreviationsAvailableFields}
         ui={{
+          appearance: "workspace",
+          searchLabel: "Search abbreviations",
+          title: "Abbreviation library",
           exportable: true
         }}
       />

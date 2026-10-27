@@ -129,6 +129,8 @@ export type DomainPageLoader<TData> = (
 
 // Simplified UI options
 export interface UIOptions {
+  appearance?: "default" | "workspace"
+  searchLabel?: string
   pageSize?: number
   exportable?: boolean
   importable?: boolean
@@ -138,6 +140,8 @@ export interface UIOptions {
 
 // Main DataTable props - SIMPLIFIED
 export interface BackendDataTableProps<TData = BaseRecord> {
+  /** Separates cached results when an external chip or tab changes the loader. */
+  queryScope?: string
   // Core required
   collection: string
   columns: ColumnDef<TData>[]
@@ -167,6 +171,8 @@ export interface BackendDataTableProps<TData = BaseRecord> {
 
 // Legacy interface for backward compatibility
 export interface EnhancedBackendDataTableProps<TData = BaseRecord> {
+  appearance?: UIOptions["appearance"]
+  searchLabel?: string
   // Required
   columns: ColumnDef<TData>[]
   loadPage: DomainPageLoader<TData>
@@ -261,6 +267,7 @@ export interface TableError {
 
 // Simplified hook interface
 export interface UseBackendTableConfig<TData = BaseRecord> {
+  queryScope?: string
   collection: string
   loadPage: DomainPageLoader<TData>
   searchFields?: string[]

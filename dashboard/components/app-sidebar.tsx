@@ -12,84 +12,58 @@ import {
   Settings,
   BarChart3,
   Pill,
-  AlertTriangle,
   Calculator,
   Building2,
-  TestTube,
-  HeadphonesIcon
+  HeadphonesIcon,
+  Layers,
+  Stethoscope,
 } from "lucide-react"
 
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { usePermissionContext } from "@/lib/permission-context"
+import { outbreakLandingPath } from "@/lib/outbreak-navigation"
 import { hasBackendPermission } from "@/lib/backend-client"
 import type { PermissionAction } from "@/types/permissions"
 
-// Utility function to find if current pathname belongs to a menu item
-function findActiveMenuItem(pathname: string, navItems: typeof data.navMain) {
-  for (let i = 0; i < navItems.length; i++) {
-    const item = navItems[i]
-
-    // Check if any sub-item matches the current pathname (exact match)
-    if (item.items) {
-      const hasActiveChild = item.items.some(subItem => pathname === subItem.url)
-      if (hasActiveChild) {
-        return i
-      }
-
-      // Check if current pathname starts with any sub-item URL (for nested routes)
-      const hasNestedActiveChild = item.items.some(subItem => {
-        if (subItem.url === "/") return false // Skip root to avoid matching everything
-        return pathname.startsWith(subItem.url + "/") || pathname === subItem.url
-      })
-      if (hasNestedActiveChild) {
-        return i
-      }
-    }
-
-    // Check if the main item URL matches (for overview pages)
-    if (pathname === item.url && item.url !== "#") {
-      return i
-    }
-
-    // Check if current pathname starts with the main item URL (for nested routes)
-    if (item.url !== "#" && item.url !== "/" && pathname.startsWith(item.url + "/")) {
-      return i
-    }
-  }
-  return -1
+// Match whole route segments, so /users-other never activates /users.
+function matchesNavigationPath(pathname: string, url: string) {
+  return url !== "#" && (pathname === url || (url !== "/" && pathname.startsWith(`${url}/`)))
 }
 
-type NavSubItem = {
-  title: string
-  url: string
-  permission?: { resource: string; action: PermissionAction }
-  backendPermissions?: string[]
+function findActiveMenuItem(pathname: string, navItems: NavItem[]) {
+  let activeIndex = -1
+  let longestMatch = -1
+  navItems.forEach((item, index) => {
+    for (const url of [item.url, ...(item.activePaths || [])]) {
+      if (matchesNavigationPath(pathname, url) && url.length > longestMatch) {
+        activeIndex = index
+        longestMatch = url.length
+      }
+    }
+  })
+  return activeIndex
 }
+
+const navigationGroups = ["Overview", "Clinical Resources", "Operations", "Administration"] as const
 
 type NavItem = {
+  group: typeof navigationGroups[number]
   title: string
   url: string
   icon: React.ComponentType<{ className?: string }>
   permission?: { resource: string; action: PermissionAction }
   backendPermissions?: string[]
-  items?: NavSubItem[]
+  activePaths?: string[]
 }
 
 // MediGuide navigation data
@@ -97,115 +71,83 @@ const data: { navMain: NavItem[] } = {
   navMain: [
     {
       title: "Dashboard",
+      group: "Overview",
       url: "/",
+      activePaths: ["/analytics/accounts"],
       icon: BarChart3,
-
-    },
-    {
-      title: "Account Analytics",
-      url: "/analytics/accounts",
-      icon: BarChart3,
-      backendPermissions: ["analytics.read", "admin.all"],
     },
     {
       title: "Clinical Guidelines",
-      url: "#",
+      group: "Clinical Resources",
+      url: "/guidelines",
       icon: FileText,
       permission: { resource: "content", action: "read:any" },
-      items: [
-        { title: "All Guidelines", url: "/guidelines" },
-        { title: "Create Guideline", url: "/guidelines/create", permission: { resource: "content", action: "create:any" } },
-        { title: "Categories", url: "/guidelines/categories" },
-        { title: "Document Kinds", url: "/guidelines/document-kinds" },
-        { title: "Diseases", url: "/diseases", backendPermissions: ["disease.taxonomy.read", "disease.taxonomy.manage"] },
-        { title: "Content Hubs", url: "/content-hubs", backendPermissions: ["content_hub.read", "content_hub.manage"] },
-        { title: "Tags", url: "/guidelines/tags" },
-        { title: "Abbreviations", url: "/guidelines/abbreviations" },
-      ],
+    },
+    {
+      title: "Diseases",
+      group: "Clinical Resources",
+      url: "/diseases",
+      icon: Stethoscope,
+      permission: { resource: "content", action: "read:any" },
+      backendPermissions: ["disease.taxonomy.read", "disease.taxonomy.manage"],
+    },
+    {
+      title: "Content Hubs",
+      group: "Clinical Resources",
+      url: "/content-hubs",
+      icon: Layers,
+      permission: { resource: "content", action: "read:any" },
+      backendPermissions: ["content_hub.read", "content_hub.manage"],
     },
     {
       title: "Drug Index",
-      url: "#",
+      group: "Clinical Resources",
+      url: "/drugs",
       icon: Pill,
       permission: { resource: "content", action: "read:any" },
-      items: [
-        { title: "All Drugs", url: "/drugs" },
-        { title: "Categories", url: "/drugs/categories" },
-        { title: "Tags", url: "/drugs/tags" },
-      ],
     },
     {
       title: "Outbreak Management",
-      url: "#",
+      group: "Operations",
+      url: "/outbreaks",
+      activePaths: ["/outbreaks", "/situation-reports"],
       icon: Activity,
       backendPermissions: ["outbreak.read", "situation_report.read"],
-      items: [
-        { title: "Outbreaks", url: "/outbreaks", backendPermissions: ["outbreak.read"] },
-        { title: "Situation Reports", url: "/situation-reports", backendPermissions: ["situation_report.read"] },
-        { title: "Outbreak Resources", url: "/outbreaks/resources", backendPermissions: ["outbreak.read"] },
-      ],
     },
     {
       title: "Decision Tools",
-      url: "#",
+      group: "Clinical Resources",
+      url: "/decision-tools",
       icon: Calculator,
       permission: { resource: "content", action: "read:any" },
-      items: [
-        { title: "All Tools", url: "/decision-tools" },
-        { title: "Clinical Review", url: "/decision-tools/review", backendPermissions: ["calculator.review"] },
-        { title: "Calculators", url: "/decision-tools/calculators" },
-        { title: "Categories", url: "/decision-tools/categories" },
-      ],
     },
     {
       title: "User Management",
-      url: "#",
+      group: "Administration",
+      url: "/users",
       icon: Users,
       permission: { resource: "users", action: "read:any" },
-      items: [
-        { title: "All Users", url: "/users" },
-        { title: "Roles & Permissions", url: "/users/roles", permission: { resource: "roles", action: "read:any" } },
-      ],
     },
     {
       title: "Health Facilities",
-      url: "#",
+      group: "Operations",
+      url: "/health-facilities",
       icon: Building2,
       permission: { resource: "content", action: "read:any" },
-      items: [
-        { title: "All Facilities", url: "/health-facilities" },
-        { title: "Add Facility", url: "/health-facilities/create", permission: { resource: "content", action: "create:any" } },
-        { title: "Regions", url: "/health-facilities/regions" },
-        { title: "Health Sub-Regions", url: "/health-facilities/health-sub-regions" },
-        { title: "Districts", url: "/health-facilities/districts" },
-        { title: "Counties", url: "/health-facilities/counties" },
-        { title: "Health Sub-Districts", url: "/health-facilities/health-sub-districts" },
-        { title: "Subcounties", url: "/health-facilities/subcounties" },
-        { title: "Parishes", url: "/health-facilities/parishes" },
-        { title: "Ownership Types", url: "/health-facilities/ownership-types" },
-        { title: "Authorities", url: "/health-facilities/authorities" },
-        { title: "Facility Levels", url: "/health-facilities/facility-levels" },
-      ],
     },
     {
       title: "Support",
-      url: "#",
+      group: "Administration",
+      url: "/support",
       icon: HeadphonesIcon,
       permission: { resource: "content", action: "read:any" },
-      items: [
-        { title: "Support Tickets", url: "/support" },
-        { title: "Documentation", url: "/support/documentation" },
-        { title: "FAQs", url: "/support/faqs" },
-      ],
     },
     {
       title: "Settings",
-      url: "#",
+      group: "Administration",
+      url: "/settings",
       icon: Settings,
-      items: [
-        { title: "Notifications", url: "/settings/notifications", backendPermissions: ["notification.publish", "notification.template.read", "notification.campaign.read", "firebase.status.read"] },
-        { title: "Firebase", url: "/settings/firebase", backendPermissions: ["firebase.status.read", "firebase.push.test", "firebase.config.manage"] },
-      ],
+      backendPermissions: ["notification.publish", "notification.template.read", "notification.campaign.read", "notification.analytics.read", "firebase.status.read", "firebase.push.test", "firebase.config.manage"],
     },
   ],
 }
@@ -221,51 +163,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         (!item.permission || hasPermission(item.permission.resource, item.permission.action)) &&
         (!item.backendPermissions || item.backendPermissions.some(hasBackendPermission)),
       )
-      .map(item => ({
-        ...item,
-        items: item.items?.filter(sub =>
-          (!sub.permission || hasPermission(sub.permission.resource, sub.permission.action)) &&
-          (!sub.backendPermissions || sub.backendPermissions.some(hasBackendPermission)),
-        ),
-      }))
-      .filter(item => item.url !== "#" || !item.items || item.items.length > 0)
+      .map(item => item.url === "/outbreaks" ? { ...item, url: outbreakLandingPath(hasBackendPermission) } : item)
   }, [loading, hasPermission])
 
-  // Find which menu item should be active/open based on current pathname
-  const activeMenuIndex = findActiveMenuItem(pathname, visibleNav)
-
-  // State to track which menu items are open
-  const [openItems, setOpenItems] = React.useState<Set<number>>(() => {
-    const initialOpen = new Set<number>()
-
-    // Always open the dashboard (index 0) by default
-    initialOpen.add(0)
-
-    // Open the menu item that contains the active route
-    if (activeMenuIndex !== -1) {
-      initialOpen.add(activeMenuIndex)
-    }
-
-    return initialOpen
-  })
-
-  React.useEffect(() => {
-    if (activeMenuIndex !== -1) {
-      setOpenItems(prev => new Set(prev).add(activeMenuIndex))
-    }
-  }, [activeMenuIndex])
-
-  const toggleMenuItem = React.useCallback((index: number) => {
-    setOpenItems(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(index)) {
-        newSet.delete(index)
-      } else {
-        newSet.add(index)
-      }
-      return newSet
-    })
-  }, [])
+  // Resolve the active item before grouping to preserve longest route matching.
+  const activeMenuItem = visibleNav[findActiveMenuItem(pathname, visibleNav)]
 
   return (
     <Sidebar {...props}>
@@ -294,60 +196,28 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarMenu>
-            {visibleNav?.map((item, index) => {
-              // If item has no subitems and a direct URL, render as direct link
-              if (!item.items?.length && item.url !== "#") {
-                return (
+        {navigationGroups.map(group => {
+          const items = visibleNav.filter(item => item.group === group)
+          if (!items.length) return null
+
+          return (
+            <SidebarGroup key={group} role="group" aria-label={group}>
+              <SidebarGroupLabel>{group}</SidebarGroupLabel>
+              <SidebarMenu>
+                {items.map(item => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={pathname === item.url}>
-                      <Link href={item.url}>
-                        <item.icon className="mr-2 size-4" />
-                        {item.title}
+                    <SidebarMenuButton asChild isActive={activeMenuItem === item} tooltip={item.title}>
+                      <Link href={item.url} aria-current={activeMenuItem === item ? "page" : undefined}>
+                        <item.icon className="size-4" />
+                        <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                )
-              }
-
-              // Render as collapsible for items with subitems
-              return (
-                <Collapsible
-                  key={item.title}
-                  open={openItems.has(index)}
-                  onOpenChange={() => toggleMenuItem(index)}
-                  className="group/collapsible"
-                >
-                  <SidebarMenuItem>
-                    <CollapsibleTrigger asChild>
-                      <SidebarMenuButton>
-                        <item.icon className="mr-2 size-4" />
-                        {item.title}
-                      </SidebarMenuButton>
-                    </CollapsibleTrigger>
-                    {item.items?.length ? (
-                      <CollapsibleContent>
-                        <SidebarMenuSub>
-                          {item.items.map((subItem) => (
-                            <SidebarMenuSubItem key={subItem.title}>
-                              <SidebarMenuSubButton
-                                asChild
-                                isActive={pathname === subItem.url}
-                              >
-                                <Link href={subItem.url}>{subItem.title}</Link>
-                              </SidebarMenuSubButton>
-                            </SidebarMenuSubItem>
-                          ))}
-                        </SidebarMenuSub>
-                      </CollapsibleContent>
-                    ) : null}
-                  </SidebarMenuItem>
-                </Collapsible>
-              )
-            })}
-          </SidebarMenu>
-        </SidebarGroup>
+                ))}
+              </SidebarMenu>
+            </SidebarGroup>
+          )
+        })}
       </SidebarContent>
       <SidebarRail />
     </Sidebar>

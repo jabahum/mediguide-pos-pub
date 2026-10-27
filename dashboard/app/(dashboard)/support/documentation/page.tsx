@@ -1,11 +1,11 @@
 "use client"
 
 import { useMemo, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useDashboardRouter as useRouter } from "@/components/dialogs/create-dialog-context"
 import { usePermissionContext } from "@/lib/permission-context"
 import { Plus } from "lucide-react"
 
-import { PageHeader } from "@/components/ui/page-header"
+import { SupportSectionHeader } from "@/components/support/support-section"
 import { EnhancedBackendDataTable } from "@/components/ui/enhanced-backend-data-table"
 import { documentationColumns, DocumentationType } from "./columns"
 import { createDocumentationRowActions, documentationBulkActions } from "./documentation-actions"
@@ -49,8 +49,8 @@ export default function DocumentationPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <div className="w-full min-w-0 space-y-6">
+      <SupportSectionHeader section="documentation"
         title="Documentation"
         description="Manage system documentation, guides, and knowledge base articles"
         actions={hasPermission("content", "create:any") ? [
@@ -67,6 +67,9 @@ export default function DocumentationPage() {
         // Collection settings
         collection="help-documentation"
         loadPage={DocumentationService.loadPage.bind(DocumentationService)}
+        appearance="workspace"
+        searchLabel="Search documentation"
+        title="Documentation library"
         columns={documentationColumns}
         // Pagination
         defaultPageSize={20}

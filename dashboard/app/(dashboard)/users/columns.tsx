@@ -1,5 +1,7 @@
 "use client"
 
+import Link from "next/link"
+import { UserStatusBadge } from "@/components/users/user-section"
 import { format } from "date-fns"
 import { CalendarDays, Mail, User, Phone, Building2, Briefcase, FileText, Globe, Clock, MapPin as Location } from "lucide-react"
 
@@ -35,8 +37,8 @@ export const createColumns = (roleOptions: RoleOption[] = []): ExtendedColumnDef
     cell: ({ row }) => {
       const user = row.original
       return (
-        <div className="flex items-center space-x-3">
-          <Avatar className="h-8 w-8">
+        <div className="flex min-w-[210px] max-w-sm items-center gap-3">
+          <Avatar className="size-10 shrink-0 rounded-xl">
             <AvatarImage
               src={user.avatar || `/avatars/${user.id}.png`}
               alt={user.name}
@@ -52,7 +54,7 @@ export const createColumns = (roleOptions: RoleOption[] = []): ExtendedColumnDef
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
-            <span className="font-medium">{user.name}</span>
+            <Link href={`/users/${user.id}`} className="whitespace-normal break-words font-semibold hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{user.name}</Link>
           </div>
         </div>
       )
@@ -428,26 +430,7 @@ export const createColumns = (roleOptions: RoleOption[] = []): ExtendedColumnDef
     cell: ({ row }) => {
       const status = row.original.status
 
-      const getStatusVariant = (status: UsersStatusOptions) => {
-        switch (status) {
-          case UsersStatusOptions.active:
-            return 'default'
-          case UsersStatusOptions.inactive:
-            return 'secondary'
-          case UsersStatusOptions.suspended:
-            return 'destructive'
-          case UsersStatusOptions.pendingActivation:
-            return 'outline'
-          default:
-            return 'outline'
-        }
-      }
-
-      return (
-        <Badge variant={getStatusVariant(status)}>
-          {status === UsersStatusOptions.pendingActivation ? 'Pending Activation' : status.charAt(0).toUpperCase() + status.slice(1)}
-        </Badge>
-      )
+      return <UserStatusBadge status={status} />
     },
     enableSorting: true,
     filterFn: (row, id, value) => {

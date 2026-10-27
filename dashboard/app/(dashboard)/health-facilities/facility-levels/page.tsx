@@ -5,7 +5,7 @@ import { Plus } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { usePermissionContext } from "@/lib/permission-context"
 
-import { PageHeader } from "@/components/ui/page-header"
+import { FacilitySectionHeader } from "@/components/facilities/facility-section"
 import { EnhancedBackendDataTable } from "@/components/ui/enhanced-backend-data-table"
 import { FacilityLevelsResponse } from "@/types/backend-types"
 
@@ -70,35 +70,38 @@ export default function FacilityLevelsPage() {
   }, [loading, hasPermission, router])
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Facility Levels Management"
+    <div className="w-full min-w-0 space-y-6">
+      <FacilitySectionHeader section="facility-levels"
+        title="Facility levels"
         description="Manage health facility levels (Hospital, HC III, HC II, etc.)"
-        actions={[
+        actions={hasPermission("content", "create:any") ? [
           {
             label: "Add Facility Level",
             onClick: openCreate,
             icon: <Plus className="h-4 w-4" />,
           },
-        ]}
+        ] : []}
       />
 
       <EnhancedBackendDataTable<FacilityLevelsResponse>
         collectionName="facility_levels"
         loadPage={healthFacilitiesService.listFacilityLevels}
+        appearance="workspace"
+        searchLabel="Search facility levels"
+        title="Facility levels library"
         columns={facilityLevelsColumns}
         searchable={true}
         searchFields={["name", "code"]}
         selectable={true}
         exportable={true}
         availableFields={facilityLevelsAvailableFields}
-        rowActions={rowActions}
-        bulkActions={bulkActions}
+        rowActions={rowActions.filter(action => hasPermission("content", action.id === "edit" ? "update:any" : "delete:any"))}
+        bulkActions={hasPermission("content", "delete:any") ? bulkActions : []}
         persistColumnConfig={true}
         tableContext="facility-levels-management"
       />
 
-      <AdminEntityModal
+      <AdminEntityModal collection="facility_levels"
         open={modalOpen}
         onClose={closeModal}
         createRecord={healthFacilitiesService.createFacilityLevel}

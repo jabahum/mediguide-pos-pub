@@ -3,7 +3,7 @@
 import { use, useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { usePermissionContext } from "@/lib/permission-context"
-import { PageHeader } from "@/components/ui/page-header"
+import { SupportSectionHeader } from "@/components/support/support-section"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -97,7 +97,7 @@ export default function ViewFAQPage({ params }: ViewFAQPageProps) {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="w-full min-w-0 space-y-6">
         <div className="flex items-center gap-4">
           <Skeleton className="h-8 w-8" />
           <div className="space-y-2">
@@ -112,8 +112,8 @@ export default function ViewFAQPage({ params }: ViewFAQPageProps) {
 
   if (!faq) {
     return (
-      <div className="space-y-6">
-        <PageHeader
+      <div className="w-full min-w-0 space-y-6">
+        <SupportSectionHeader section="faqs"
           title="FAQ Not Found"
           description="The requested FAQ could not be found"
           showBackButton={true}
@@ -127,8 +127,8 @@ export default function ViewFAQPage({ params }: ViewFAQPageProps) {
   const priorityConfig = getPriorityConfig(faq.priority || 'normal')
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <div className="w-full min-w-0 space-y-6">
+      <SupportSectionHeader section="faqs"
         title={faq.question}
         description={`FAQ • ${statusConfig.label}`}
         showBackButton={true}
@@ -142,11 +142,11 @@ export default function ViewFAQPage({ params }: ViewFAQPageProps) {
         ]}
       />
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
         {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="min-w-0 space-y-5">
           {/* FAQ Content */}
-          <Card>
+          <Card className="min-w-0 rounded-xl shadow-xs">
             <CardHeader className="space-y-4">
               <div className="flex items-start justify-between">
                 <CardTitle className="text-xl leading-7">
@@ -171,7 +171,7 @@ export default function ViewFAQPage({ params }: ViewFAQPageProps) {
               </div>
             </CardHeader>
             
-            <CardContent className="space-y-6">
+            <CardContent className="min-w-0 space-y-6">
               {/* Answer Content */}
               <div className="prose prose-sm max-w-none">
                 <RichContent className="text-base leading-7" html={faq.answer} />
@@ -220,7 +220,7 @@ export default function ViewFAQPage({ params }: ViewFAQPageProps) {
 
           {/* Related FAQs */}
           {faq.expand?.related_faqs && faq.expand.related_faqs.length > 0 && (
-            <Card>
+            <Card className="min-w-0 rounded-xl shadow-xs">
               <CardHeader>
                 <CardTitle className="text-lg">Related FAQs</CardTitle>
               </CardHeader>
@@ -250,9 +250,9 @@ export default function ViewFAQPage({ params }: ViewFAQPageProps) {
         </div>
 
         {/* Sidebar Information */}
-        <div className="space-y-6">
+        <div className="w-full min-w-0 space-y-6">
           {/* FAQ Details */}
-          <Card>
+          <Card className="min-w-0 rounded-xl shadow-xs">
             <CardHeader>
               <CardTitle className="text-lg">FAQ Details</CardTitle>
             </CardHeader>
@@ -326,7 +326,7 @@ export default function ViewFAQPage({ params }: ViewFAQPageProps) {
 
           {/* Author Information */}
           {faq.expand?.author && (
-            <Card>
+            <Card className="min-w-0 rounded-xl shadow-xs">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <User className="h-5 w-5" />
@@ -352,7 +352,7 @@ export default function ViewFAQPage({ params }: ViewFAQPageProps) {
 
           {/* Reviewer Information */}
           {faq.expand?.reviewer && (
-            <Card>
+            <Card className="min-w-0 rounded-xl shadow-xs">
               <CardHeader>
                 <CardTitle className="text-lg">Reviewer</CardTitle>
               </CardHeader>

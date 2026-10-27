@@ -5,7 +5,7 @@ import { Plus } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { usePermissionContext } from "@/lib/permission-context"
 
-import { PageHeader } from "@/components/ui/page-header"
+import { FacilitySectionHeader } from "@/components/facilities/facility-section"
 import { EnhancedBackendDataTable } from "@/components/ui/enhanced-backend-data-table"
 import { DistrictsWithExpanded } from "@/types/expanded"
 
@@ -83,22 +83,25 @@ export default function DistrictsPage() {
   }, [loading, hasPermission, router])
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Districts Management"
+    <div className="w-full min-w-0 space-y-6">
+      <FacilitySectionHeader section="districts"
+        title="Districts"
         description="Manage administrative districts within regions and health sub-regions"
-        actions={[
+        actions={hasPermission("content", "create:any") ? [
           {
             label: "Add District",
             onClick: openCreate,
             icon: <Plus className="h-4 w-4" />,
           },
-        ]}
+        ] : []}
       />
 
       <EnhancedBackendDataTable<DistrictsWithExpanded>
         collectionName="districts"
         loadPage={healthFacilitiesService.listDistricts}
+        appearance="workspace"
+        searchLabel="Search districts"
+        title="Districts library"
         columns={districtsColumns}
         expandable={true}
         searchable={true}
@@ -106,13 +109,13 @@ export default function DistrictsPage() {
         selectable={true}
         exportable={true}
         availableFields={districtsAvailableFields}
-        rowActions={rowActions}
-        bulkActions={bulkActions}
+        rowActions={rowActions.filter(action => hasPermission("content", action.id === "edit" ? "update:any" : "delete:any"))}
+        bulkActions={hasPermission("content", "delete:any") ? bulkActions : []}
         persistColumnConfig={true}
         tableContext="districts-management"
       />
 
-      <AdminEntityModal
+      <AdminEntityModal collection="districts"
         open={modalOpen}
         onClose={closeModal}
         createRecord={healthFacilitiesService.createDistrict}

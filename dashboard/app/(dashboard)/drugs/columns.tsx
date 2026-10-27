@@ -1,6 +1,8 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
+import { DrugStatusBadge } from "@/components/drugs/drug-section"
 import { Badge } from "@/components/ui/badge"
 import { DataTableColumnHeader } from "@/components/ui/datatable-column-header"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -31,7 +33,10 @@ export const columns: ExtendedColumnDef<DrugWithRelations>[] = [
     cell: ({ row }) => {
       const name = row.getValue("name") as string
       return (
-        <div className="font-medium">{name}</div>
+        <div className="min-w-48 max-w-md whitespace-normal">
+          <Link href={`/drugs/${row.original.id}`} className="font-semibold leading-6 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{name}</Link>
+          {row.original.brand_names && <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">{row.original.brand_names}</p>}
+        </div>
       )
     },
   },
@@ -73,9 +78,11 @@ export const columns: ExtendedColumnDef<DrugWithRelations>[] = [
       }
 
       return (
-        <Popover>
-          <PopoverTrigger className="cursor-pointer">
-            {categories.length} {categories.length === 1 ? 'category' : 'categories'}
+        <div className="flex max-w-xs flex-wrap items-center gap-1.5 whitespace-normal">
+          {categories.slice(0, 2).map((category) => <Badge key={category.id} variant="secondary" className="max-w-full whitespace-normal rounded-md font-normal">{category.name}</Badge>)}
+          {categories.length > 2 && <Popover>
+          <PopoverTrigger className="rounded-md px-1.5 py-1 text-xs text-muted-foreground underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label={`View all ${categories.length} categories for ${row.original.name}`}>
+            +{categories.length - 2} more
           </PopoverTrigger>
           <PopoverContent className="w-60" align="start">
             <ul className="space-y-1 list-disc list-inside">
@@ -86,7 +93,8 @@ export const columns: ExtendedColumnDef<DrugWithRelations>[] = [
               ))}
             </ul>
           </PopoverContent>
-        </Popover>
+          </Popover>}
+        </div>
       )
     },
   },
@@ -109,21 +117,7 @@ export const columns: ExtendedColumnDef<DrugWithRelations>[] = [
     ),
     cell: ({ row }) => {
       const status = row.getValue("status") as string
-      const getStatusVariant = (status: string) => {
-        switch (status) {
-          case "active": return "default"
-          case "inactive": return "secondary"
-          case "under_review": return "outline"
-          case "archived": return "destructive"
-          default: return "secondary"
-        }
-      }
-
-      return (
-        <Badge variant={getStatusVariant(status) as "default" | "secondary" | "destructive" | "outline"}>
-          {status?.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase())}
-        </Badge>
-      )
+      return <DrugStatusBadge status={status} />
     },
   },
 
@@ -556,26 +550,12 @@ export const columns: ExtendedColumnDef<DrugWithRelations>[] = [
   // ADMINISTRATIVE (Hidden by default)
   {
     accessorKey: "review_status",
-    defaultVisible: false,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Review Status" />
     ),
     cell: ({ row }) => {
       const status = row.getValue("review_status") as string
-      const getReviewVariant = (status: string) => {
-        switch (status) {
-          case "approved": return "default"
-          case "pending": return "outline"
-          case "needs_update": return "secondary"
-          default: return "secondary"
-        }
-      }
-
-      return (
-        <Badge variant={getReviewVariant(status) as "default" | "secondary" | "destructive" | "outline"}>
-          {status?.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase())}
-        </Badge>
-      )
+      return <DrugStatusBadge status={status} />
     },
   },
   {

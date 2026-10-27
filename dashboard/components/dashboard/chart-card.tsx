@@ -6,15 +6,17 @@ import type { ReactNode } from "react"
 type ChartCardProps = {
   title: string
   children: ReactNode
+  description?: string
 }
 
-export function ChartCard({ title, children }: ChartCardProps) {
+export function ChartCard({ title, children, description }: ChartCardProps) {
   return (
-    <Card className="h-full">
+    <Card className="h-full min-w-0 rounded-xl shadow-xs">
       <CardHeader>
-        <CardTitle>{title}</CardTitle>
+        <CardTitle className="text-base">{title}</CardTitle>
+        {description && <p className="text-sm leading-6 text-muted-foreground">{description}</p>}
       </CardHeader>
-      <CardContent>{children}</CardContent>
+      <CardContent className="min-w-0">{children}</CardContent>
     </Card>
   )
 }

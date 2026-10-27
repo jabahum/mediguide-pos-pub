@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PageHeader } from "@/components/ui/page-header";
+import { ToolSectionHeader } from "@/components/clinical-tools/tool-section";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import {
@@ -62,6 +62,9 @@ export default function CalculatorsPage() {
   const [definition, setDefinition] =
     React.useState<ClinicalToolDefinition | null>(null);
   const [loading, setLoading] = React.useState(true);
+  const [catalogError, setCatalogError] = React.useState(false);
+  const [catalogRevision, setCatalogRevision] = React.useState(0);
+  const [definitionRevision, setDefinitionRevision] = React.useState(0);
   const [definitionLoading, setDefinitionLoading] = React.useState(false);
   const [definitionError, setDefinitionError] = React.useState<string | null>(
     null,
@@ -82,7 +85,6 @@ export default function CalculatorsPage() {
   }, [permissionLoading, hasPermission, router]);
   React.useEffect(() => {
     let cancelled = false;
-    setLoading(true);
     calculatorService
       .list({
         page: 1,
@@ -100,6 +102,8 @@ export default function CalculatorsPage() {
         setSelectedId((current) => current || items[0]?.id || "");
       })
       .catch((error) => {
+        if (cancelled) return;
+        setCatalogError(true);
         console.error("Failed to load clinical tools:", error);
         showToast.error(
           "Load failed",
@@ -112,7 +116,7 @@ export default function CalculatorsPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [catalogRevision]);
 
   React.useEffect(() => {
     if (!selectedId) {
@@ -133,7 +137,7 @@ export default function CalculatorsPage() {
         console.error("Published schema unavailable:", error);
         if (!cancelled)
           setDefinitionError(
-            "A clinically reviewed JSON-schema version has not been published for this tool yet.",
+            "Unable to load the published definition. It may not be published yet, or the request could not be completed.",
           );
       })
       .finally(() => {
@@ -142,7 +146,7 @@ export default function CalculatorsPage() {
     return () => {
       cancelled = true;
     };
-  }, [selectedId]);
+  }, [selectedId, definitionRevision]);
 
   const selected = tools.find((tool) => tool.id === selectedId);
   const { activeCategories } = useToolCategories();
@@ -250,8 +254,8 @@ export default function CalculatorsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <div className="w-full min-w-0 space-y-6">
+      <ToolSectionHeader section="run"
         title="Clinical Tools"
         description="Run clinically reviewed calculators, decision tools, and checklists"
         actions={[
@@ -262,29 +266,21 @@ export default function CalculatorsPage() {
           },
         ]}
       />
-      <dl className="flex flex-wrap items-center gap-x-8 gap-y-2 rounded-lg border bg-card px-4 py-3 text-sm">
-        <div className="flex items-baseline gap-2">
-          <dt className="text-muted-foreground">Published tools</dt>
-          <dd className="font-semibold">{tools.length}</dd>
-        </div>
-        <div className="flex items-baseline gap-2">
-          <dt className="text-muted-foreground">Schema runtime</dt>
-          <dd className="font-medium">JSON schema v1</dd>
-        </div>
-        <div className="flex items-baseline gap-2">
-          <dt className="text-muted-foreground">Execution policy</dt>
-          <dd className="font-medium">Native controls only</dd>
-        </div>
+      <dl className="grid gap-4 rounded-xl border bg-muted/20 p-4 sm:grid-cols-3">
+        <div><dt className="text-xs text-muted-foreground">Loaded active tools</dt><dd className="mt-1 text-xl font-semibold tabular-nums">{loading ? "—" : tools.length.toLocaleString()}</dd></div>
+        <div><dt className="text-xs text-muted-foreground">Matching search</dt><dd className="mt-1 text-xl font-semibold tabular-nums">{loading ? "—" : visibleTools.length.toLocaleString()}</dd></div>
+        <div className="min-w-0"><dt className="text-xs text-muted-foreground">Selected tool</dt><dd className="mt-1 break-words font-medium">{selected?.name || "Choose a tool below"}</dd></div>
       </dl>
-      <div className="grid min-h-[620px] gap-5 lg:grid-cols-[340px_1fr]">
-        <Card className="flex flex-col lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:self-start">
+      <div className="grid min-h-[620px] gap-5 lg:grid-cols-[minmax(260px,.75fr)_minmax(0,2fr)] 2xl:grid-cols-[minmax(300px,1fr)_minmax(0,3fr)]">
+        <Card className="min-w-0 rounded-xl shadow-xs flex flex-col lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:self-start">
           <CardHeader>
             <CardTitle>Available tools</CardTitle>
-            <CardDescription>Select a published tool to run</CardDescription>
+            <CardDescription>Up to 100 active catalog entries. A published definition is required to run a tool.</CardDescription>
             <div className="relative pt-2">
               <Search className="absolute left-3 top-4.5 h-4 w-4 text-muted-foreground" />
               <Input
                 className="pl-9"
+                aria-label="Search clinical tools"
                 placeholder="Search tools…"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
@@ -302,9 +298,10 @@ export default function CalculatorsPage() {
                 Loading tools…
               </div>
             ) : null}
-            {!loading && visibleTools.length === 0 ? (
+            {catalogError ? <div role="alert" className="space-y-3 py-6 text-sm"><p>Could not load the tool catalog.</p><Button variant="outline" onClick={() => { setLoading(true); setCatalogError(false); setCatalogRevision(value => value + 1) }}>Try again</Button></div> : null}
+            {!loading && !catalogError && visibleTools.length === 0 ? (
               <p className="py-8 text-center text-sm text-muted-foreground">
-                No published tools found.
+                {search.trim() ? "No tools match your search. Try another name or keyword." : "No active tools are available yet."}
               </p>
             ) : null}
             {visibleTools.map((tool) => (
@@ -317,21 +314,21 @@ export default function CalculatorsPage() {
                 type="button"
                 aria-pressed={selectedId === tool.id}
                 onClick={() => selectTool(tool.id)}
-                className={`w-full cursor-pointer rounded-lg border p-3 text-left transition-colors ${selectedId === tool.id ? "border-primary bg-primary/5" : "hover:border-primary/40 hover:bg-muted/50"}`}
+                className={`w-full cursor-pointer rounded-xl border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${selectedId === tool.id ? "border-primary bg-primary/5" : "hover:border-primary/40 hover:bg-muted/50"}`}
               >
                 <div className="flex items-start gap-3">
                   <span className="rounded-md bg-primary/10 p-2 text-primary">
                     <Calculator className="h-4 w-4" />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate font-medium">
+                    <span className="block break-words font-medium">
                       {tool.name}
                     </span>
                     <span className="mt-1 line-clamp-2 block text-xs text-muted-foreground">
                       {tool.description || "Clinical tool"}
                     </span>
                     <Badge className="mt-2" variant="outline">
-                      {tool.type || "calculator"}
+                      {(tool.type || "calculator").replaceAll("_", " ")}
                     </Badge>
                   </span>
                 </div>
@@ -339,8 +336,8 @@ export default function CalculatorsPage() {
             ))}
           </CardContent>
         </Card>
-        <div ref={panelRef} className="scroll-mt-20">
-          <Card>
+        <div ref={panelRef} className="min-w-0 scroll-mt-20">
+          <Card className="min-w-0 rounded-xl shadow-xs">
             <CardHeader>
               <CardTitle>
                 {selected?.name ?? "Select a clinical tool"}
@@ -351,6 +348,7 @@ export default function CalculatorsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
+              {!selected && !loading && <div className="rounded-xl border border-dashed bg-muted/20 p-8 text-center text-sm text-muted-foreground">Choose a tool from the catalog to view its inputs and results.</div>}
               {definitionLoading ? (
                 <div className="flex min-h-80 items-center justify-center gap-2 text-muted-foreground">
                   <Loader2 className="animate-spin" />
@@ -365,6 +363,7 @@ export default function CalculatorsPage() {
                   <p className="mt-2 max-w-md text-sm text-muted-foreground">
                     {definitionError}
                   </p>
+                  <Button className="mt-4" variant="outline" onClick={() => { setDefinitionLoading(true); setDefinitionError(null); setDefinitionRevision(value => value + 1) }}>Try again</Button>
                 </div>
               ) : null}
               {!definitionLoading && definition ? (

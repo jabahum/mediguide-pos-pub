@@ -1,7 +1,7 @@
 "use client"
 
+import { SupportStatusBadge } from "@/components/support/support-section"
 import type { ColumnDef } from "@tanstack/react-table"
-import { Badge } from "@/components/ui/badge"
 import { DataTableColumnHeader } from "@/components/ui/datatable-column-header"
 import { formatDistanceToNow } from "date-fns"
 import type { FaqTagWithStats } from "@/types/faq"
@@ -16,7 +16,7 @@ export const columns: ColumnDef<FaqTagWithStats>[] = [
     cell: ({ row }) => {
       const name = row.getValue("name") as string
       return (
-        <span className="font-medium">{name}</span>
+        <span className="block min-w-[180px] max-w-sm whitespace-normal break-words font-semibold">{name}</span>
       )
     },
     enableSorting: true,
@@ -32,9 +32,7 @@ export const columns: ColumnDef<FaqTagWithStats>[] = [
     cell: ({ row }) => {
       const isActive = row.getValue("is_active") as boolean
       return (
-        <Badge variant={isActive ? "default" : "secondary"}>
-          {isActive ? "Active" : "Inactive"}
-        </Badge>
+        <SupportStatusBadge status={isActive ? "active" : "inactive"} />
       )
     },
     filterFn: (row, id, value) => {
@@ -79,7 +77,7 @@ export const columns: ColumnDef<FaqTagWithStats>[] = [
       }
       
       return (
-        <span className="text-sm line-clamp-2 max-w-[250px]" title={description}>
+        <span className="block max-w-md whitespace-normal break-words text-sm leading-6" title={description}>
           {description}
         </span>
       )

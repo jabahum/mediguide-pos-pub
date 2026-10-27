@@ -4,7 +4,7 @@ import GuidelineDetailsPage from "./page"
 import type { GuidelineDocumentRecord } from "@/services/guideline-documents.service"
 
 const { state, push } = vi.hoisted(() => ({ state: { document: {} as GuidelineDocumentRecord }, push: vi.fn() }))
-vi.mock("next/navigation", () => ({ useParams: () => ({ id: "doc" }), useRouter: () => ({ push, replace: vi.fn() }) }))
+vi.mock("next/navigation", () => ({ usePathname: () => "/guidelines/doc", useParams: () => ({ id: "doc" }), useRouter: () => ({ push, replace: vi.fn() }) }))
 vi.mock("@tanstack/react-query", () => ({
   useQuery: ({ queryKey }: { queryKey: string[] }) => ({ data: queryKey.length === 2 ? state.document : queryKey.includes("sections") ? [] : "", isLoading: false, isError: false }),
   useQueryClient: () => ({ invalidateQueries: vi.fn().mockResolvedValue(undefined) }),

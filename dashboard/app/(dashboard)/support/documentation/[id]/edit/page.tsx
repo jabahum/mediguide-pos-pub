@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { PageHeader } from "@/components/ui/page-header"
+import { SupportSectionHeader } from "@/components/support/support-section"
 import { RichTextEditor } from "@/components/ui/rich-text-editor"
 import { LoadingState } from "@/components/ui/loading-state"
 import {
@@ -164,8 +164,8 @@ export default function EditDocumentationPage({ params }: EditDocumentationPageP
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <div className="w-full min-w-0 space-y-6">
+      <SupportSectionHeader showNavigation={false} section="documentation"
         title="Edit Documentation"
         description={`Editing: ${documentationData.title}`}
         showBackButton={true}
@@ -182,11 +182,11 @@ export default function EditDocumentationPage({ params }: EditDocumentationPageP
       />
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="min-w-0 space-y-6">
+          <div className="grid gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
             {/* Main Content */}
-            <div className="lg:col-span-2 space-y-6">
-              <Card>
+            <div className="min-w-0 space-y-5">
+              <Card className="min-w-0 rounded-xl shadow-xs">
                 <CardHeader>
                   <CardTitle>Basic Information</CardTitle>
                   <CardDescription>
@@ -238,7 +238,7 @@ export default function EditDocumentationPage({ params }: EditDocumentationPageP
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="min-w-0 rounded-xl shadow-xs">
                 <CardHeader>
                   <CardTitle>Content</CardTitle>
                   <CardDescription>
@@ -272,8 +272,8 @@ export default function EditDocumentationPage({ params }: EditDocumentationPageP
             </div>
 
             {/* Sidebar */}
-            <div className="space-y-6">
-              <Card>
+            <div className="w-full min-w-0 space-y-6">
+              <Card className="min-w-0 rounded-xl shadow-xs">
                 <CardHeader>
                   <CardTitle>Publication</CardTitle>
                   <CardDescription>
@@ -309,7 +309,7 @@ export default function EditDocumentationPage({ params }: EditDocumentationPageP
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="min-w-0 rounded-xl shadow-xs">
                 <CardHeader>
                   <CardTitle>Organization</CardTitle>
                   <CardDescription>
@@ -381,7 +381,7 @@ export default function EditDocumentationPage({ params }: EditDocumentationPageP
               </div>
 
               {/* Metadata */}
-              <Card>
+              <Card className="min-w-0 rounded-xl shadow-xs">
                 <CardHeader>
                   <CardTitle>Metadata</CardTitle>
                 </CardHeader>

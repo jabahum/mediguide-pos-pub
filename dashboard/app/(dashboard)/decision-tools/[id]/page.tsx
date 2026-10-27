@@ -1,9 +1,9 @@
 "use client"
 
 import * as React from "react"
-import { useRouter } from "next/navigation"
+import { useDashboardRouter as useRouter } from "@/components/dialogs/create-dialog-context"
 import { notFound } from "next/navigation"
-import { PageHeader } from "@/components/ui/page-header"
+import { ToolSectionHeader, ToolStatusBadge } from "@/components/clinical-tools/tool-section"
 import { Badge } from "@/components/ui/badge"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -78,19 +78,6 @@ export default function DecisionToolViewPage({ params }: DecisionToolViewPagePro
     }
   }
 
-  const getStatusVariant = (status: CalculatorsStatusOptions) => {
-    switch (status) {
-      case CalculatorsStatusOptions.active:
-        return "default"
-      case CalculatorsStatusOptions.draft:
-        return "secondary"
-      case CalculatorsStatusOptions.archived:
-        return "destructive"
-      default:
-        return "secondary"
-    }
-  }
-
   const getTypeDisplayName = (type: CalculatorsTypeOptions) => {
     return type === CalculatorsTypeOptions.decision_tool ? "Decision Tool" : 
            type.charAt(0).toUpperCase() + type.slice(1)
@@ -98,8 +85,8 @@ export default function DecisionToolViewPage({ params }: DecisionToolViewPagePro
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <PageHeader
+      <div className="w-full min-w-0 space-y-6">
+        <ToolSectionHeader
           title="Loading..."
           showBackButton={true}
           onBack={() => router.push("/decision-tools")}
@@ -119,8 +106,8 @@ export default function DecisionToolViewPage({ params }: DecisionToolViewPagePro
   const appFileLabel = getAppFileLabel(tool.appFile)
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <div className="w-full min-w-0 space-y-6">
+      <ToolSectionHeader
         title={tool.name}
         description={tool.description}
         showBackButton={true}
@@ -141,12 +128,12 @@ export default function DecisionToolViewPage({ params }: DecisionToolViewPagePro
             onClick: handleAuthor,
             icon: <Settings className="h-4 w-4" />
           }] : []),
-          {
+          ...(hasPermission("content", "create:any") ? [{
             label: "Duplicate",
             onClick: handleDuplicate,
             icon: <Copy className="h-4 w-4" />,
             variant: "outline" as const
-          },
+          }] : []),
           ...(hasPermission("content", "delete:any") ? [{
             label: "Delete",
             onClick: handleDelete,
@@ -158,23 +145,21 @@ export default function DecisionToolViewPage({ params }: DecisionToolViewPagePro
       />
 
       {/* Status Badges */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-2">
           <StoredIcon icon={tool.icon} fallback={getTypeIcon(tool.type)} />
           <Badge variant="outline">
             {getTypeDisplayName(tool.type)}
           </Badge>
         </div>
-        <Badge variant={getStatusVariant(tool.status) as "default" | "secondary" | "destructive" | "outline"}>
-          {(tool.status as string).charAt(0).toUpperCase() + (tool.status as string).slice(1)}
-        </Badge>
+        <ToolStatusBadge status={tool.status} />
         <Badge variant="secondary" className="font-mono">
           v{tool.version}
         </Badge>
       </div>
 
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-xl p-1.5 sm:grid-cols-4">
           <TabsTrigger value="overview" className="flex items-center gap-1">
             <Info className="h-4 w-4" />
             Overview
@@ -193,14 +178,14 @@ export default function DecisionToolViewPage({ params }: DecisionToolViewPagePro
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="mt-8">
-          <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
+        <TabsContent value="overview" className="mt-5">
+          <div className="grid gap-5 [&>*]:min-w-0" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))" }}>
             {/* Basic Information */}
-            <Card>
+            <Card className="min-w-0 rounded-xl shadow-xs">
               <CardHeader className="pb-4">
                 <CardTitle>Tool Information</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-muted-foreground">Tool Type</Label>
                   <div className="flex items-center gap-2">
@@ -220,16 +205,14 @@ export default function DecisionToolViewPage({ params }: DecisionToolViewPagePro
 
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-muted-foreground">Current Status</Label>
-                  <Badge variant={getStatusVariant(tool.status) as "default" | "secondary" | "destructive" | "outline"}>
-                    {(tool.status as string).charAt(0).toUpperCase() + (tool.status as string).slice(1)}
-                  </Badge>
+                  <ToolStatusBadge status={tool.status} />
                 </div>
               </CardContent>
             </Card>
 
             {/* Visual Properties */}
             {(tool.color || tool.backgroundColor) && (
-              <Card>
+              <Card className="min-w-0 rounded-xl shadow-xs">
                 <CardHeader className="pb-4">
                   <CardTitle>Visual Design</CardTitle>
                 </CardHeader>
@@ -243,7 +226,7 @@ export default function DecisionToolViewPage({ params }: DecisionToolViewPagePro
                           style={{ backgroundColor: tool.color }}
                           title={tool.color}
                         />
-                        <span className="text-sm font-mono">{tool.color}</span>
+                        <span className="break-all text-sm font-mono">{tool.color}</span>
                       </div>
                     </div>
                   )}
@@ -257,7 +240,7 @@ export default function DecisionToolViewPage({ params }: DecisionToolViewPagePro
                           style={{ backgroundColor: tool.backgroundColor }}
                           title={tool.backgroundColor}
                         />
-                        <span className="text-sm font-mono">{tool.backgroundColor}</span>
+                        <span className="break-all text-sm font-mono">{tool.backgroundColor}</span>
                       </div>
                     </div>
                   )}
@@ -267,7 +250,7 @@ export default function DecisionToolViewPage({ params }: DecisionToolViewPagePro
 
             {/* Contributors */}
             {addedByUsers.length > 0 && (
-              <Card>
+              <Card className="min-w-0 rounded-xl shadow-xs">
                 <CardHeader className="pb-4">
                   <CardTitle>Contributors</CardTitle>
                   <CardDescription>Users who added or maintain this tool</CardDescription>
@@ -292,7 +275,7 @@ export default function DecisionToolViewPage({ params }: DecisionToolViewPagePro
 
           {/* Description */}
           {tool.description && (
-            <Card className="mt-8">
+            <Card className="mt-5">
               <CardHeader className="pb-4">
                 <CardTitle>Description</CardTitle>
               </CardHeader>
@@ -303,8 +286,8 @@ export default function DecisionToolViewPage({ params }: DecisionToolViewPagePro
           )}
         </TabsContent>
 
-        <TabsContent value="configuration" className="mt-8 space-y-8">
-          <Card>
+        <TabsContent value="configuration" className="mt-5 space-y-5">
+          <Card className="min-w-0 rounded-xl shadow-xs">
             <CardHeader className="pb-4">
               <CardTitle>Technical Configuration</CardTitle>
               <CardDescription>Application file and technical details</CardDescription>
@@ -313,7 +296,7 @@ export default function DecisionToolViewPage({ params }: DecisionToolViewPagePro
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-muted-foreground">App File Path</Label>
                 <div className="bg-muted p-3 rounded-md">
-                  <code className="text-sm font-mono">
+                  <code className="break-all text-sm font-mono">
                     {appFileLabel || "—"}
                   </code>
                 </div>
@@ -322,19 +305,19 @@ export default function DecisionToolViewPage({ params }: DecisionToolViewPagePro
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-muted-foreground">Tool ID</Label>
                 <div className="bg-muted p-3 rounded-md">
-                  <code className="text-sm font-mono">{tool.id}</code>
+                  <code className="break-all text-sm font-mono">{tool.id}</code>
                 </div>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="usage" className="mt-8 space-y-8">
+        <TabsContent value="usage" className="mt-5 space-y-5">
           <ToolUsage toolId={id} />
         </TabsContent>
 
-        <TabsContent value="metadata" className="mt-8 space-y-8">
-          <Card>
+        <TabsContent value="metadata" className="mt-5 space-y-5">
+          <Card className="min-w-0 rounded-xl shadow-xs">
             <CardHeader className="pb-4">
               <CardTitle>Record Metadata</CardTitle>
               <CardDescription>Database record information and timestamps</CardDescription>
@@ -365,7 +348,7 @@ export default function DecisionToolViewPage({ params }: DecisionToolViewPagePro
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-muted-foreground">Tool ID</Label>
                   <div className="bg-muted p-3 rounded-md">
-                    <code className="text-sm font-mono">{tool.id}</code>
+                    <code className="break-all text-sm font-mono">{tool.id}</code>
                   </div>
                 </div>
               </div>

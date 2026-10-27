@@ -62,6 +62,7 @@ import { GuidelineAssetsService, type GuidelineAsset } from "@/services/guidelin
 import { guidelineAssetMarkdown, insertMarkdownBlock } from "./guideline-asset-markdown"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
+import { TablePagination } from "@/components/ui/table-pagination"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -287,6 +288,8 @@ export function GuidelineMarkdownEditor({
   const [historyLoading, setHistoryLoading] = React.useState(false)
   const [revisions, setRevisions] = React.useState<MarkdownRevision[]>([])
   const [historyPage, setHistoryPage] = React.useState(1)
+  const [historySize, setHistorySize] = React.useState(20)
+  const [historyTotal, setHistoryTotal] = React.useState(0)
   const [historyTotalPages, setHistoryTotalPages] = React.useState(1)
   const [historySource, setHistorySource] = React.useState("")
   const [historyEditor, setHistoryEditor] = React.useState("")
@@ -671,13 +674,13 @@ export function GuidelineMarkdownEditor({
     }
   }
 
-  const loadHistory = async (page = historyPage) => {
+  const loadHistory = async (page = historyPage, size = historySize) => {
     setHistoryOpen(true)
     setHistoryLoading(true)
     try {
       const result = await GuidelineMarkdownService.revisions(versionId, {
         page,
-        per_page: 20,
+        per_page: size,
         source_type: historySource as never,
         created_by: historyEditor.trim() || undefined,
         from: historyFrom ? new Date(`${historyFrom}T00:00:00`).toISOString() : undefined,
@@ -685,6 +688,7 @@ export function GuidelineMarkdownEditor({
       })
       setHistoryPage(result.page)
       setHistoryTotalPages(result.total_pages)
+      setHistoryTotal(result.total_items)
       setRevisions(result.items.map((revision) => ({
         ...revision,
         change_summary: [
@@ -1435,7 +1439,7 @@ export function GuidelineMarkdownEditor({
           <div className="grid gap-2 sm:grid-cols-4"><Input aria-label="Filter by editor UUID" placeholder="Editor UUID" value={historyEditor} onChange={(event) => setHistoryEditor(event.target.value)} /><select aria-label="Filter by source type" className="h-9 rounded-md border bg-background px-3 text-sm" value={historySource} onChange={(event) => setHistorySource(event.target.value)}><option value="">All sources</option>{["blank", "template", "uploaded_markdown", "pdf_generated", "manual_edit", "restored", "duplicated"].map((source) => <option key={source} value={source}>{source.replaceAll("_", " ")}</option>)}</select><Input aria-label="Created from" type="date" value={historyFrom} onChange={(event) => setHistoryFrom(event.target.value)} /><Input aria-label="Created to" type="date" value={historyTo} onChange={(event) => setHistoryTo(event.target.value)} /></div>
           <div className="flex flex-wrap gap-2"><Button size="sm" onClick={() => void loadHistory(1)}>Apply filters</Button><Button size="sm" variant="outline" disabled={selectedRevisionIds.length !== 2} onClick={() => void compareSelectedRevisions()}>Compare selected ({selectedRevisionIds.length}/2)</Button></div>
           <ScrollArea className="max-h-[55vh]"><div className="space-y-2 pr-3">{historyLoading && <p className="text-sm text-muted-foreground">Loading revisions…</p>}{revisions.map((revision) => <div key={revision.id} className="flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center"><Checkbox aria-label={`Select revision ${revision.revision_number}`} checked={selectedRevisionIds.includes(revision.id)} onCheckedChange={(checked) => setSelectedRevisionIds((current) => checked ? [...current.filter((id) => id !== revision.id), revision.id].slice(-2) : current.filter((id) => id !== revision.id))} /><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><span className="font-medium">Revision {revision.revision_number}</span>{revision.is_current && <Badge>Current draft</Badge>}{revision.publication_state === "published" && <Badge variant="secondary">Published source</Badge>}{revision.regeneration_job_id && <Badge variant="outline">Generated structured content</Badge>}<Badge variant="outline">{revision.source_type.replaceAll("_", " ")}</Badge></div><p className="mt-1 truncate text-sm">{revision.checkpoint_name || revision.change_summary || "Unnamed draft"}</p><p className="text-xs text-muted-foreground">{new Date(revision.created_at).toLocaleString()} · editor {revision.created_by || "system"} · {revision.size_bytes.toLocaleString()} bytes · {revision.structured_content_status.replaceAll("_", " ")}</p>{revision.change_summary && <p className="mt-1 text-xs text-muted-foreground">{revision.change_summary}</p>}</div><div className="flex flex-wrap gap-2"><Button size="sm" variant="outline" onClick={() => void previewRevision(revision)}>Preview</Button><Button size="sm" variant="outline" onClick={() => void compareRevision(revision)}>Compare current</Button><Button size="sm" variant="outline" onClick={async () => { const item = await GuidelineMarkdownService.revision(versionId, revision.id); downloadText(`guideline-revision-${revision.revision_number}.md`, item.content) }}>Download</Button>{canEdit && !revision.is_current && <Button size="sm" onClick={() => setPendingRestore(revision)}>Restore</Button>}</div></div>)}</div></ScrollArea>
-          <DialogFooter className="items-center"><span className="mr-auto text-xs text-muted-foreground">Page {historyPage} of {Math.max(1, historyTotalPages)}</span><Button variant="outline" disabled={historyPage <= 1 || historyLoading} onClick={() => void loadHistory(historyPage - 1)}>Previous</Button><Button variant="outline" disabled={historyPage >= historyTotalPages || historyLoading} onClick={() => void loadHistory(historyPage + 1)}>Next</Button></DialogFooter>
+          <TablePagination label="Revision history pages" page={historyPage} pageSize={historySize} totalItems={historyTotal} totalPages={historyTotalPages} loading={historyLoading} onPageChange={page => void loadHistory(page)} onPageSizeChange={size => { setHistorySize(size); void loadHistory(1, size) }} />
         </DialogContent>
       </Dialog>
 

@@ -189,7 +189,7 @@ export function DrugForm({
     <>
       <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
         <Tabs defaultValue="basic" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-xl p-1.5 sm:grid-cols-4 [&>button]:min-h-10">
             <TabsTrigger value="basic">Basic Info</TabsTrigger>
             <TabsTrigger value="clinical">Clinical</TabsTrigger>
             <TabsTrigger value="dosing">Dosing</TabsTrigger>
@@ -231,7 +231,7 @@ export function DrugForm({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="drug_class">Drug Class</Label>
                 <SelectWithCreate
@@ -351,7 +351,7 @@ export function DrugForm({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="adult_dose">Adult Dose</Label>
                 <Input
@@ -373,7 +373,7 @@ export function DrugForm({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="elderly_dose">Elderly Dose</Label>
                 <Input
@@ -395,7 +395,7 @@ export function DrugForm({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="frequency">Frequency</Label>
                 <Input
@@ -430,7 +430,7 @@ export function DrugForm({
           </TabsContent>
 
           <TabsContent value="metadata" className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label>Pregnancy Category</Label>
                 <Select
@@ -494,7 +494,7 @@ export function DrugForm({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label>Status</Label>
                 <Select
@@ -567,7 +567,7 @@ export function DrugForm({
           </TabsContent>
         </Tabs>
 
-        <div className="flex justify-end space-x-2 pt-6 border-t">
+        <div className="sticky bottom-0 z-10 flex flex-wrap justify-end gap-2 border-t bg-background/95 py-4 backdrop-blur-sm">
           <Button
             type="button"
             variant="outline"

@@ -2,32 +2,21 @@
 
 import * as React from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import { z } from "zod"
-import { useRouter } from "next/navigation"
-import { useQueryClient } from "@tanstack/react-query"
+import { useDashboardRouter as useRouter } from "@/components/dialogs/create-dialog-context"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { FacilityFormNavigation } from "@/components/facilities/facility-section"
+import { facilityOptionsQueryKey } from "@/lib/facility-query-keys"
 import { showToast } from "@/lib/toast"
 import { healthFacilitiesService } from "@/services/health-facilities.service"
-import { 
-  FacilityLevelsResponse, 
-  AuthoritiesResponse, 
-  OwnershipTypesResponse,
-  RegionsResponse,
-  DistrictsResponse,
-  CountiesResponse,
-  SubcountiesResponse,
-  ParishesResponse,
-  HealthSubDistrictsResponse,
-  HealthSubRegionsResponse
-} from "@/types/backend-types"
-
 // Form validation schema
 const facilityFormSchema = z.object({
   name: z.string().min(1, "Facility name is required"),
@@ -62,18 +51,6 @@ export function FacilityForm({ initialData, mode, facilityId }: FacilityFormProp
   const queryClient = useQueryClient()
   const [isLoading, setIsLoading] = React.useState(false)
   
-  // State for dropdown options
-  const [facilityLevels, setFacilityLevels] = React.useState<FacilityLevelsResponse[]>([])
-  const [authorities, setAuthorities] = React.useState<AuthoritiesResponse[]>([])
-  const [ownershipTypes, setOwnershipTypes] = React.useState<OwnershipTypesResponse[]>([])
-  const [regions, setRegions] = React.useState<RegionsResponse[]>([])
-  const [healthSubRegions, setHealthSubRegions] = React.useState<HealthSubRegionsResponse[]>([])
-  const [districts, setDistricts] = React.useState<DistrictsResponse[]>([])
-  const [counties, setCounties] = React.useState<CountiesResponse[]>([])
-  const [healthSubDistricts, setHealthSubDistricts] = React.useState<HealthSubDistrictsResponse[]>([])
-  const [subcounties, setSubcounties] = React.useState<SubcountiesResponse[]>([])
-  const [parishes, setParishes] = React.useState<ParishesResponse[]>([])
-
   const form = useForm<FacilityFormValues>({
     resolver: zodResolver(facilityFormSchema),
     defaultValues: {
@@ -94,148 +71,34 @@ export function FacilityForm({ initialData, mode, facilityId }: FacilityFormProp
     },
   })
 
-  // Watch form values for cascading dropdowns
-  const selectedRegion = form.watch("region")
-  const selectedDistrict = form.watch("district")
-  const selectedCounty = form.watch("county")
-  const selectedSubcounty = form.watch("subcounty")
+  const selectedRegion = useWatch({ control: form.control, name: "region" })
+  const selectedDistrict = useWatch({ control: form.control, name: "district" })
+  const selectedCounty = useWatch({ control: form.control, name: "county" })
+  const selectedSubcounty = useWatch({ control: form.control, name: "subcounty" })
 
-  // Load dropdown options on component mount
-  React.useEffect(() => {
-    const loadOptions = async () => {
-      try {
-        const [
-          facilityLevelsData,
-          authoritiesData,
-          ownershipTypesData,
-          regionsData,
-        ] = await Promise.all([
-          healthFacilitiesService.facilityLevels(),
-          healthFacilitiesService.authorities(),
-          healthFacilitiesService.ownershipTypes(),
-          healthFacilitiesService.regions(),
-        ])
-
-        setFacilityLevels(facilityLevelsData as FacilityLevelsResponse[])
-        setAuthorities(authoritiesData as AuthoritiesResponse[])
-        setOwnershipTypes(ownershipTypesData as OwnershipTypesResponse[])
-        setRegions(regionsData as RegionsResponse[])
-      } catch (error) {
-        console.error("Failed to load form options:", error)
-        showToast.error("Error", "Failed to load form options")
-      }
-    }
-
-    loadOptions()
-  }, [])
-
-  // Load cascading options based on selections
-  React.useEffect(() => {
-    if (!selectedRegion) {
-      setHealthSubRegions([])
-      return
-    }
-
-    if (selectedRegion) {
-      const loadHealthSubRegions = async () => {
-        try {
-          const data = await healthFacilitiesService.healthSubRegions(selectedRegion)
-          setHealthSubRegions(data as HealthSubRegionsResponse[])
-        } catch (error) {
-          console.error("Failed to load health sub regions:", error)
-        }
-      }
-      loadHealthSubRegions()
-    }
-  }, [selectedRegion])
-
-  React.useEffect(() => {
-    if (!selectedRegion) {
-      setDistricts([])
-      return
-    }
-
-    if (selectedRegion) {
-      const loadDistricts = async () => {
-        try {
-          const data = await healthFacilitiesService.districts(selectedRegion)
-          setDistricts(data as DistrictsResponse[])
-        } catch (error) {
-          console.error("Failed to load districts:", error)
-        }
-      }
-      loadDistricts()
-    }
-  }, [selectedRegion])
-
-  React.useEffect(() => {
-    if (!selectedDistrict) {
-      setCounties([])
-      setHealthSubDistricts([])
-      return
-    }
-
-    if (selectedDistrict) {
-      const loadCounties = async () => {
-        try {
-          const data = await healthFacilitiesService.counties(selectedDistrict)
-          setCounties(data as CountiesResponse[])
-        } catch (error) {
-          console.error("Failed to load counties:", error)
-        }
-      }
-
-      const loadHealthSubDistricts = async () => {
-        try {
-          const data = await healthFacilitiesService.healthSubDistricts(selectedDistrict)
-          setHealthSubDistricts(data as HealthSubDistrictsResponse[])
-        } catch (error) {
-          console.error("Failed to load health sub districts:", error)
-        }
-      }
-
-      loadCounties()
-      loadHealthSubDistricts()
-    }
-  }, [selectedDistrict])
-
-  React.useEffect(() => {
-    if (!selectedCounty) {
-      setSubcounties([])
-      return
-    }
-
-    if (selectedCounty) {
-      const loadSubcounties = async () => {
-        try {
-          const data = await healthFacilitiesService.subcounties(selectedDistrict, selectedCounty)
-          setSubcounties(data as SubcountiesResponse[])
-        } catch (error) {
-          console.error("Failed to load subcounties:", error)
-        }
-      }
-      loadSubcounties()
-    }
-  }, [selectedCounty, selectedDistrict])
-
-  React.useEffect(() => {
-    if (!selectedSubcounty) {
-      setParishes([])
-      return
-    }
-
-    if (selectedSubcounty) {
-      const loadParishes = async () => {
-        try {
-          const data = await healthFacilitiesService.parishes(selectedSubcounty)
-          setParishes(data as ParishesResponse[])
-        } catch (error) {
-          console.error("Failed to load parishes:", error)
-        }
-      }
-      loadParishes()
-    }
-  }, [selectedSubcounty])
+  const levelsQuery = useQuery({ queryKey: [...facilityOptionsQueryKey, "facility-levels"], queryFn: healthFacilitiesService.facilityLevels })
+  const authoritiesQuery = useQuery({ queryKey: [...facilityOptionsQueryKey, "authorities"], queryFn: () => healthFacilitiesService.authorities() })
+  const ownershipQuery = useQuery({ queryKey: [...facilityOptionsQueryKey, "ownership-types"], queryFn: healthFacilitiesService.ownershipTypes })
+  const regionsQuery = useQuery({ queryKey: [...facilityOptionsQueryKey, "regions"], queryFn: healthFacilitiesService.regions })
+  const subRegionsQuery = useQuery({ queryKey: [...facilityOptionsQueryKey, "health-sub-regions", selectedRegion], queryFn: () => healthFacilitiesService.healthSubRegions(selectedRegion), enabled: Boolean(selectedRegion) })
+  const districtsQuery = useQuery({ queryKey: [...facilityOptionsQueryKey, "districts", selectedRegion], queryFn: () => healthFacilitiesService.districts(selectedRegion), enabled: Boolean(selectedRegion) })
+  const countiesQuery = useQuery({ queryKey: [...facilityOptionsQueryKey, "counties", selectedDistrict], queryFn: () => healthFacilitiesService.counties(selectedDistrict), enabled: Boolean(selectedDistrict) })
+  const subDistrictsQuery = useQuery({ queryKey: [...facilityOptionsQueryKey, "health-sub-districts", selectedDistrict], queryFn: () => healthFacilitiesService.healthSubDistricts(selectedDistrict), enabled: Boolean(selectedDistrict) })
+  const subcountiesQuery = useQuery({ queryKey: [...facilityOptionsQueryKey, "subcounties", selectedDistrict, selectedCounty], queryFn: () => healthFacilitiesService.subcounties(selectedDistrict, selectedCounty), enabled: Boolean(selectedCounty && selectedDistrict) })
+  const parishesQuery = useQuery({ queryKey: [...facilityOptionsQueryKey, "parishes", selectedSubcounty], queryFn: () => healthFacilitiesService.parishes(selectedSubcounty), enabled: Boolean(selectedSubcounty) })
+  const facilityLevels = levelsQuery.data || []
+  const authorities = authoritiesQuery.data || []
+  const ownershipTypes = ownershipQuery.data || []
+  const regions = regionsQuery.data || []
+  const healthSubRegions = subRegionsQuery.data || []
+  const districts = districtsQuery.data || []
+  const counties = countiesQuery.data || []
+  const healthSubDistricts = subDistrictsQuery.data || []
+  const subcounties = subcountiesQuery.data || []
+  const parishes = parishesQuery.data || []
+  const choiceQueries = [levelsQuery, authoritiesQuery, ownershipQuery, regionsQuery, subRegionsQuery, districtsQuery, countiesQuery, subDistrictsQuery, subcountiesQuery, parishesQuery]
+  const choicesFetching = choiceQueries.some(query => query.isFetching)
+  const choicesError = choiceQueries.some(query => query.isError)
 
   const resetLocationFields = React.useCallback((fields: Array<keyof FacilityFormValues>) => {
     fields.forEach((fieldName) => {
@@ -246,34 +109,21 @@ export function FacilityForm({ initialData, mode, facilityId }: FacilityFormProp
   const handleRegionChange = React.useCallback((value: string) => {
     form.setValue("region", value, { shouldDirty: true, shouldValidate: true })
     resetLocationFields(["health_sub_region", "district", "county", "health_sub_district", "subcounty", "parish"])
-    setHealthSubRegions([])
-    setDistricts([])
-    setCounties([])
-    setHealthSubDistricts([])
-    setSubcounties([])
-    setParishes([])
   }, [form, resetLocationFields])
 
   const handleDistrictChange = React.useCallback((value: string) => {
     form.setValue("district", value, { shouldDirty: true, shouldValidate: true })
     resetLocationFields(["county", "health_sub_district", "subcounty", "parish"])
-    setCounties([])
-    setHealthSubDistricts([])
-    setSubcounties([])
-    setParishes([])
   }, [form, resetLocationFields])
 
   const handleCountyChange = React.useCallback((value: string) => {
     form.setValue("county", value, { shouldDirty: true, shouldValidate: true })
     resetLocationFields(["subcounty", "parish"])
-    setSubcounties([])
-    setParishes([])
   }, [form, resetLocationFields])
 
   const handleSubcountyChange = React.useCallback((value: string) => {
     form.setValue("subcounty", value, { shouldDirty: true, shouldValidate: true })
     resetLocationFields(["parish"])
-    setParishes([])
   }, [form, resetLocationFields])
 
   const onSubmit = async (data: FacilityFormValues) => {
@@ -284,10 +134,10 @@ export function FacilityForm({ initialData, mode, facilityId }: FacilityFormProp
         showToast.success("Success", "Health facility created successfully")
       } else if (mode === "edit" && facilityId) {
         await healthFacilitiesService.updateFacility(facilityId, data)
-        await queryClient.invalidateQueries({ queryKey: ["backend", "health_facilities", "record", facilityId] })
         showToast.success("Success", "Health facility updated successfully")
       }
 
+      await queryClient.invalidateQueries({ queryKey: ["backend", "health_facilities"] })
       router.push('/health-facilities')
     } catch (error) {
       console.error("Failed to save facility:", error)
@@ -301,10 +151,13 @@ export function FacilityForm({ initialData, mode, facilityId }: FacilityFormProp
   }
 
   return (
+    <>
+    <FacilityFormNavigation />
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="grid min-w-0 items-start gap-5 xl:grid-cols-2">
+        {choicesError && <Alert variant="destructive" className="xl:col-span-2"><AlertDescription className="flex flex-wrap items-center justify-between gap-3"><span>Some facility options could not be loaded. Retry before saving.</span><Button type="button" variant="outline" size="sm" onClick={() => void queryClient.invalidateQueries({ queryKey: facilityOptionsQueryKey })}>Retry options</Button></AlertDescription></Alert>}
         {/* Basic Information */}
-        <Card>
+        <Card id="facility-identity" className="min-w-0 scroll-mt-24 rounded-xl shadow-xs">
           <CardHeader>
             <CardTitle>Basic Information</CardTitle>
             <CardDescription>
@@ -365,7 +218,7 @@ export function FacilityForm({ initialData, mode, facilityId }: FacilityFormProp
         </Card>
 
         {/* Classification */}
-        <Card>
+        <Card id="facility-classification" className="min-w-0 scroll-mt-24 rounded-xl shadow-xs">
           <CardHeader>
             <CardTitle>Classification</CardTitle>
             <CardDescription>
@@ -380,7 +233,7 @@ export function FacilityForm({ initialData, mode, facilityId }: FacilityFormProp
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Facility Level</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value} disabled={isLoading || levelsQuery.isPending || levelsQuery.isError}>
                       <FormControl>
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select level" />
@@ -405,7 +258,7 @@ export function FacilityForm({ initialData, mode, facilityId }: FacilityFormProp
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Authority</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value} disabled={isLoading || authoritiesQuery.isPending || authoritiesQuery.isError}>
                       <FormControl>
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select authority" />
@@ -430,7 +283,7 @@ export function FacilityForm({ initialData, mode, facilityId }: FacilityFormProp
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Ownership Type</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value} disabled={isLoading || ownershipQuery.isPending || ownershipQuery.isError}>
                       <FormControl>
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select ownership" />
@@ -453,7 +306,7 @@ export function FacilityForm({ initialData, mode, facilityId }: FacilityFormProp
         </Card>
 
         {/* Geographic Location */}
-        <Card>
+        <Card id="facility-location" className="min-w-0 scroll-mt-24 rounded-xl shadow-xs xl:col-span-2">
           <CardHeader>
             <CardTitle>Geographic Location</CardTitle>
             <CardDescription>
@@ -469,7 +322,7 @@ export function FacilityForm({ initialData, mode, facilityId }: FacilityFormProp
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Region</FormLabel>
-                    <Select onValueChange={handleRegionChange} value={field.value}>
+                    <Select onValueChange={handleRegionChange} value={field.value} disabled={isLoading || regionsQuery.isPending || regionsQuery.isError}>
                       <FormControl>
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select region" />
@@ -497,7 +350,7 @@ export function FacilityForm({ initialData, mode, facilityId }: FacilityFormProp
                     <Select 
                       onValueChange={field.onChange} 
                       value={field.value}
-                      disabled={!selectedRegion}
+                      disabled={isLoading || !selectedRegion || subRegionsQuery.isFetching || subRegionsQuery.isError}
                     >
                       <FormControl>
                         <SelectTrigger className="w-full">
@@ -529,7 +382,7 @@ export function FacilityForm({ initialData, mode, facilityId }: FacilityFormProp
                     <Select 
                       onValueChange={handleDistrictChange} 
                       value={field.value}
-                      disabled={!selectedRegion}
+                      disabled={isLoading || !selectedRegion || districtsQuery.isFetching || districtsQuery.isError}
                     >
                       <FormControl>
                         <SelectTrigger className="w-full">
@@ -558,7 +411,7 @@ export function FacilityForm({ initialData, mode, facilityId }: FacilityFormProp
                     <Select 
                       onValueChange={field.onChange} 
                       value={field.value}
-                      disabled={!selectedDistrict}
+                      disabled={isLoading || !selectedDistrict || subDistrictsQuery.isFetching || subDistrictsQuery.isError}
                     >
                       <FormControl>
                         <SelectTrigger className="w-full">
@@ -590,7 +443,7 @@ export function FacilityForm({ initialData, mode, facilityId }: FacilityFormProp
                     <Select 
                       onValueChange={handleCountyChange} 
                       value={field.value}
-                      disabled={!selectedDistrict}
+                      disabled={isLoading || !selectedDistrict || countiesQuery.isFetching || countiesQuery.isError}
                     >
                       <FormControl>
                         <SelectTrigger className="w-full">
@@ -619,7 +472,7 @@ export function FacilityForm({ initialData, mode, facilityId }: FacilityFormProp
                     <Select 
                       onValueChange={handleSubcountyChange} 
                       value={field.value}
-                      disabled={!selectedCounty}
+                      disabled={isLoading || !selectedCounty || subcountiesQuery.isFetching || subcountiesQuery.isError}
                     >
                       <FormControl>
                         <SelectTrigger className="w-full">
@@ -648,7 +501,7 @@ export function FacilityForm({ initialData, mode, facilityId }: FacilityFormProp
                     <Select 
                       onValueChange={field.onChange} 
                       value={field.value}
-                      disabled={!selectedSubcounty}
+                      disabled={isLoading || !selectedSubcounty || parishesQuery.isFetching || parishesQuery.isError}
                     >
                       <FormControl>
                         <SelectTrigger className="w-full">
@@ -671,23 +524,23 @@ export function FacilityForm({ initialData, mode, facilityId }: FacilityFormProp
           </CardContent>
         </Card>
 
-        <Separator />
 
         {/* Form Actions */}
-        <div className="flex items-center justify-end space-x-2">
+        <div className="flex flex-wrap items-center justify-end gap-3 rounded-xl border bg-muted/20 p-4 xl:col-span-2">
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.back()}
+            onClick={() => router.push("/health-facilities")}
             disabled={isLoading}
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={isLoading}>
+          <Button type="submit" disabled={isLoading || choicesFetching || choicesError}>
             {isLoading ? (mode === "create" ? "Creating..." : "Updating...") : (mode === "create" ? "Create Facility" : "Update Facility")}
           </Button>
         </div>
       </form>
     </Form>
+    </>
   )
 }

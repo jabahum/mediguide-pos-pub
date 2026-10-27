@@ -60,15 +60,17 @@ export function EditRoleModal({
     }
   }, [role, form])
 
+  const [submitError, setSubmitError] = React.useState("")
+
   const handleSubmit = async (data: EditRoleFormData) => {
     if (!role) return
-    
+    setSubmitError("")
     try {
       await onSubmit(role.id, data)
       onOpenChange(false)
     } catch (error) {
       // Error handling is done in the parent component
-      console.error('Failed to update role:', error)
+      setSubmitError(error instanceof Error ? error.message : "Could not update the role")
     }
   }
 
@@ -77,6 +79,7 @@ export function EditRoleModal({
       onOpenChange(newOpen)
       if (!newOpen) {
         form.reset()
+        setSubmitError("")
       }
     }
   }
@@ -85,7 +88,7 @@ export function EditRoleModal({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-h-[90dvh] overflow-y-auto rounded-2xl sm:max-w-xl">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Shield className="h-5 w-5" />
@@ -100,8 +103,9 @@ export function EditRoleModal({
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
             {/* Role Name (Read-only) */}
             <div className="space-y-2">
-              <FormLabel>Role Name</FormLabel>
+              <label htmlFor="role-display-name" className="text-sm font-medium">Role Name</label>
               <Input
+                id="role-display-name"
                 value={role.name}
                 disabled
                 className="bg-muted"
@@ -110,6 +114,8 @@ export function EditRoleModal({
                 Role name cannot be changed for system consistency
               </FormDescription>
             </div>
+
+            <div className="rounded-xl border bg-muted/20 p-3 text-xs"><p className="font-medium text-muted-foreground">Role key</p><code className="mt-1 block break-all">{role.key}</code></div>
 
             {/* Description */}
             <FormField
@@ -139,7 +145,7 @@ export function EditRoleModal({
               control={form.control}
               name="isActive"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                <FormItem className="flex flex-row items-center justify-between rounded-xl border bg-muted/20 p-4">
                   <div className="space-y-0.5">
                     <FormLabel>Active Role</FormLabel>
                     <FormDescription>
@@ -157,8 +163,10 @@ export function EditRoleModal({
               )}
             />
 
+            {submitError && <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{submitError}</p>}
+
             {/* Action Buttons */}
-            <div className="flex justify-end space-x-2 pt-4">
+            <div className="flex flex-wrap justify-end gap-2 border-t pt-4">
               <Button
                 type="button"
                 variant="outline"

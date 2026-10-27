@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { DashboardLink as Link } from "@/components/dialogs/create-dialog-context";
+import { useDashboardRouter as useRouter } from "@/components/dialogs/create-dialog-context";
 import {
   Archive,
   ArchiveRestore,
@@ -184,19 +184,8 @@ export function ContentHubEditor({ id }: { id?: string }) {
         title={workspace?.hub.name || "Create content hub"}
         description="Configure reusable pillars and approved resources without an application release."
       />
-      <div className="flex flex-wrap gap-2">
-        <Button variant="outline" asChild>
-          <Link href="/content-hubs">Back to hubs</Link>
-        </Button>
-        {canManageHub ? <Button
-          disabled={busy || !form.name.trim()}
-          onClick={() => void save()}
-        >
-          <Save className="mr-2 h-4 w-4" />
-          Save
-        </Button> : null}
-        {workspace ? (
-          <>
+      {workspace && (canPublishHub || canArchiveHub) ? (
+        <div className="flex flex-wrap gap-2">
             {canPublishHub ? <Button
               disabled={workspace.hub.status !== "draft"}
               onClick={() => void transition("publish")}
@@ -223,9 +212,8 @@ export function ContentHubEditor({ id }: { id?: string }) {
                 </Button>
               )
             ) : null}
-          </>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
       <Card>
         <CardHeader>
           <CardTitle>Hub metadata and scope</CardTitle>
@@ -331,6 +319,19 @@ export function ContentHubEditor({ id }: { id?: string }) {
           </div>
         </CardContent>
       </Card>
+      <div className="flex flex-wrap justify-end gap-2 border-t pt-4">
+        <Button type="button" variant="outline" disabled={busy} onClick={() => router.push("/content-hubs")}>
+          Cancel
+        </Button>
+        {canManageHub ? <Button
+          type="button"
+          disabled={busy || !form.name.trim()}
+          onClick={() => void save()}
+        >
+          <Save className="mr-2 h-4 w-4" />
+          Save
+        </Button> : null}
+      </div>
       {workspace ? (
         <>
           <Card>

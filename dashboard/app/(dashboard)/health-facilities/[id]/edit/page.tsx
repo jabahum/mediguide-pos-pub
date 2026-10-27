@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useParams, useRouter } from "next/navigation"
 
-import { PageHeader } from "@/components/ui/page-header"
+import { FacilitySectionHeader } from "@/components/facilities/facility-section"
 import { usePermissionContext } from "@/lib/permission-context"
 import { FacilityForm } from "../../components/facility-form"
 import { showToast } from "@/lib/toast"
@@ -46,12 +46,12 @@ export default function EditFacilityPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <PageHeader
+      <div className="w-full min-w-0 space-y-6">
+        <FacilitySectionHeader showNavigation={false} section="directory"
           title="Edit Health Facility"
           description="Loading facility data..."
           showBackButton={true}
-          onBack={() => window.history.back()}
+          onBack={() => router.push("/health-facilities")}
         />
         <div className="flex items-center justify-center py-12">
           <div className="text-muted-foreground">Loading...</div>
@@ -62,12 +62,12 @@ export default function EditFacilityPage() {
 
   if (!facility) {
     return (
-      <div className="space-y-6">
-        <PageHeader
+      <div className="w-full min-w-0 space-y-6">
+        <FacilitySectionHeader showNavigation={false} section="directory"
           title="Edit Health Facility"
           description="Facility not found"
           showBackButton={true}
-          onBack={() => window.history.back()}
+          onBack={() => router.push("/health-facilities")}
         />
         <div className="flex items-center justify-center py-12">
           <div className="text-muted-foreground">Facility not found</div>
@@ -94,12 +94,12 @@ export default function EditFacilityPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <div className="w-full min-w-0 space-y-6">
+      <FacilitySectionHeader showNavigation={false} section="directory"
         title="Edit Health Facility"
         description={`Update details for ${facility.name}`}
         showBackButton={true}
-        onBack={() => window.history.back()}
+        onBack={() => router.push("/health-facilities")}
       />
 
       <FacilityForm 

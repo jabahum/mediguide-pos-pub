@@ -160,8 +160,8 @@ export function ClinicalToolWorkspace({ toolId, toolType, initialVersion, onChan
   const readyToSubmit = Boolean(version?.validation_passed && version?.tests_passed)
   const allIssues = [...parsed.issues, ...issues]
 
-  return <div className="space-y-6">
-    <Card>
+  return <div className="min-w-0 space-y-6">
+    <Card className="min-w-0 rounded-xl shadow-xs">
       <CardContent className="space-y-4 pt-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-4">
@@ -201,9 +201,9 @@ export function ClinicalToolWorkspace({ toolId, toolType, initialVersion, onChan
       </CardContent>
     </Card>
 
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(340px,.7fr)]">
-      <div className="space-y-6">
-        <Card>
+    <div className="grid gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+      <div className="min-w-0 space-y-6">
+        <Card className="min-w-0 rounded-xl shadow-xs">
           <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3 space-y-0">
             <div className="space-y-1.5">
               <CardTitle>Definition</CardTitle>
@@ -222,7 +222,7 @@ export function ClinicalToolWorkspace({ toolId, toolType, initialVersion, onChan
                 <TabsTrigger value="outline">Outline</TabsTrigger>
               </TabsList>
               <TabsContent value="editor" className="mt-4">
-                <Textarea aria-label="Clinical tool JSON definition" spellCheck={false} className="min-h-[520px] font-mono text-xs" value={raw} onChange={(event) => setRaw(event.target.value)} />
+                <Textarea aria-label="Clinical tool JSON definition" spellCheck={false} className="min-h-[520px] font-mono text-xs leading-6" value={raw} onChange={(event) => setRaw(event.target.value)} />
               </TabsContent>
               <TabsContent value="outline" className="mt-4">
                 <DefinitionOutline definition={parsed.definition} />
@@ -263,7 +263,7 @@ export function ClinicalToolWorkspace({ toolId, toolType, initialVersion, onChan
         </details>
       </div>
 
-      <Card className="h-fit xl:sticky xl:top-6"><CardHeader><CardTitle>Preview</CardTitle><CardDescription>How the definition runs, using the same restricted evaluator as the app.</CardDescription></CardHeader><CardContent className="space-y-5">
+      <Card className="min-w-0 h-fit rounded-xl shadow-xs xl:sticky xl:top-6"><CardHeader><CardTitle>Preview</CardTitle><CardDescription>How the definition runs, using the same restricted evaluator as the app.</CardDescription></CardHeader><CardContent className="space-y-5">
         <div className="flex flex-wrap items-center gap-2" aria-label="Preview settings"><select aria-label="Preview width" className="rounded-md border bg-background px-2 py-2 text-sm" value={previewWidth} onChange={(event) => setPreviewWidth(event.target.value as typeof previewWidth)}><option value="mobile">Mobile</option><option value="tablet">Tablet</option><option value="desktop">Desktop</option></select><Button size="sm" variant="outline" onClick={() => setPreviewDark((value) => !value)}>{previewDark ? "Light theme" : "Dark theme"}</Button><Label className="flex items-center gap-2 text-xs">Text scale<input aria-label="Preview text scale" type="range" min="1" max="2" step="0.25" value={previewScale} onChange={(event) => setPreviewScale(Number(event.target.value))} /></Label></div>
         <div className={`mx-auto space-y-5 rounded-lg border p-4 transition-all ${previewDark ? "dark bg-slate-950 text-slate-50" : "bg-background"} ${previewWidth === "mobile" ? "max-w-sm" : previewWidth === "tablet" ? "max-w-2xl" : "max-w-none"}`} style={{ fontSize: `${previewScale}rem` }}>
         <div className="flex items-center gap-2 text-sm">{version?.validation_passed ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : <AlertTriangle className="h-4 w-4 text-amber-600" />}<span>{version?.status ?? "unsaved"} · {parsed.definition?.version ?? version?.semantic_version ?? "no version"}</span></div>

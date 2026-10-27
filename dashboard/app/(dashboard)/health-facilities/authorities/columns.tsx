@@ -21,7 +21,7 @@ export const authoritiesColumns: ExtendedColumnDef<AuthoritiesWithOwnershipType>
       />
     ),
     cell: ({ row }) => (
-      <div className="font-medium">{row.getValue("name")}</div>
+      <div className="min-w-[160px] whitespace-normal break-words font-semibold">{row.getValue("name")}</div>
     ),
     enableSorting: true,
     enableHiding: false,
@@ -38,7 +38,7 @@ export const authoritiesColumns: ExtendedColumnDef<AuthoritiesWithOwnershipType>
       />
     ),
     cell: ({ row }) => (
-      <Badge variant="secondary" className="font-mono text-xs">
+      <Badge variant="secondary" className="max-w-xs whitespace-normal break-all font-mono text-xs">
         {row.getValue("code")}
       </Badge>
     ),

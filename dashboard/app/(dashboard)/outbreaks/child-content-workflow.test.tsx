@@ -112,7 +112,7 @@ test("resources can be paged five at a time", async () => {
   render(<ChildContentWorkflow outbreakId="o1" kind="resource" empty="none" items={items} documentKinds={kinds} onChanged={vi.fn(async () => {})} pageSize={5} />);
   expect(screen.getByText("Resource 5")).toBeTruthy();
   expect(screen.queryByText("Resource 6")).toBeNull();
-  expect(screen.getByText("Showing 1–5 of 7")).toBeTruthy();
+  expect(screen.getByText("Showing 1 to 5 of 7 results")).toBeTruthy();
   expect((screen.getByRole("button", { name: "Previous" }) as HTMLButtonElement).disabled).toBe(true);
 
   fireEvent.click(screen.getByRole("button", { name: "Next" }));

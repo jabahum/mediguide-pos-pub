@@ -5,7 +5,7 @@ import { Plus } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { usePermissionContext } from "@/lib/permission-context"
 
-import { PageHeader } from "@/components/ui/page-header"
+import { FacilitySectionHeader } from "@/components/facilities/facility-section"
 import { EnhancedBackendDataTable } from "@/components/ui/enhanced-backend-data-table"
 import { AuthoritiesWithOwnershipType } from "@/types/expanded"
 
@@ -76,22 +76,25 @@ export default function AuthoritiesPage() {
   }, [loading, hasPermission, router])
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Authorities Management"
+    <div className="w-full min-w-0 space-y-6">
+      <FacilitySectionHeader section="authorities"
+        title="Authorities"
         description="Manage health facility authorities (MOH, Medical Bureaus, NGOs, etc.)"
-        actions={[
+        actions={hasPermission("content", "create:any") ? [
           {
             label: "Add Authority",
             onClick: openCreate,
             icon: <Plus className="h-4 w-4" />,
           },
-        ]}
+        ] : []}
       />
 
       <EnhancedBackendDataTable<AuthoritiesWithOwnershipType>
         collectionName="authorities"
         loadPage={healthFacilitiesService.listAuthorities}
+        appearance="workspace"
+        searchLabel="Search authorities"
+        title="Authorities library"
         columns={authoritiesColumns}
         expandable={true}
         searchable={true}
@@ -99,13 +102,13 @@ export default function AuthoritiesPage() {
         selectable={true}
         exportable={true}
         availableFields={authoritiesAvailableFields}
-        rowActions={rowActions}
-        bulkActions={bulkActions}
+        rowActions={rowActions.filter(action => hasPermission("content", action.id === "edit" ? "update:any" : "delete:any"))}
+        bulkActions={hasPermission("content", "delete:any") ? bulkActions : []}
         persistColumnConfig={true}
         tableContext="authorities-management"
       />
 
-      <AdminEntityModal
+      <AdminEntityModal collection="authorities"
         open={modalOpen}
         onClose={closeModal}
         createRecord={healthFacilitiesService.createAuthority}

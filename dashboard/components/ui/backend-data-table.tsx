@@ -31,6 +31,7 @@ import { DataTableToolbar } from "@/components/ui/datatable-toolbar"
 import { DataTablePagination } from "@/components/ui/datatable-pagination"
 import { DataTableRowActions } from "@/components/ui/datatable-row-actions"
 import { useBackendTable } from "@/hooks/use-backend-table"
+import { cn } from "@/lib/utils"
 import {
   BaseRecord,
   AdvancedFilter,
@@ -49,6 +50,7 @@ const DEFAULT_CONFIG = {
 
 export function BackendDataTable<TData extends BaseRecord = BaseRecord>({
   collection,
+  queryScope,
   columns,
   loadPage,
 
@@ -81,6 +83,8 @@ export function BackendDataTable<TData extends BaseRecord = BaseRecord>({
     importable: ui.importable ?? true,
     title: ui.title,
     description: ui.description,
+    appearance: ui.appearance,
+    searchLabel: ui.searchLabel,
   }
 
   // Enhanced columns with selection if bulk actions are provided
@@ -150,6 +154,7 @@ export function BackendDataTable<TData extends BaseRecord = BaseRecord>({
     exportData,
   } = useBackendTable<TData>({
     collection,
+    queryScope,
     loadPage,
     searchFields,
     rowActions,
@@ -167,7 +172,7 @@ export function BackendDataTable<TData extends BaseRecord = BaseRecord>({
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const defaultColumnVisibility = React.useMemo<VisibilityState>(() => {
     const hidden = new Set([
-      "status",
+      ...(ui.appearance === "workspace" ? [] : ["status"]),
       "created",
       "updated",
       "order",
@@ -192,7 +197,7 @@ export function BackendDataTable<TData extends BaseRecord = BaseRecord>({
     })
 
     return visibility
-  }, [columns])
+  }, [columns, ui.appearance])
 
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(
     defaultColumnVisibility
@@ -296,6 +301,8 @@ export function BackendDataTable<TData extends BaseRecord = BaseRecord>({
         table={table}
         title={uiConfig.title}
         description={uiConfig.description}
+        appearance={uiConfig.appearance}
+        searchLabel={uiConfig.searchLabel}
         searchable={searchFields.length > 0}
         searchPlaceholder={searchPlaceholder}
         bulkActions={bulkActions}
@@ -312,9 +319,9 @@ export function BackendDataTable<TData extends BaseRecord = BaseRecord>({
 
       {/* Table */}
       <div className="grid grid-cols-1">
-        <div className="rounded-md border">
+        <div className={cn("rounded-md border", uiConfig.appearance === "workspace" && "overflow-hidden rounded-xl bg-card shadow-xs")}>
           <Table>
-            <TableHeader>
+            <TableHeader className={uiConfig.appearance === "workspace" ? "bg-muted/40" : undefined}>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
@@ -369,7 +376,7 @@ export function BackendDataTable<TData extends BaseRecord = BaseRecord>({
                     {row.getVisibleCells().map((cell) => (
                       <TableCell
                         key={cell.id}
-                        className="whitespace-nowrap px-4"
+                        className={cn("whitespace-nowrap px-4", uiConfig.appearance === "workspace" && "py-4")}
                       >
                         {flexRender(
                           cell.column.columnDef.cell,
@@ -409,6 +416,7 @@ export function BackendDataTable<TData extends BaseRecord = BaseRecord>({
 
       {/* Pagination */}
       <DataTablePagination
+        appearance={uiConfig.appearance}
         table={table}
         paginationInfo={paginationInfo}
         pageSizeOptions={DEFAULT_CONFIG.pageSizeOptions}

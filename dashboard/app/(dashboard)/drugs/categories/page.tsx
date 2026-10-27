@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { Plus, FolderTree, Edit, Trash2, Eye } from "lucide-react"
 
 // Components
-import { PageHeader } from "@/components/ui/page-header"
+import { DrugSectionHeader } from "@/components/drugs/drug-section"
 import { BackendDataTable } from "@/components/ui/backend-data-table"
 
 // Dialogs
@@ -161,11 +161,12 @@ export default function DrugCategoriesPage() {
 
 
   return (
-    <div className="space-y-6">
+    <div className="w-full min-w-0 space-y-6">
       {/* Page Header */}
-      <PageHeader
+      <DrugSectionHeader
+        icon={FolderTree}
         title="Drug Categories"
-        description="Manage hierarchical drug categories for organizing medications by therapeutic class, mechanism, or clinical use"
+        description="Organize medications into clear, consistent clinical and therapeutic groups."
         actions={hasPermission("content", "create:any") ? [
           {
             label: "Add Category",
@@ -180,11 +181,15 @@ export default function DrugCategoriesPage() {
         collection="drug_categories"
         loadPage={drugReferenceService.listCategoriesTable}
         columns={categoryColumns}
+        searchPlaceholder="Search category name or description…"
         searchFields={["name", "description"]}
         rowActions={categoryRowActions}
         bulkActions={categoryBulkActions}
         availableFields={categoryAvailableFields}
         ui={{
+          appearance: "workspace",
+          searchLabel: "Search categories",
+          title: "Category library",
           exportable: true,
           importable: true
         }}
