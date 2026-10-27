@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import { DashboardLink as Link } from "@/components/dialogs/create-dialog-context";
-import { ArrowRight, ChevronLeft, ChevronRight, MoreHorizontal, RefreshCw, SearchX, Trash2, type LucideIcon } from "lucide-react";
+import { ArrowRight, MoreHorizontal, RefreshCw, SearchX, Trash2, type LucideIcon } from "lucide-react";
+import { TablePagination } from "@/components/ui/table-pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -69,10 +70,6 @@ export function ListFeedback({ loading, error, empty, filtered, noun, icon: Icon
   return <div className="rounded-xl border border-dashed bg-card"><EmptyState icon={filtered ? SearchX : Icon} title={filtered ? `No ${noun} match your filters` : `No ${noun} yet`} description={filtered ? "Try a different search or clear your filters to see all records." : `Create your first record to start organizing ${noun} and their review workflow.`} action={filtered ? { label: "Clear filters", onClick: onClear } : undefined} />{!filtered && <div className="-mt-6 flex justify-center pb-8"><Button asChild><Link href={createHref}>{createLabel}</Link></Button></div>}</div>;
 }
 
-export function ListPagination({ page, pages, total, count, loading, onChange }: { page: number; pages: number; total: number; count: number; loading: boolean; onChange: (page: number) => void }) {
-  if (loading || total === 0) return null;
-  return <nav aria-label="Results pages" className="flex flex-wrap items-center justify-between gap-3 border-t pt-5">
-    <p className="text-sm text-muted-foreground">Showing {(page - 1) * 20 + 1}–{(page - 1) * 20 + count} of {total}</p>
-    {pages > 1 && <div className="flex items-center gap-2"><Button variant="outline" size="sm" disabled={page <= 1} onClick={() => onChange(page - 1)}><ChevronLeft className="mr-1 size-4" aria-hidden="true" />Previous</Button><span className="px-1 text-xs tabular-nums text-muted-foreground">Page {page} of {pages}</span><Button variant="outline" size="sm" disabled={page >= pages} onClick={() => onChange(page + 1)}>Next<ChevronRight className="ml-1 size-4" aria-hidden="true" /></Button></div>}
-  </nav>;
+export function ListPagination({ page, pages, total, count, loading, onChange, pageSize = 20, onPageSizeChange }: { page: number; pages: number; total: number; count: number; loading: boolean; onChange: (page: number) => void; pageSize?: number; onPageSizeChange?: (size: number) => void }) {
+  return <TablePagination label="Results pages" page={page} pageSize={pageSize} totalItems={total} totalPages={pages} count={count} loading={loading} onPageChange={onChange} onPageSizeChange={onPageSizeChange} />;
 }

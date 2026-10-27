@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { CloudCog, Loader2, RefreshCw, LockKeyhole, Save, Send } from "lucide-react"
+import { usePagination } from "@/hooks/use-client-pagination"
+import { TablePagination } from "@/components/ui/table-pagination"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -37,6 +39,7 @@ export default function FirebaseSettingsPage() {
   const [searching, setSearching] = useState(false)
   const [currentUser, setCurrentUser] = useState(true)
   const [pushResult, setPushResult] = useState<TestPushResult | null>(null)
+  const pushPages = usePagination(pushResult?.devices || [])
   const [title, setTitle] = useState("MediGuide test notification")
   const [body, setBody] = useState("Firebase Cloud Messaging is configured correctly.")
   const [action, setAction] = useState<NotificationAction>(emptyNotificationAction)
@@ -195,7 +198,7 @@ export default function FirebaseSettingsPage() {
                   if (window.confirm("Send this test push to every enabled installation registered to this user?")) void sendPush(false)
                 }}><Send className="mr-2 h-4 w-4" />Send push</Button>
               </div>
-              {pushResult ? <div className="overflow-x-auto rounded-xl border"><table className="w-full text-sm"><thead className="bg-muted/40"><tr className="border-b text-left"><th className="px-4 py-3">Platform</th><th className="px-4 py-3">App version</th><th className="px-4 py-3">Result</th><th className="px-4 py-3">Error</th></tr></thead><tbody>{pushResult.devices.map((device) => <tr key={device.device_id} className="border-b last:border-0"><td className="px-4 py-3">{device.platform}</td><td className="px-4 py-3">{device.app_version || "—"}</td><td className="px-4 py-3">{device.state}</td><td className="px-4 py-3">{device.error_category || "—"}</td></tr>)}</tbody></table></div> : null}
+              {pushResult ? <div className="overflow-x-auto rounded-xl border"><table className="w-full text-sm"><thead className="bg-muted/40"><tr className="border-b text-left"><th className="px-4 py-3">Platform</th><th className="px-4 py-3">App version</th><th className="px-4 py-3">Result</th><th className="px-4 py-3">Error</th></tr></thead><tbody>{pushPages.visible.map((device) => <tr key={device.device_id} className="border-b last:border-0"><td className="px-4 py-3">{device.platform}</td><td className="px-4 py-3">{device.app_version || "—"}</td><td className="px-4 py-3">{device.state}</td><td className="px-4 py-3">{device.error_category || "—"}</td></tr>)}</tbody></table><TablePagination label="Push result pages" page={pushPages.page} pageSize={pushPages.pageSize} totalItems={pushPages.total} onPageChange={pushPages.setPage} onPageSizeChange={pushPages.setPageSize} /></div> : null}
             </CardContent>
           </Card> : null}
           </div>

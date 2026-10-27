@@ -40,6 +40,7 @@ const ACTIONS: Record<string, string> = {
 export function AuditHistory({ entity, id, refreshKey }: { entity: keyof typeof SERVICES; id: string; refreshKey?: unknown }) {
   const service = SERVICES[entity];
   const [page, setPage] = React.useState(1);
+  const [pageSize, setPageSize] = React.useState(DEFAULT_PAGE_SIZE);
   const [reload, setReload] = React.useState(0);
   const [history, setHistory] = React.useState<PagedResult<OutbreakAuditRecord> | null>(null);
   const [loading, setLoading] = React.useState(true);
@@ -53,12 +54,12 @@ export function AuditHistory({ entity, id, refreshKey }: { entity: keyof typeof 
     setLoading(true);
     setError("");
     service
-      .audit(id, page, DEFAULT_PAGE_SIZE)
+      .audit(id, page, pageSize)
       .then((result) => { if (current) setHistory(result); })
       .catch((value) => { if (current) setError(value instanceof Error ? value.message : "Unable to load the audit history"); })
       .finally(() => { if (current) setLoading(false); });
     return () => { current = false; };
-  }, [service, id, page, refreshKey, reload]);
+  }, [service, id, page, pageSize, refreshKey, reload]);
 
   async function addComment() {
     setPosting(true);
@@ -101,15 +102,17 @@ export function AuditHistory({ entity, id, refreshKey }: { entity: keyof typeof 
         ) : null}
         <PaginationControls
           label="Audit history"
+          loading={loading}
           pagination={{
             visible: items,
-            offset: (page - 1) * DEFAULT_PAGE_SIZE,
+            offset: (page - 1) * pageSize,
             page,
             pageCount: Math.max(1, history?.total_pages || 1),
-            pageSize: DEFAULT_PAGE_SIZE,
+            pageSize,
             total,
             setPage,
-            showIndex: (index) => setPage(Math.floor(index / DEFAULT_PAGE_SIZE) + 1),
+            setPageSize: size => { setPageSize(size); setPage(1); },
+            showIndex: (index) => setPage(Math.floor(index / pageSize) + 1),
           }}
         />
       </CardContent>

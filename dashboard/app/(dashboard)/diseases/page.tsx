@@ -40,6 +40,7 @@ export default function DiseasesPage() {
   const [search, setSearch] = React.useState("");
   const [status, setStatus] = React.useState("");
   const [page, setPage] = React.useState(1);
+  const [pageSize, setPageSize] = React.useState(20);
   const [total, setTotal] = React.useState(0);
   const [pages, setPages] = React.useState(0);
   const [parents, setParents] = React.useState<Disease[]>([]);
@@ -57,7 +58,7 @@ export default function DiseasesPage() {
     setLoading(true);
     setError("");
     try {
-      const result = await diseaseService.list(search, status, { page, per_page: 20 });
+      const result = await diseaseService.list(search, status, { page, per_page: pageSize });
       if (request !== requestVersion.current) return;
       if (page > Math.max(1, result.total_pages)) { setPage(Math.max(1, result.total_pages)); return; }
       setRows(result.items || []);
@@ -73,7 +74,7 @@ export default function DiseasesPage() {
     } finally {
       if (request === requestVersion.current) setLoading(false);
     }
-  }, [search, status, page]);
+  }, [search, status, page, pageSize]);
   React.useEffect(() => {
     const timer = setTimeout(() => void load(), 200);
     return () => { clearTimeout(timer); requestVersion.current += 1; };
@@ -188,7 +189,7 @@ export default function DiseasesPage() {
           </tr>)}</tbody>
         </table>
       </div>}
-      {!error && <ListPagination page={page} pages={pages} total={total} count={rows.length} loading={loading} onChange={value => { setLoading(true); setPage(value); }} />}
+      {!error && <ListPagination pageSize={pageSize} onPageSizeChange={size => { setLoading(true); setPageSize(size); setPage(1); }} page={page} pages={pages} total={total} count={rows.length} loading={loading} onChange={value => { setLoading(true); setPage(value); }} />}
       {canManage && <Dialog open={editorOpen} onOpenChange={open => { if (!open) closeEditor(); }}>
         {editorOpen && <DiseaseEditor form={form} setForm={setForm} rows={parents} parentsLoading={parentsLoading} busy={busy} editing={editing} onSave={save} onClose={closeEditor} />}
       </Dialog>}

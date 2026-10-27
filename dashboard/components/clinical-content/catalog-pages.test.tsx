@@ -109,3 +109,23 @@ it("offers filter reset when a status has no matching diseases", async () => {
   fireEvent.click(screen.getAllByRole("button", { name: "Clear filters" })[0]);
   await waitFor(() => expect(mocks.diseaseList).toHaveBeenLastCalledWith("", "", { page: 1, per_page: 20 }));
 });
+
+it("resets the disease request to page one when rows per page changes", async () => {
+  render(<DiseasesPage />);
+  await screen.findByRole("table");
+  fireEvent.click(screen.getByRole("button", { name: "Next" }));
+  await waitFor(() => expect(mocks.diseaseList).toHaveBeenLastCalledWith("", "", { page: 2, per_page: 20 }));
+  await screen.findByRole("table");
+  fireEvent.change(screen.getByLabelText("Rows per page"), { target: { value: "50" } });
+  await waitFor(() => expect(mocks.diseaseList).toHaveBeenLastCalledWith("", "", { page: 1, per_page: 50 }));
+});
+
+it("sends the selected content hub page size to the server and resets the page", async () => {
+  render(<ContentHubsPage />);
+  await screen.findByRole("link", { name: "Manage hub: Cholera care" });
+  fireEvent.click(screen.getByRole("button", { name: "Next" }));
+  await waitFor(() => expect(mocks.hubList).toHaveBeenLastCalledWith(expect.objectContaining({ page: 2, per_page: 20 })));
+  await screen.findByRole("link", { name: "Manage hub: Cholera care" });
+  fireEvent.change(screen.getByLabelText("Rows per page"), { target: { value: "50" } });
+  await waitFor(() => expect(mocks.hubList).toHaveBeenLastCalledWith(expect.objectContaining({ page: 1, per_page: 50 })));
+});

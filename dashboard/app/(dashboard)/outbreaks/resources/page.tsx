@@ -4,11 +4,12 @@ import * as React from "react";
 import { OutbreakSectionNavigation } from "@/components/outbreaks/outbreak-section-navigation";
 import Link from "next/link";
 import {
-  Activity, ArrowRight, BookOpen, CheckCircle2, ChevronLeft, ChevronRight,
+  Activity, ArrowRight, BookOpen, CheckCircle2,
   Clock3, FileText, FolderOpen, Link2, RefreshCw, Search, SearchX, X,
   type LucideIcon,
 } from "lucide-react";
 
+import { TablePagination } from "@/components/ui/table-pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -18,7 +19,6 @@ import { cn, formatStatus } from "@/lib/utils";
 import type { OutbreakResourceRecord } from "@/services/outbreaks.service";
 import { loadResourceGroups, type ResourceGroup } from "./resource-data";
 
-const PAGE_SIZE = 12;
 const selectClass = "h-10 w-full min-w-0 rounded-lg border border-input bg-background px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50";
 const typeLabels: Record<string, string> = {
   guideline: "Guideline", sop: "SOP", ipc_protocol: "IPC protocol",
@@ -41,12 +41,12 @@ function timestamp(resource: OutbreakResourceRecord) {
   return Number.isFinite(value) ? value : 0;
 }
 
-function paginateGroups(groups: ResourceGroup[], offset: number) {
+function paginateGroups(groups: ResourceGroup[], offset: number, pageSize: number) {
   const result: Array<ResourceGroup & { total: number }> = [];
   let position = 0;
   for (const group of groups) {
     const resources = group.resources.slice(
-      Math.max(0, offset - position), Math.max(0, offset + PAGE_SIZE - position),
+      Math.max(0, offset - position), Math.max(0, offset + pageSize - position),
     );
     if (resources.length) result.push({ ...group, total: group.resources.length, resources });
     position += group.resources.length;
@@ -74,6 +74,7 @@ export default function OutbreakResourcesPage() {
   const [status, setStatus] = React.useState("");
   const [sort, setSort] = React.useState("updated");
   const [page, setPage] = React.useState(1);
+  const [pageSize, setPageSize] = React.useState(12);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -107,10 +108,10 @@ export default function OutbreakResourcesPage() {
     ? Math.max(...b.resources.map(timestamp)) - Math.max(...a.resources.map(timestamp))
     : (a.outbreak.title || "").localeCompare(b.outbreak.title || ""));
   const matches = filteredGroups.reduce((count, group) => count + group.resources.length, 0);
-  const totalPages = Math.max(1, Math.ceil(matches / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(matches / pageSize));
   const currentPage = Math.min(page, totalPages);
-  const offset = (currentPage - 1) * PAGE_SIZE;
-  const visibleGroups = paginateGroups(filteredGroups, offset);
+  const offset = (currentPage - 1) * pageSize;
+  const visibleGroups = paginateGroups(filteredGroups, offset, pageSize);
   const hasFilters = Boolean(query || outbreakId || type || status);
   const summaries: { label: string; value: string; count: number; icon: LucideIcon; color: string }[] = [
     { label: "All resources", value: "", count: all.length, icon: FolderOpen, color: "text-primary bg-primary/10" },
@@ -158,7 +159,7 @@ export default function OutbreakResourcesPage() {
           <div className="flex flex-wrap items-center justify-between gap-3 border-b bg-muted/30 px-4 py-4 sm:px-5"><div className="flex min-w-0 items-start gap-3"><span className="flex size-9 shrink-0 items-center justify-center rounded-lg border bg-background text-muted-foreground"><Activity aria-hidden="true" className="size-4" /></span><div className="min-w-0"><h2 id={`outbreak-${outbreak.id}`} className="break-words text-base font-semibold">{outbreak.title || "Untitled outbreak"}</h2><p className="mt-0.5 text-xs leading-5 text-muted-foreground">{[outbreak.disease_name, outbreak.geographic_area].filter(Boolean).join(" · ") || "Outbreak response"}<span className="mx-2" aria-hidden="true">·</span>{total} {total === 1 ? "resource" : "resources"}{resources.length < total ? ` · ${resources.length} on this page` : ""}</p></div></div><Button variant="ghost" size="sm" className="shrink-0" asChild><Link href={`/outbreaks/${outbreak.id}#resources`} aria-label={`Manage resources for ${outbreak.title || "untitled outbreak"}`}>Manage outbreak<ArrowRight aria-hidden="true" className="ml-2 size-4" /></Link></Button></div>
           <div className="grid gap-3 p-3 md:grid-cols-2 sm:gap-4 sm:p-4">{resources.map((resource) => <ResourceCard key={resource.id} resource={resource} outbreakId={outbreak.id} />)}</div>
         </section>)}
-        {totalPages > 1 && <nav aria-label="Resource pages" className="flex flex-wrap items-center justify-between gap-3 border-t pt-5"><p className="text-sm text-muted-foreground">Showing {offset + 1}–{Math.min(offset + PAGE_SIZE, matches)} of {matches} resources</p><div className="flex items-center gap-2"><Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)}><ChevronLeft aria-hidden="true" className="mr-1 size-4" />Previous</Button><span className="px-1 text-xs tabular-nums text-muted-foreground">{currentPage} / {totalPages}</span><Button variant="outline" size="sm" disabled={currentPage === totalPages} onClick={() => setPage(currentPage + 1)}>Next<ChevronRight aria-hidden="true" className="ml-1 size-4" /></Button></div></nav>}
+        <TablePagination label="Resource pages" page={currentPage} pageSize={pageSize} totalItems={matches} totalPages={totalPages} onPageChange={setPage} onPageSizeChange={size => { setPageSize(size); setPage(1); }} />
       </section>}
   </div>;
 }

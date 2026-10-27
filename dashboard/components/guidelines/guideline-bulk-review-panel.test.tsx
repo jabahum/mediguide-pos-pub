@@ -196,31 +196,28 @@ describe("GuidelineBulkReviewPanel", () => {
     ));
   });
 
-  it("shows ranges and supports first, previous, next, last and direct page navigation", async () => {
+  it("shows ranges and supports first, previous, next and last page navigation", async () => {
     mockPaginatedQueue();
     const user = userEvent.setup();
     renderPanel();
     await screen.findByText("Block 1");
     const top = screen.getByRole("navigation", { name: "Bulk review pagination (top)" });
-    expect(within(top).getByText("Showing 1–25 of 63 blocks")).toBeInTheDocument();
+    expect(within(top).getByText("Showing 1 to 25 of 63 results")).toBeInTheDocument();
     expect(within(top).getByRole("button", { name: "First page" })).toBeDisabled();
     expect(within(top).getByRole("button", { name: "Previous" })).toBeDisabled();
     await user.click(within(top).getByRole("button", { name: "Next" }));
     await screen.findByText("Block 26");
-    expect(within(top).getByText("Showing 26–50 of 63 blocks")).toBeInTheDocument();
+    expect(within(top).getByText("Showing 26 to 50 of 63 results")).toBeInTheDocument();
     await user.click(within(top).getByRole("button", { name: "Last page" }));
     await screen.findByText("Block 51");
-    expect(within(top).getByText("Showing 51–63 of 63 blocks")).toBeInTheDocument();
+    expect(within(top).getByText("Showing 51 to 63 of 63 results")).toBeInTheDocument();
     expect(within(top).getByRole("button", { name: "Next" })).toBeDisabled();
     expect(within(top).getByRole("button", { name: "Last page" })).toBeDisabled();
     await user.click(within(top).getByRole("button", { name: "Previous" }));
     await screen.findByText("Block 26");
     await user.click(within(top).getByRole("button", { name: "First page" }));
     await screen.findByText("Block 1");
-    await waitFor(() => expect(within(top).getByRole("button", { name: "Go" })).toBeEnabled());
-    await user.clear(within(top).getByLabelText("Go to page"));
-    await user.type(within(top).getByLabelText("Go to page"), "3");
-    await user.click(within(top).getByRole("button", { name: "Go" }));
+    await user.click(within(top).getByRole("button", { name: "Last page" }));
     await screen.findByText("Block 51");
     expect(GuidelineDocumentsService.getReviewBlocks).toHaveBeenLastCalledWith("version-1", expect.objectContaining({ page: 3, per_page: 25 }));
     expect(within(screen.getByRole("navigation", { name: "Bulk review pagination (bottom)" })).getByText("Page 3 of 3")).toBeInTheDocument();
@@ -234,10 +231,10 @@ describe("GuidelineBulkReviewPanel", () => {
     const top = screen.getByRole("navigation", { name: "Bulk review pagination (top)" });
     await user.click(within(top).getByRole("button", { name: "Next" }));
     await screen.findByText("Block 26");
-    await user.selectOptions(within(top).getByLabelText("Blocks per page"), "10");
+    await user.selectOptions(within(top).getByLabelText("Rows per page"), "10");
     await screen.findByText("Block 1");
-    expect(within(top).getByText("Showing 1–10 of 63 blocks")).toBeInTheDocument();
-    expect(screen.getAllByLabelText("Blocks per page").every(select => (select as HTMLSelectElement).value === "10")).toBe(true);
+    expect(within(top).getByText("Showing 1 to 10 of 63 results")).toBeInTheDocument();
+    expect(screen.getAllByLabelText("Rows per page").every(select => (select as HTMLSelectElement).value === "10")).toBe(true);
     expect(GuidelineDocumentsService.getReviewBlocks).not.toHaveBeenCalledWith("version-1", expect.objectContaining({ page: 2, per_page: 10 }));
     await user.click(within(top).getByRole("button", { name: "Next" }));
     await screen.findByText("Block 11");
@@ -280,7 +277,7 @@ describe("GuidelineBulkReviewPanel", () => {
     await user.click(within(top).getByRole("button", { name: "Next" }));
     expect(screen.getByText("Loading review blocks…")).toBeInTheDocument();
     expect(within(top).getByRole("button", { name: "Next" })).toBeDisabled();
-    expect(within(top).getByLabelText("Blocks per page")).toBeDisabled();
+    expect(within(top).getByLabelText("Rows per page")).toBeDisabled();
     expect(screen.getByRole("button", { name: "Select visible low-risk blocks" })).toBeDisabled();
     await act(async () => finish(queue.response({ page: 2, per_page: 25 })));
     expect(await screen.findByText("Block 26")).toBeInTheDocument();
@@ -292,7 +289,7 @@ describe("GuidelineBulkReviewPanel", () => {
     renderPanel();
     await screen.findByText("No blocks match these filters.");
     const top = screen.getByRole("navigation", { name: "Bulk review pagination (top)" });
-    expect(within(top).getByText("Showing 0–0 of 0 blocks")).toBeInTheDocument();
+    expect(within(top).getByText("Showing 0 to 0 of 0 results")).toBeInTheDocument();
     expect(within(top).getByText("Page 1 of 1")).toBeInTheDocument();
     expect(within(top).getByRole("button", { name: "Next" })).toBeDisabled();
   });
@@ -332,7 +329,7 @@ describe("GuidelineBulkReviewPanel", () => {
     await user.click(within(dialog).getByRole("checkbox"));
     await user.click(within(dialog).getByRole("button", { name: "Confirm approval" }));
     await waitFor(() => expect(within(top).getByText("Page 2 of 2")).toBeInTheDocument());
-    expect(within(top).getByText("Showing 26–50 of 50 blocks")).toBeInTheDocument();
+    expect(within(top).getByText("Showing 26 to 50 of 50 results")).toBeInTheDocument();
     expect(within(top).getByRole("button", { name: "Next" })).toBeDisabled();
   });
 

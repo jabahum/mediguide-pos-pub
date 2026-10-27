@@ -14,6 +14,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 import { ChevronDown, Search, SearchX } from "lucide-react"
+import { DataTablePagination } from "@/components/ui/datatable-pagination"
 import { EmptyState } from "@/components/ui/empty-state"
 
 import { Button } from "@/components/ui/button"
@@ -56,7 +57,6 @@ export function DataTable<TData, TValue>({
   appearance = "default",
   toolbarContent,
   initialSorting = [],
-  recordLabel = "records",
   tableLabel,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>(initialSorting)
@@ -67,6 +67,7 @@ export function DataTable<TData, TValue>({
   const table = useReactTable({
     data,
     columns,
+    initialState: { pagination: { pageSize: 20 } },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -182,32 +183,12 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      <div className={appearance === "workspace" ? "flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card p-4" : "flex items-center justify-end space-x-2 py-4"}>
-        <div className="flex-1 text-sm text-muted-foreground">
-          {appearance === "workspace" ? (table.getFilteredRowModel().rows.length ? `Showing ${table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}–${Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, table.getFilteredRowModel().rows.length)} of ${table.getFilteredRowModel().rows.length} ${recordLabel}` : "No results") : <>
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
-          </>}
-        </div>
-        <div className="space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
+      <DataTablePagination
+        table={table}
+        paginationInfo={{ page: table.getState().pagination.pageIndex + 1, perPage: table.getState().pagination.pageSize, totalItems: table.getFilteredRowModel().rows.length, totalPages: table.getPageCount(), hasNextPage: table.getCanNextPage(), hasPreviousPage: table.getCanPreviousPage() }}
+        onPageChange={page => table.setPageIndex(page - 1)}
+        onPageSizeChange={size => { table.setPageSize(size); table.setPageIndex(0) }}
+      />
     </div>
   )
 }

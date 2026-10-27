@@ -4,6 +4,7 @@ import * as React from "react"
 import Link from "next/link"
 import { ArrowRight, RefreshCw, Search, ShieldCheck } from "lucide-react"
 import { ToolSectionHeader, ToolStatusBadge } from "@/components/clinical-tools/tool-section"
+import { TablePagination } from "@/components/ui/table-pagination"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -18,6 +19,7 @@ export default function ClinicalToolReviewQueuePage() {
   const [status, setStatus] = React.useState("pending_review")
   const [type, setType] = React.useState("")
   const [page, setPage] = React.useState(1)
+  const [pageSize, setPageSize] = React.useState(20)
   const [data, setData] = React.useState<ClinicalToolReviewQueue>()
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState("")
@@ -28,14 +30,14 @@ export default function ClinicalToolReviewQueuePage() {
     setLoading(true)
     setError("")
     try {
-      const result = await clinicalToolService.reviewQueue({ page, per_page: 20, search: query, status, type, sort: "created_at", order: "desc" })
+      const result = await clinicalToolService.reviewQueue({ page, per_page: pageSize, search: query, status, type, sort: "created_at", order: "desc" })
       if (current === request.current) setData(result)
     } catch (cause) {
       if (current === request.current) setError(cause instanceof Error ? cause.message : "Unable to load the clinical review queue")
     } finally {
       if (current === request.current) setLoading(false)
     }
-  }, [page, query, status, type])
+  }, [page, pageSize, query, status, type])
   React.useEffect(() => { void load(); return () => { request.current += 1 } }, [load])
 
   function resetFilters() {
@@ -65,6 +67,6 @@ export default function ClinicalToolReviewQueuePage() {
           <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-5 text-xs"><span className="text-muted-foreground">Parity evidence: {formatStatus(item.review_evidence_status)}</span><span className="flex items-center gap-2 font-medium">Open review<ArrowRight className="size-4" aria-hidden="true" /></span></div>
         </Link>)}</div>}
     </section>
-    {!loading && !error && data && data.total_pages > 1 && <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4"><p className="text-sm text-muted-foreground">Page {data.page} of {data.total_pages} · {data.total_items} versions</p><div className="flex gap-2"><Button variant="outline" disabled={page <= 1} onClick={() => setPage(value => value - 1)}>Previous</Button><Button variant="outline" disabled={page >= data.total_pages} onClick={() => setPage(value => value + 1)}>Next</Button></div></div>}
+    {!error && <TablePagination label="Review queue pages" page={page} pageSize={pageSize} totalItems={data?.total_items || 0} totalPages={data?.total_pages} loading={loading} onPageChange={setPage} onPageSizeChange={size => { setPageSize(size); setPage(1) }} />}
   </div>
 }

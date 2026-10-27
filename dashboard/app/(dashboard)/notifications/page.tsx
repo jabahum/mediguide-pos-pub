@@ -4,6 +4,7 @@ import * as React from "react"
 import Link from "next/link"
 import { Bell, Check, ExternalLink, Inbox, Loader2, RefreshCw, Settings } from "lucide-react"
 
+import { TablePagination } from "@/components/ui/table-pagination"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { PageHeader } from "@/components/ui/page-header"
@@ -18,6 +19,8 @@ export default function NotificationsInboxPage() {
   const [listError, setListError] = React.useState("")
   const [search, setSearch] = React.useState("")
   const [page, setPage] = React.useState(1)
+  const [pageSize, setPageSize] = React.useState(20)
+  const [totalItems, setTotalItems] = React.useState(0)
   const [totalPages, setTotalPages] = React.useState(0)
   const [updatingId, setUpdatingId] = React.useState<string | null>(null)
   const canAdminister = [
@@ -33,19 +36,20 @@ export default function NotificationsInboxPage() {
     try {
       const result = await notificationsService.list({
         page,
-        per_page: 20,
+        per_page: pageSize,
         search: search.trim() || undefined,
         sort: "created_at",
         order: "desc",
       })
       setItems(result.items)
       setTotalPages(result.total_pages)
+      setTotalItems(result.total_items)
     } catch (error) {
       setListError(error instanceof Error ? error.message : "Failed to load notifications")
     } finally {
       setFetching(false)
     }
-  }, [page, search])
+  }, [page, pageSize, search])
 
   React.useEffect(() => {
     void loadNotifications()
@@ -150,10 +154,7 @@ export default function NotificationsInboxPage() {
           </Table>
         )}
 
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <span>Page {page}{totalPages > 0 ? ` of ${totalPages}` : ""}</span>
-          <div className="flex gap-2"><Button variant="outline" size="sm" disabled={page <= 1 || fetching} onClick={() => setPage((value) => value - 1)}>Previous</Button><Button variant="outline" size="sm" disabled={page >= totalPages || fetching} onClick={() => setPage((value) => value + 1)}>Next</Button></div>
-        </div>
+        <TablePagination label="Notifications pages" page={page} pageSize={pageSize} totalItems={totalItems} totalPages={totalPages} count={items.length} loading={fetching} onPageChange={setPage} onPageSizeChange={size => { setPageSize(size); setPage(1) }} />
       </div>
     </div>
   )

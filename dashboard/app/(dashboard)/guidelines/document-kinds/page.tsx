@@ -5,6 +5,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { FileStack, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+import { usePagination } from "@/hooks/use-client-pagination";
+import { TablePagination } from "@/components/ui/table-pagination";
 import { ConfirmDialog } from "@/components/dialogs/confirm-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -100,12 +102,14 @@ export default function GuidelineDocumentKindsPage() {
     }
   }
 
+  const kinds = kindsQuery.data || [];
+  const visibleKinds = kinds.filter((kind) => [kind.name, kind.slug, kind.description].filter(Boolean).join(" ").toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()));
+  const pagination = usePagination(visibleKinds);
+
   if (permissionsLoading || kindsQuery.isLoading) {
     return <LoadingState message="Loading document kinds..." />;
   }
 
-  const kinds = kindsQuery.data || [];
-  const visibleKinds = kinds.filter((kind) => [kind.name, kind.slug, kind.description].filter(Boolean).join(" ").toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()));
   return (
     <div className="w-full min-w-0 space-y-6">
       <GuidelineSectionHeader
@@ -118,7 +122,7 @@ export default function GuidelineDocumentKindsPage() {
         }
       />
 
-      <section aria-label="Find document kinds" className="rounded-xl border bg-card p-4 shadow-xs sm:p-5"><label htmlFor="document-kind-search" className="mb-2 block text-xs font-medium">Search document kinds</label><div className="relative"><Search className="pointer-events-none absolute left-3 top-3 size-4 text-muted-foreground" aria-hidden="true" /><Input id="document-kind-search" type="search" className="h-10 rounded-lg pl-9" placeholder="Search name, slug, or description…" value={search} onChange={(event) => setSearch(event.target.value)} /></div></section>
+      <section aria-label="Find document kinds" className="rounded-xl border bg-card p-4 shadow-xs sm:p-5"><label htmlFor="document-kind-search" className="mb-2 block text-xs font-medium">Search document kinds</label><div className="relative"><Search className="pointer-events-none absolute left-3 top-3 size-4 text-muted-foreground" aria-hidden="true" /><Input id="document-kind-search" type="search" className="h-10 rounded-lg pl-9" placeholder="Search name, slug, or description…" value={search} onChange={(event) => { setSearch(event.target.value); pagination.setPage(1); }} /></div></section>
       {kindsQuery.isError ? (
         <div role="alert" className="rounded-xl border border-destructive/25 bg-destructive/5 p-6 text-sm text-destructive">
           {errorMessage(kindsQuery.error)}
@@ -147,7 +151,7 @@ export default function GuidelineDocumentKindsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {visibleKinds.map((kind) => {
+                {pagination.visible.map((kind) => {
                   const inUse = kind.guideline_document_count + kind.outbreak_resource_count
                   return (
                   <TableRow key={kind.id} className="[&>td]:py-4">
@@ -205,6 +209,7 @@ export default function GuidelineDocumentKindsPage() {
         </Card>
       )}
 
+      {!kindsQuery.isError && <TablePagination label="Document kind pages" page={pagination.page} pageSize={pagination.pageSize} totalItems={pagination.total} onPageChange={pagination.setPage} onPageSizeChange={pagination.setPageSize} />}
       <DocumentKindDialog
         open={dialogOpen}
         kind={editing}

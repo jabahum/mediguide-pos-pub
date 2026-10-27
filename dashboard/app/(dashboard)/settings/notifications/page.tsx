@@ -6,6 +6,7 @@ import { AlertTriangle, Bell, CheckCircle, CloudCog, FileText, Loader2, LockKeyh
 
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
+import { TablePagination } from "@/components/ui/table-pagination"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -54,6 +55,12 @@ export default function NotificationAdministrationPage() {
   const [campaignTotal, setCampaignTotal] = React.useState(0)
   const [firebaseState, setFirebaseState] = React.useState<FirebaseState>("unavailable")
   const [firebaseStatus, setFirebaseStatus] = React.useState<FirebaseStatus | null>(null)
+  const [deliveryPage, setDeliveryPage] = React.useState(1)
+  const [deliverySize, setDeliverySize] = React.useState(20)
+  const [deliveryTotal, setDeliveryTotal] = React.useState(0)
+  const [deliveryLoading, setDeliveryLoading] = React.useState(false)
+  const [deliveryError, setDeliveryError] = React.useState("")
+  const [deliveryRevision, setDeliveryRevision] = React.useState(0)
   const [deliveries, setDeliveries] = React.useState<NotificationDeliveryDto[]>([])
   const [deliveryJobs, setDeliveryJobs] = React.useState<NotificationOutboxJobDto[]>([])
   const [analytics, setAnalytics] = React.useState<NotificationDeliveryAnalytics | null>(null)
@@ -87,7 +94,6 @@ export default function NotificationAdministrationPage() {
         canReadTemplates ? notificationsService.listTemplates({ page: 1, per_page: 50 }) : Promise.resolve({ items: [], page: 1, per_page: 50, total_items: 0, total_pages: 0 }),
         canReadCampaigns ? notificationsService.listCampaigns({ page: 1, per_page: 50 }) : Promise.resolve({ items: [], page: 1, per_page: 50, total_items: 0, total_pages: 0 }),
         canReadAnalytics ? notificationsService.preferenceAggregates() : Promise.resolve(null),
-        canReadAnalytics ? notificationsService.listDeliveries({ page: 1, per_page: 50 }) : Promise.resolve({ items: [], page: 1, per_page: 50, total_items: 0, total_pages: 0 }),
         canReadAnalytics ? notificationsService.deliveryAnalytics() : Promise.resolve(null),
         canReadAnalytics ? notificationsService.listDeliveryJobs({ page: 1, per_page: 50 }) : Promise.resolve({ items: [], page: 1, per_page: 50, total_items: 0, total_pages: 0 }),
       ]),
@@ -95,13 +101,12 @@ export default function NotificationAdministrationPage() {
     ])
 
     if (notificationResult.status === "fulfilled") {
-      const [templatePage, campaignPage, aggregates, deliveryPage, deliveryAnalytics, jobPage] = notificationResult.value
+      const [templatePage, campaignPage, aggregates, deliveryAnalytics, jobPage] = notificationResult.value
       setTemplates(templatePage.items)
       setCampaigns(campaignPage.items)
       setTemplateTotal(templatePage.total_items)
       setCampaignTotal(campaignPage.total_items)
       setPreferenceAggregates(aggregates)
-      setDeliveries(deliveryPage.items)
       setAnalytics(deliveryAnalytics)
       setDeliveryJobs(jobPage.items)
     } else {
@@ -110,11 +115,24 @@ export default function NotificationAdministrationPage() {
     setFirebaseState(canReadFirebase && firebaseResult.status === "fulfilled" ? (firebaseResult.value.enabled ? "configured" : "disabled") : "unavailable")
     setFirebaseStatus(canReadFirebase && firebaseResult.status === "fulfilled" ? firebaseResult.value as FirebaseStatus : null)
     setLoading(false)
+    setDeliveryRevision(value => value + 1)
   }, [canAdminister, canReadAnalytics, canReadCampaigns, canReadFirebase, canReadTemplates])
 
   React.useEffect(() => {
     if (!permissionsLoading) void load()
   }, [load, permissionsLoading])
+
+  React.useEffect(() => {
+    if (permissionsLoading || !canReadAnalytics) return;
+    let cancelled = false;
+    setDeliveryLoading(true);
+    setDeliveryError("");
+    void notificationsService.listDeliveries({ page: deliveryPage, per_page: deliverySize }).then(result => {
+      if (!cancelled) { setDeliveries(result.items); setDeliveryTotal(result.total_items); }
+    }).catch(error => { if (!cancelled) setDeliveryError(error instanceof Error ? error.message : "Unable to load delivery records"); })
+      .finally(() => { if (!cancelled) setDeliveryLoading(false); });
+    return () => { cancelled = true; };
+  }, [permissionsLoading, canReadAnalytics, deliveryPage, deliverySize, deliveryRevision]);
 
   React.useEffect(() => {
     if (!campaignOpen) {
@@ -390,7 +408,7 @@ export default function NotificationAdministrationPage() {
             </CardContent>
           </Card>
         </TabsContent>
-        {canReadAnalytics ? <TabsContent value="delivery"><Card className="min-w-0 rounded-xl shadow-xs"><CardHeader><CardTitle>Delivery audit and daily metrics</CardTitle><CardDescription>Counts describe per-channel delivery records. Provider acceptance is distinct from device delivery. A digest combines several records into one push. Opens and clicks are authenticated client events.</CardDescription></CardHeader><CardContent className="space-y-5">{analytics ? <><div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6"><Summary title="Queued" value={analytics.items.reduce((sum, item) => sum + item.queued, 0)} detail="Lifecycle records" /><Summary title="Accepted" value={analytics.items.reduce((sum, item) => sum + item.accepted, 0)} detail="Accepted per channel" /><Summary title="Rejected" value={analytics.items.reduce((sum, item) => sum + item.rejected, 0)} detail="Final failure" /><Summary title="Delivered" value={analytics.items.reduce((sum, item) => sum + item.delivered, 0)} detail="Reported/inferred" /><Summary title="Opened" value={analytics.items.reduce((sum, item) => sum + item.opened, 0)} detail="Client events" /><Summary title="Clicked" value={analytics.items.reduce((sum, item) => sum + item.clicked, 0)} detail="Action events" /></div><Alert><AlertTriangle className="h-4 w-4" /><AlertDescription>{analytics.bigquery_export_note}</AlertDescription></Alert></> : null}<div className="overflow-x-auto rounded-xl border"><table className="w-full text-sm"><thead className="bg-muted/40"><tr className="border-b text-left"><th className="px-4 py-3">Created</th><th className="px-4 py-3">Channel</th><th className="px-4 py-3">State</th><th className="px-4 py-3">Attempts</th><th className="px-4 py-3">Error</th></tr></thead><tbody>{deliveries.map((delivery) => <tr key={delivery.id} className="border-b last:border-0"><td className="px-4 py-3">{new Date(delivery.created_at).toLocaleString()}</td><td className="px-4 py-3">{delivery.channel}</td><td className="px-4 py-3">{delivery.state === "accepted" ? "accepted by provider" : delivery.state}</td><td className="px-4 py-3">{delivery.attempt_count}</td><td className="px-4 py-3">{delivery.error_category || "—"}</td></tr>)}</tbody></table>{deliveries.length === 0 ? <Empty message="No delivery records found" /> : null}</div><div><h3 className="mb-2 font-medium">Failed jobs</h3>{deliveryJobs.filter((job) => job.status === "failed").map((job) => <div key={job.id} className="flex items-center justify-between gap-2 border-b py-2 text-sm"><span>{job.channel} · {job.last_error_code || "failed"} · {job.attempt_count}/{job.max_attempts}</span><Button size="sm" variant="outline" disabled={!canManageCampaigns || updatingId === job.id} onClick={() => void requeueJob(job)}>Requeue</Button></div>)}{deliveryJobs.every((job) => job.status !== "failed") ? <p className="text-sm text-muted-foreground">No terminal failures.</p> : null}</div></CardContent></Card></TabsContent> : null}
+        {canReadAnalytics ? <TabsContent value="delivery"><Card className="min-w-0 rounded-xl shadow-xs"><CardHeader><CardTitle>Delivery audit and daily metrics</CardTitle><CardDescription>Counts describe per-channel delivery records. Provider acceptance is distinct from device delivery. A digest combines several records into one push. Opens and clicks are authenticated client events.</CardDescription></CardHeader><CardContent className="space-y-5">{analytics ? <><div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6"><Summary title="Queued" value={analytics.items.reduce((sum, item) => sum + item.queued, 0)} detail="Lifecycle records" /><Summary title="Accepted" value={analytics.items.reduce((sum, item) => sum + item.accepted, 0)} detail="Accepted per channel" /><Summary title="Rejected" value={analytics.items.reduce((sum, item) => sum + item.rejected, 0)} detail="Final failure" /><Summary title="Delivered" value={analytics.items.reduce((sum, item) => sum + item.delivered, 0)} detail="Reported/inferred" /><Summary title="Opened" value={analytics.items.reduce((sum, item) => sum + item.opened, 0)} detail="Client events" /><Summary title="Clicked" value={analytics.items.reduce((sum, item) => sum + item.clicked, 0)} detail="Action events" /></div><Alert><AlertTriangle className="h-4 w-4" /><AlertDescription>{analytics.bigquery_export_note}</AlertDescription></Alert></> : null}<div className="overflow-x-auto rounded-xl border"><table className="w-full text-sm"><thead className="bg-muted/40"><tr className="border-b text-left"><th className="px-4 py-3">Created</th><th className="px-4 py-3">Channel</th><th className="px-4 py-3">State</th><th className="px-4 py-3">Attempts</th><th className="px-4 py-3">Error</th></tr></thead><tbody>{deliveries.map((delivery) => <tr key={delivery.id} className="border-b last:border-0"><td className="px-4 py-3">{new Date(delivery.created_at).toLocaleString()}</td><td className="px-4 py-3">{delivery.channel}</td><td className="px-4 py-3">{delivery.state === "accepted" ? "accepted by provider" : delivery.state}</td><td className="px-4 py-3">{delivery.attempt_count}</td><td className="px-4 py-3">{delivery.error_category || "—"}</td></tr>)}</tbody></table>{deliveries.length === 0 ? <Empty message="No delivery records found" /> : null}</div>{deliveryError && <p role="alert" className="text-sm text-destructive">{deliveryError}</p>}<TablePagination label="Delivery audit pages" page={deliveryPage} pageSize={deliverySize} totalItems={deliveryTotal} loading={deliveryLoading} onPageChange={setDeliveryPage} onPageSizeChange={size => { setDeliverySize(size); setDeliveryPage(1) }} /><div><h3 className="mb-2 font-medium">Failed jobs</h3>{deliveryJobs.filter((job) => job.status === "failed").map((job) => <div key={job.id} className="flex items-center justify-between gap-2 border-b py-2 text-sm"><span>{job.channel} · {job.last_error_code || "failed"} · {job.attempt_count}/{job.max_attempts}</span><Button size="sm" variant="outline" disabled={!canManageCampaigns || updatingId === job.id} onClick={() => void requeueJob(job)}>Requeue</Button></div>)}{deliveryJobs.every((job) => job.status !== "failed") ? <p className="text-sm text-muted-foreground">No terminal failures.</p> : null}</div></CardContent></Card></TabsContent> : null}
         <TabsContent value="channels">
           <Card className="min-w-0 rounded-xl shadow-xs"><CardHeader><CardTitle>Delivery channels</CardTitle><CardDescription>Status reflects implemented backend capabilities.</CardDescription></CardHeader><CardContent className="space-y-3">
             <Channel icon={Bell} title="Firebase push" description={firebaseStatus ? `${firebaseStatus?.project_id || "No project"} · ${firebaseStatus?.active_device_count ?? 0} active · ${firebaseStatus?.stale_device_count ?? 0} stale · health ${firebaseStatus?.last_successful_health_check_at ? new Date(firebaseStatus.last_successful_health_check_at).toLocaleString() : "unavailable"}` : "Channel status is unavailable for this account."} state={firebaseState === "configured" ? "Configured" : firebaseState === "disabled" ? "Not configured" : "Status unavailable"} configured={firebaseState === "configured"} href="/settings/firebase" />

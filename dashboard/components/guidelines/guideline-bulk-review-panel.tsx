@@ -2,9 +2,10 @@
 
 import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckSquare, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight, Loader2, ShieldAlert } from "lucide-react";
+import { CheckSquare, Loader2, ShieldAlert } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import { TablePagination } from "@/components/ui/table-pagination";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -16,7 +17,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { showToast } from "@/lib/toast";
 import { BackendRequestError } from "@/lib/backend-client";
@@ -268,25 +268,5 @@ function BulkReviewPagination({ position, page, perPage, data, busy, onPageChang
   position: "top" | "bottom"; page: number; perPage: number; data?: GuidelineReviewBlocksPage; busy: boolean;
   onPageChange: (page: number) => void; onPageSizeChange: (size: number) => void;
 }) {
-  const totalPages = Math.max(1, data?.total_pages || 0);
-  const total = data?.total_items || 0;
-  const start = data?.items.length ? ((data.page - 1) * data.per_page) + 1 : 0;
-  const end = data?.items.length ? Math.min(total, start + data.items.length - 1) : 0;
-  return <nav aria-label={`Bulk review pagination (${position})`} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-muted/20 p-3 text-sm">
-    <div className="space-y-1"><p aria-live={position === "top" ? "polite" : undefined} className="font-medium">{data ? `Showing ${start.toLocaleString()}–${end.toLocaleString()} of ${total.toLocaleString()} blocks` : busy ? "Loading blocks…" : "Blocks unavailable"}</p><p className="text-xs text-muted-foreground">Page {page.toLocaleString()}{data ? ` of ${totalPages.toLocaleString()}` : ""}</p></div>
-    <div className="flex flex-wrap items-center gap-3">
-      <label className="flex items-center gap-2 text-xs" htmlFor={`review-page-size-${position}`}>Blocks per page<select id={`review-page-size-${position}`} className="h-8 rounded-md border bg-background px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" value={perPage} disabled={busy} onChange={event => onPageSizeChange(Number(event.target.value))}>{[10, 25, 50, 100].map(value => <option key={value} value={value}>{value}</option>)}</select></label>
-      <form className="flex items-center gap-2" onSubmit={event => {
-        event.preventDefault();
-        const value = Number(new FormData(event.currentTarget).get("page"));
-        if (!busy && data && Number.isInteger(value)) onPageChange(Math.max(1, Math.min(totalPages, value)));
-      }}><Label className="text-xs" htmlFor={`review-page-jump-${position}`}>Go to page</Label><Input key={page} id={`review-page-jump-${position}`} name="page" type="number" min={1} max={totalPages} step={1} required defaultValue={page} disabled={busy || !data} className="h-8 w-20" /><Button type="submit" size="sm" variant="outline" disabled={busy || !data}>Go</Button></form>
-      <div className="flex items-center gap-1">
-        <Button type="button" size="sm" variant="outline" aria-label="First page" disabled={busy || page <= 1} onClick={() => onPageChange(1)}><ChevronFirst className="size-4" aria-hidden="true" /></Button>
-        <Button type="button" size="sm" variant="outline" disabled={busy || page <= 1} onClick={() => onPageChange(page - 1)}><ChevronLeft className="size-4" aria-hidden="true" />Previous</Button>
-        <Button type="button" size="sm" variant="outline" disabled={busy || !data || page >= totalPages} onClick={() => onPageChange(page + 1)}>Next<ChevronRight className="size-4" aria-hidden="true" /></Button>
-        <Button type="button" size="sm" variant="outline" aria-label="Last page" disabled={busy || !data || page >= totalPages} onClick={() => onPageChange(totalPages)}><ChevronLast className="size-4" aria-hidden="true" /></Button>
-      </div>
-    </div>
-  </nav>;
+  return <TablePagination label={`Bulk review pagination (${position})`} page={page} pageSize={perPage} totalItems={data?.total_items || 0} totalPages={data?.total_pages} count={data?.items.length || 0} loading={busy || !data} onPageChange={onPageChange} onPageSizeChange={onPageSizeChange} />;
 }

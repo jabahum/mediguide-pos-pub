@@ -35,10 +35,11 @@ export default function OutbreaksPage() {
   const [updatedFrom, setUpdatedFrom] = React.useState("");
   const [sort, setSort] = React.useState("updated_at");
   const [page, setPage] = React.useState(1);
+  const [pageSize, setPageSize] = React.useState(20);
   const [advanced, setAdvanced] = React.useState(false);
   const [deleting, setDeleting] = React.useState<OutbreakRecord | null>(null);
   const { items, total, pages, loading, error, refresh } = useOutbreakList(outbreaksService.list, {
-    page, per_page: 20, search: search.trim() || undefined, status: status || undefined,
+    page, per_page: pageSize, search: search.trim() || undefined, status: status || undefined,
     disease: disease || undefined, area: area.trim() || undefined, visual_tone: tone || undefined,
     effective_from: effectiveFrom ? new Date(`${effectiveFrom}T00:00:00`).toISOString() : undefined,
     updated_from: updatedFrom ? new Date(`${updatedFrom}T00:00:00`).toISOString() : undefined,
@@ -95,7 +96,7 @@ export default function OutbreaksPage() {
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:hidden" aria-label="Outbreak cards">{items.map((item) => <article key={item.id} className="flex min-w-0 flex-col rounded-xl border bg-card p-5 shadow-xs"><div className="mb-4 flex flex-wrap items-center gap-2"><LifecycleBadge status={item.status} />{item.visual_tone && <ToneBadge value={item.visual_tone} />}{item.supersedes_id && <Badge variant="secondary">Correction</Badge>}</div><h3 className="break-words text-base font-semibold leading-6"><Link href={`/outbreaks/${item.id}`} className="hover:underline">{item.title || "Untitled outbreak"}</Link></h3><p className="mt-1 text-xs text-muted-foreground">{item.disease_name || "Disease not specified"}</p><p className="mt-3 flex items-start gap-1.5 text-sm text-muted-foreground"><MapPin className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />{item.geographic_area || "Area not specified"}</p>{item.summary && <p className="mt-3 line-clamp-2 text-sm leading-6 text-muted-foreground">{item.summary}</p>}<dl className="my-5 grid grid-cols-2 gap-3 border-y py-4 text-xs"><div><dt className="mb-1 text-muted-foreground">Data as of</dt><dd><RecordDate value={item.data_as_of} /></dd></div><div><dt className="mb-1 text-muted-foreground">Last verified</dt><dd><RecordDate value={item.last_verified_at} fallback="Not verified" /></dd></div></dl><div className="mt-auto flex flex-wrap items-center justify-between gap-2"><span className="text-xs text-muted-foreground">Updated <RecordDate value={item.updated_at} /></span>{actions(item)}</div></article>)}</div>
     </>}
-    {!error && <ListPagination page={page} pages={pages} total={total} count={items.length} loading={loading} onChange={setPage} />}
+    {!error && <ListPagination pageSize={pageSize} onPageSizeChange={size => { setPageSize(size); setPage(1); }} page={page} pages={pages} total={total} count={items.length} loading={loading} onChange={setPage} />}
     <DeleteOutbreakDialog outbreak={deleting} onOpenChange={(open) => { if (!open) setDeleting(null); }} onDeleted={() => { if (items.length === 1 && page > 1) setPage((value) => value - 1); else refresh(); }} />
   </div>;
 }

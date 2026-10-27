@@ -58,7 +58,8 @@ test("paginates large groups, resets on filtering and sorts titles", async () =>
   expect(within(results).getAllByRole("article")).toHaveLength(1);
   fireEvent.click(screen.getByRole("button", { name: /Drafts/ }));
   expect(screen.getByRole("heading", { name: "Resource 12" })).toBeInTheDocument();
-  expect(screen.queryByRole("navigation", { name: "Resource pages" })).not.toBeInTheDocument();
+  expect(screen.getByRole("navigation", { name: "Resource pages" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
   fireEvent.click(screen.getByRole("button", { name: /All resources/ }));
   fireEvent.change(screen.getByLabelText("Sort within outbreaks"), { target: { value: "title" } });
   expect(within(results).getAllByRole("heading", { level: 3 })[0]).toHaveTextContent("Resource 00");

@@ -23,6 +23,7 @@ export default function ContentHubsPage() {
   const [search, setSearch] = React.useState("");
   const [status, setStatus] = React.useState("");
   const [page, setPage] = React.useState(1);
+  const [pageSize, setPageSize] = React.useState(20);
   const [total, setTotal] = React.useState(0);
   const [pages, setPages] = React.useState(0);
   const [loading, setLoading] = React.useState(true);
@@ -37,7 +38,7 @@ export default function ContentHubsPage() {
       setLoading(true);
       setError("");
       void contentHubService
-        .list({ search, status, page, per_page: 20 })
+        .list({ search, status, page, per_page: pageSize })
         .then(value => {
           if (cancelled) return;
           if (page > Math.max(1, value.total_pages)) { setPage(Math.max(1, value.total_pages)); return; }
@@ -53,7 +54,7 @@ export default function ContentHubsPage() {
         .finally(() => { if (!cancelled) setLoading(false); });
     }, 200);
     return () => { cancelled = true; clearTimeout(timer); };
-  }, [search, status, page, revision]);
+  }, [search, status, page, pageSize, revision]);
   return (
     <div className="w-full min-w-0 space-y-6">
       <CatalogHeader title="Content hubs" description="Bring related clinical resources together, organize their pillars, and manage publication for web and mobile." icon={Layers} loading={loading} onRefresh={refresh}>
@@ -88,7 +89,7 @@ export default function ContentHubsPage() {
           </CardContent>
         </Card>)}
       </div>}
-      {!error && <ListPagination page={page} pages={pages} total={total} count={rows.length} loading={loading} onChange={value => { setLoading(true); setPage(value); }} />}
+      {!error && <ListPagination pageSize={pageSize} onPageSizeChange={size => { setLoading(true); setPageSize(size); setPage(1); }} page={page} pages={pages} total={total} count={rows.length} loading={loading} onChange={value => { setLoading(true); setPage(value); }} />}
     </div>
   );
 }

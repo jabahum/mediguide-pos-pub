@@ -24,9 +24,10 @@ export default function SituationReportsPage() {
   const [status, setStatus] = React.useState("");
   const [sort, setSort] = React.useState("updated_at");
   const [page, setPage] = React.useState(1);
+  const [pageSize, setPageSize] = React.useState(20);
   const [deleting, setDeleting] = React.useState<SituationReportRecord | null>(null);
   const { items, total, pages, loading, error, refresh } = useOutbreakList(situationReportsService.list, {
-    page, per_page: 20, search: search.trim() || undefined, status: status || undefined,
+    page, per_page: pageSize, search: search.trim() || undefined, status: status || undefined,
     sort, order: sort === "title" ? "asc" : "desc",
   });
   const filtered = Boolean(search.trim() || status);
@@ -55,7 +56,7 @@ export default function SituationReportsPage() {
       </TableBody></Table></div>
       <div className="grid gap-4 sm:grid-cols-2 lg:hidden" aria-label="Situation report cards">{items.map((item) => <article key={item.id} className="flex min-w-0 flex-col rounded-xl border bg-card p-5 shadow-xs"><div className="mb-4 flex flex-wrap items-center gap-2"><span className="mr-auto flex size-10 items-center justify-center rounded-xl bg-primary/5 text-primary"><FileText className="size-5" aria-hidden="true" /></span><LifecycleBadge status={item.status} />{item.supersedes_id && <Badge variant="secondary">Correction</Badge>}</div><h3 className="break-words text-base font-semibold leading-6"><Link href={`/situation-reports/${item.id}`} className="hover:underline">{item.title || "Untitled report"}</Link></h3><p className="mt-2 text-xs leading-5 text-muted-foreground">{item.source_organization || "Source not specified"}</p><p className="mt-3 flex items-start gap-1.5 text-sm text-muted-foreground"><MapPin className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />{item.geographic_area || "Area not specified"}</p>{item.summary && <p className="mt-3 line-clamp-2 text-sm leading-6 text-muted-foreground">{item.summary}</p>}<dl className="my-5 grid grid-cols-2 gap-3 border-y py-4 text-xs"><div><dt className="mb-1 text-muted-foreground">Publication date</dt><dd><RecordDate value={item.publication_date} /></dd></div><div><dt className="mb-1 text-muted-foreground">Last verified</dt><dd><RecordDate value={item.last_verified_at} fallback="Not verified" /></dd></div></dl><div className="mt-auto flex flex-wrap items-center justify-between gap-2"><span className="text-xs text-muted-foreground">Updated <RecordDate value={item.updated_at} /></span>{actions(item)}</div></article>)}</div>
     </>}
-    {!error && <ListPagination page={page} pages={pages} total={total} count={items.length} loading={loading} onChange={setPage} />}
+    {!error && <ListPagination pageSize={pageSize} onPageSizeChange={size => { setPageSize(size); setPage(1); }} page={page} pages={pages} total={total} count={items.length} loading={loading} onChange={setPage} />}
     <DeleteReportDialog report={deleting} onOpenChange={(open) => { if (!open) setDeleting(null); }} onDeleted={() => { if (items.length === 1 && page > 1) setPage((value) => value - 1); else refresh(); }} />
   </div>;
 }
