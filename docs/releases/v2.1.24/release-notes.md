@@ -37,3 +37,4 @@ Changes since v2.1.23. Mobile version: 2.1.24+77.
 - Run Docker dashboard development on Node 22 and Webpack rather than the stalled Bun/Turbopack setup, with bounded health checks and a longer cold-compilation grace period.
 - Include the clinical guidelines workflow SOP and screen-based documentation. Clinical content publication remains an explicit editorial workflow.
 - Mobile store submission remains a separate promotion; this release does not start a store rollout.
+- Run dashboard tests on Node, matching the production runtime and avoiding Bun-only Zod namespace import failures in CI. Bun remains the locked dependency installer.
