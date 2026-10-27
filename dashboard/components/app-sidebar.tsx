@@ -51,7 +51,7 @@ function findActiveMenuItem(pathname: string, navItems: NavItem[]) {
   let activeIndex = -1
   let longestMatch = -1
   navItems.forEach((item, index) => {
-    for (const url of [item.url, ...(item.items?.map(child => child.url) || [])]) {
+    for (const url of [item.url, ...(item.activePaths || []), ...(item.items?.map(child => child.url) || [])]) {
       if (matchesNavigationPath(pathname, url) && url.length > longestMatch) {
         activeIndex = index
         longestMatch = url.length
@@ -74,6 +74,7 @@ type NavItem = {
   icon: React.ComponentType<{ className?: string }>
   permission?: { resource: string; action: PermissionAction }
   backendPermissions?: string[]
+  activePaths?: string[]
   items?: NavSubItem[]
 }
 
@@ -83,14 +84,9 @@ const data: { navMain: NavItem[] } = {
     {
       title: "Dashboard",
       url: "/",
+      activePaths: ["/analytics/accounts"],
       icon: BarChart3,
 
-    },
-    {
-      title: "Account Analytics",
-      url: "/analytics/accounts",
-      icon: BarChart3,
-      backendPermissions: ["analytics.read", "admin.all"],
     },
     {
       title: "Clinical Guidelines",

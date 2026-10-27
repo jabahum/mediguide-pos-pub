@@ -20,12 +20,12 @@ it("uses direct section links and removes submenus duplicated by page tabs", () 
     expect(screen.getByRole("link", { name })).toHaveAttribute("href", href)
     expect(screen.queryByRole("button", { name })).not.toBeInTheDocument()
   }
-  for (const name of ["All Guidelines", "Create Guideline", "All Drugs", "All Tools", "Calculators", "Clinical Review", "Roles & Permissions", "Regions", "Add Facility", "Documentation", "FAQs", "Notifications", "Firebase"]) expect(screen.queryByRole("link", { name })).not.toBeInTheDocument()
+  for (const name of ["Account Analytics", "All Guidelines", "Create Guideline", "All Drugs", "All Tools", "Calculators", "Clinical Review", "Roles & Permissions", "Regions", "Add Facility", "Documentation", "FAQs", "Notifications", "Firebase"]) expect(screen.queryByRole("link", { name })).not.toBeInTheDocument()
 })
 
 it.each([
   ["/", "Dashboard"],
-  ["/analytics/accounts", "Account Analytics"],
+  ["/analytics/accounts", "Dashboard"],
   ["/guidelines/document-1/versions/version-1/review", "Clinical Guidelines"],
   ["/drugs/categories/category-1/edit", "Drug Index"],
   ["/decision-tools/tool-1/author", "Decision Tools"],
@@ -41,7 +41,7 @@ it.each([
   const link = screen.getByRole("link", { name })
   expect(link).toHaveAttribute("aria-current", "page")
   expect(link).toHaveAttribute("data-active", "true")
-  if (pathname !== "/") expect(screen.getByRole("link", { name: "Dashboard" })).toHaveAttribute("data-active", "false")
+  if (name !== "Dashboard") expect(screen.getByRole("link", { name: "Dashboard" })).toHaveAttribute("data-active", "false")
 })
 
 it("matches route boundaries without activating a similarly named section", () => {
