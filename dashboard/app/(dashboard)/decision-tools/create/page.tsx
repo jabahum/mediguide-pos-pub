@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { PageHeader } from "@/components/ui/page-header"
+import { ToolSectionHeader, ToolWorkflowGuide } from "@/components/clinical-tools/tool-section"
 import { DecisionToolForm } from "@/components/forms/decision-tool-form"
 import { CalculatorsResponse, CalculatorsTypeOptions } from "@/types/backend-types"
 import { useDomainCrud } from "@/hooks/use-domain-crud"
@@ -97,8 +97,8 @@ export default function CreateDecisionToolPage() {
 
   if (loadingDuplicate) {
     return (
-      <div className="space-y-6">
-        <PageHeader
+      <div className="w-full min-w-0 space-y-6">
+        <ToolSectionHeader
           title="Loading..."
           showBackButton={true}
           onBack={() => router.push("/decision-tools")}
@@ -111,13 +111,15 @@ export default function CreateDecisionToolPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <div className="w-full min-w-0 space-y-6">
+      <ToolSectionHeader
         title={pageTitle}
         description={pageDescription}
         showBackButton={true}
         onBack={() => router.push("/decision-tools")}
       />
+
+      <ToolWorkflowGuide step={1} />
 
       <div>
         <DecisionToolForm

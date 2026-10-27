@@ -11,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { PageHeader } from "@/components/ui/page-header";
+import { ToolSectionHeader } from "@/components/clinical-tools/tool-section";
 import { usePermissionContext } from "@/lib/permission-context";
 import { showToast } from "@/lib/toast";
 import { calculatorService } from "@/services/calculator.service";
@@ -106,8 +106,8 @@ export default function DecisionToolTestPage({
 
   if (loading)
     return (
-      <div className="space-y-6">
-        <PageHeader
+      <div className="w-full min-w-0 space-y-6">
+        <ToolSectionHeader
           title="Loading..."
           description="Preparing native test mode"
           showBackButton
@@ -117,8 +117,8 @@ export default function DecisionToolTestPage({
     );
   if (!tool) return null;
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <div className="w-full min-w-0 space-y-6">
+      <ToolSectionHeader
         title={`Test ${tool.name}`}
         description="Run the published schema-v1 tool using native dashboard controls"
         showBackButton
@@ -130,7 +130,7 @@ export default function DecisionToolTestPage({
         <Badge variant="outline">v{tool.version}</Badge>
         <Badge variant="outline">schema_v1</Badge>
       </div>
-      <Card>
+      <Card className="min-w-0 rounded-xl shadow-xs">
         <CardHeader>
           <CardTitle>Native Tool Preview</CardTitle>
           <CardDescription>
@@ -139,7 +139,7 @@ export default function DecisionToolTestPage({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="rounded-lg border bg-background p-6">
+          <div className="rounded-xl border bg-background p-3 sm:p-6">
             {renderPreview({ definition, previewError })}
           </div>
         </CardContent>

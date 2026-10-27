@@ -223,10 +223,10 @@ export function DecisionToolForm({
   const previewBackground = HEX_COLOR.test(watchedBackground) ? `${watchedBackground}1F` : `${previewColor}1A`
 
   return (
-    <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-6">
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="space-y-6">
-          <Card>
+    <form onSubmit={handleSubmit(onFormSubmit)} className="min-w-0 space-y-6">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.7fr)_minmax(300px,1fr)]">
+        <div className="min-w-0 space-y-6">
+          <Card className="min-w-0 rounded-xl shadow-xs">
             <CardHeader>
               <CardTitle>Details</CardTitle>
               <CardDescription>What users see in tool lists and search.</CardDescription>
@@ -313,7 +313,7 @@ export function DecisionToolForm({
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="min-w-0 rounded-xl shadow-xs">
             <CardHeader>
               <CardTitle>Review and availability</CardTitle>
               <CardDescription>How carefully changes are reviewed, and whether users can find the tool.</CardDescription>
@@ -394,7 +394,7 @@ export function DecisionToolForm({
         </div>
 
         <div className="space-y-6 lg:sticky lg:top-6 lg:self-start">
-          <Card>
+          <Card className="min-w-0 rounded-xl shadow-xs">
             <CardHeader>
               <CardTitle>Appearance</CardTitle>
               <CardDescription>How the tool looks in the mobile app.</CardDescription>
@@ -449,7 +449,7 @@ export function DecisionToolForm({
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="min-w-0 rounded-xl shadow-xs">
             <CardHeader>
               <CardTitle>Version</CardTitle>
             </CardHeader>

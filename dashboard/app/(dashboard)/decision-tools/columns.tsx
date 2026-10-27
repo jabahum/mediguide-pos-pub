@@ -1,6 +1,8 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
+import { ToolStatusBadge } from "@/components/clinical-tools/tool-section";
 import { Badge } from "@/components/ui/badge";
 import { DataTableColumnHeader } from "@/components/ui/datatable-column-header";
 import { ExtendedColumnDef } from "@/types/data-table";
@@ -49,22 +51,6 @@ function ToolCategoryCell({ categoryId }: { categoryId?: string }) {
 }
 
 /**
- * Get badge variant for status
- */
-const getStatusVariant = (status: CalculatorsStatusOptions) => {
-  switch (status) {
-    case CalculatorsStatusOptions.active:
-      return "default";
-    case CalculatorsStatusOptions.draft:
-      return "secondary";
-    case CalculatorsStatusOptions.archived:
-      return "destructive";
-    default:
-      return "secondary";
-  }
-};
-
-/**
  * Get badge variant for type
  */
 const getTypeVariant = (type: CalculatorsTypeOptions) => {
@@ -99,9 +85,9 @@ export const columns: ExtendedColumnDef<DecisionToolWithRelations>[] = [
       const icon = row.original.icon;
 
       return (
-        <div className="flex items-center gap-2 font-medium">
-          <StoredIcon icon={icon} fallback={getTypeIcon(type)} />
-          <span>{name}</span>
+        <div className="flex min-w-[240px] max-w-xl items-start gap-3">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border bg-muted/50"><StoredIcon icon={icon} fallback={getTypeIcon(type)} /></span>
+          <div className="min-w-0"><Link href={`/decision-tools/${row.original.id}`} className="whitespace-normal break-words font-semibold hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{name}</Link>{row.original.description && <p className="mt-1 line-clamp-2 whitespace-normal text-xs leading-5 text-muted-foreground">{row.original.description}</p>}</div>
         </div>
       );
     },
@@ -176,25 +162,12 @@ export const columns: ExtendedColumnDef<DecisionToolWithRelations>[] = [
     ),
     cell: ({ row }) => {
       const status = row.getValue("status") as CalculatorsStatusOptions;
-      const displayStatus = status.charAt(0).toUpperCase() + status.slice(1);
-
-      return (
-        <Badge
-          variant={
-            getStatusVariant(status) as
-              | "default"
-              | "secondary"
-              | "destructive"
-              | "outline"
-          }
-        >
-          {displayStatus}
-        </Badge>
-      );
+      return <ToolStatusBadge status={status} />;
     },
   },
   {
     accessorKey: "description",
+    defaultVisible: false,
     header: ({ column }) => (
       <DataTableColumnHeader
         column={column}

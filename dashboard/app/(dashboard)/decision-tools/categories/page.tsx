@@ -3,8 +3,8 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { useQueryClient } from "@tanstack/react-query"
-import { Pencil, Plus, Trash2 } from "lucide-react"
-import { PageHeader } from "@/components/ui/page-header"
+import { FolderTree, Pencil, Plus, Trash2 } from "lucide-react"
+import { ToolSectionHeader } from "@/components/clinical-tools/tool-section"
 import { BackendDataTable } from "@/components/ui/backend-data-table"
 import { usePermissionContext } from "@/lib/permission-context"
 import { showToast } from "@/lib/toast"
@@ -92,9 +92,9 @@ export default function ToolCategoriesPage() {
   )
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Tool Categories"
+    <div className="w-full min-w-0 space-y-6">
+      <ToolSectionHeader section="categories" icon={FolderTree}
+        title="Tool categories"
         description="Group calculators, decision tools and checklists by clinical area. A category with tools assigned cannot be deleted; mark it inactive instead."
         actions={
           hasPermission("content", "create:any")
@@ -106,6 +106,8 @@ export default function ToolCategoriesPage() {
         collection={TOOL_CATEGORIES_COLLECTION}
         loadPage={toolCategoryService.listTable}
         columns={toolCategoryColumns}
+        searchPlaceholder="Search category name, slug, or description…"
+        ui={{ appearance: "workspace", searchLabel: "Search categories", title: "Category library" }}
         searchFields={["name", "slug", "description"]}
         rowActions={rowActions}
         availableFields={availableFields}

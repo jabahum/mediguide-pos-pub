@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { notFound } from "next/navigation"
-import { PageHeader } from "@/components/ui/page-header"
+import { ToolSectionHeader, ToolWorkflowGuide } from "@/components/clinical-tools/tool-section"
 import { DecisionToolForm } from "@/components/forms/decision-tool-form"
 import { CalculatorsResponse } from "@/types/backend-types"
 import { useDomainCrud } from "@/hooks/use-domain-crud"
@@ -108,8 +108,8 @@ export default function DecisionToolEditPage({ params, searchParams }: DecisionT
 
   if (loadingData) {
     return (
-      <div className="space-y-6">
-        <PageHeader
+      <div className="w-full min-w-0 space-y-6">
+        <ToolSectionHeader
           title="Loading..."
           showBackButton={true}
           onBack={() => router.push("/decision-tools")}
@@ -141,13 +141,15 @@ export default function DecisionToolEditPage({ params, searchParams }: DecisionT
     : "Update the decision tool information and configuration"
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <div className="w-full min-w-0 space-y-6">
+      <ToolSectionHeader
         title={pageTitle}
         description={pageDescription}
         showBackButton={true}
         onBack={() => router.push("/decision-tools")}
       />
+
+      <ToolWorkflowGuide step={1} />
 
       <div>
         <DecisionToolForm
