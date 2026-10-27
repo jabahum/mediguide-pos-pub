@@ -884,9 +884,9 @@ export default function GuidelineReviewPage() {
   );
 
   return (
-    <div className="w-full min-w-0 space-y-4">
-      <Tabs value={tab} onValueChange={(value) => setTab(value as ReviewTab)}>
-      <div className="sticky top-16 z-30 space-y-3 rounded-lg border bg-background/95 p-3 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/85">
+    <div className="w-full min-w-0 space-y-4 xl:flex xl:h-[calc(100dvh-6rem)] xl:min-h-[32rem] xl:flex-col xl:space-y-0">
+      <Tabs value={tab} onValueChange={(value) => setTab(value as ReviewTab)} className="min-w-0 xl:min-h-0 xl:flex-1">
+      <div className="shrink-0 space-y-3 rounded-lg border bg-background p-3 shadow-sm">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 items-center gap-2">
             <Button
@@ -990,7 +990,7 @@ export default function GuidelineReviewPage() {
         </TabsList>
       </div>
 
-        <TabsContent value="review" className="mt-3 space-y-3">
+        <TabsContent value="review" className="mt-3 min-h-0 space-y-3 xl:flex-col xl:data-[state=active]:flex">
           <div className="grid grid-cols-3 gap-1 rounded-md bg-muted p-1 xl:hidden">
             {(["sections", "source", "block"] as const).map((panel) => (
               <button
@@ -1006,7 +1006,7 @@ export default function GuidelineReviewPage() {
               </button>
             ))}
           </div>
-          <div className="grid gap-4 xl:h-[calc(100vh-17rem)] xl:min-h-[560px] xl:grid-cols-[250px_minmax(0,1.1fr)_minmax(380px,1fr)]">
+          <div className="grid min-h-0 gap-4 xl:flex-1 xl:grid-cols-[250px_minmax(0,1.1fr)_minmax(380px,1fr)] xl:grid-rows-[minmax(0,1fr)]">
             <OutlinePanel
               className={cn(compactPanel !== "sections" && "hidden", "xl:flex")}
               sections={sections}
@@ -1060,7 +1060,7 @@ export default function GuidelineReviewPage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="bulk" className="mt-3">
+        <TabsContent value="bulk" className="mt-3 min-h-0 xl:overflow-y-auto">
           <GuidelineBulkReviewPanel
             versionId={versionId}
             sections={sections}
@@ -1078,7 +1078,7 @@ export default function GuidelineReviewPage() {
           />
         </TabsContent>
 
-        <TabsContent value="completeness" className="mt-3">
+        <TabsContent value="completeness" className="mt-3 min-h-0 xl:overflow-y-auto">
           <GuidelineCompletenessReport versionId={versionId} />
         </TabsContent>
       </Tabs>
@@ -1207,7 +1207,7 @@ function OutlinePanel({
         className,
       )}
     >
-      <div className="border-b px-3 py-2.5 text-sm font-medium">
+      <div className="shrink-0 border-b px-3 py-2.5 text-sm font-medium">
         Sections{" "}
         <span className="font-normal text-muted-foreground">
           · {sections.length}
@@ -1289,7 +1289,7 @@ function SourcePanel({
         className,
       )}
     >
-      <div className="flex items-center justify-between gap-2 border-b px-3 py-2">
+      <div className="flex shrink-0 items-center justify-between gap-2 border-b px-3 py-2">
         <div className="flex rounded-md bg-muted p-0.5 text-sm">
           <button
             type="button"
@@ -1438,7 +1438,7 @@ function BlockReviewPanel(props: BlockReviewPanelProps) {
         props.className,
       )}
     >
-      <div className="space-y-2 border-b p-3">
+      <div className="shrink-0 space-y-2 border-b p-3">
         <div className="flex items-center gap-2">
           <div className="min-w-0 flex-1">
             <div className="text-xs text-muted-foreground">Section</div>
