@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { OutbreakSectionNavigation } from "@/components/outbreaks/outbreak-section-navigation";
 import Link from "next/link";
 import {
   Activity, ArrowRight, BookOpen, CheckCircle2, ChevronLeft, ChevronRight,
@@ -126,9 +127,9 @@ export default function OutbreakResourcesPage() {
       </div>
       <div className="flex shrink-0 items-center gap-2">
         <Button variant="outline" size="icon" disabled={loading} onClick={refresh} aria-label="Refresh resources"><RefreshCw aria-hidden="true" className={cn("size-4", loading && "animate-spin motion-reduce:animate-none")} /></Button>
-        <Button variant="outline" asChild><Link href="/outbreaks">Browse outbreaks<ArrowRight aria-hidden="true" className="ml-2 size-4" /></Link></Button>
       </div>
     </header>
+    <OutbreakSectionNavigation section="resources" />
 
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Resource status overview">
       {summaries.map(({ label, value, count, icon: Icon, color }) => <button key={label} type="button" aria-pressed={status === value} disabled={loading || Boolean(error)} onClick={() => { setStatus(value); setPage(1); }} className={cn("flex items-center gap-3 rounded-xl border bg-card p-4 text-left transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-default sm:p-5", status === value && "border-primary/40 bg-primary/[0.025]")}>

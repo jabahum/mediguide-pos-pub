@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { OutbreakSectionNavigation } from "@/components/outbreaks/outbreak-section-navigation";
 import Link from "next/link";
 import { FileText, MapPin, Plus, Search, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -35,9 +36,9 @@ export default function SituationReportsPage() {
 
   return <div className="w-full min-w-0 space-y-6 pb-6">
     <ListHeader title="Situation reports" description="Find the latest reports, follow their review progress, and manage supporting documents." icon={FileText} loading={loading} onRefresh={refresh}>
-      <Button variant="outline" asChild><Link href="/outbreaks">Browse outbreaks</Link></Button>
       <Button asChild><Link href="/situation-reports/new"><Plus className="mr-2 size-4" aria-hidden="true" />New report</Link></Button>
     </ListHeader>
+    <OutbreakSectionNavigation section="reports" />
     <section aria-label="Filter situation reports" className="rounded-xl border bg-card p-4 shadow-xs sm:p-5">
       <div className="grid gap-4 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <FilterField id="report-search" label="Search reports"><div className="relative"><Search className="pointer-events-none absolute left-3 top-3 size-4 text-muted-foreground" aria-hidden="true" /><Input id="report-search" type="search" className="h-10 rounded-lg pl-9" placeholder="Search title, summary, or area…" value={search} onChange={change(setSearch)} /></div></FilterField>

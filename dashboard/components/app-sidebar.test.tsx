@@ -16,7 +16,7 @@ function renderSidebar() { return render(<SidebarProvider><AppSidebar /></Sideba
 
 it("uses direct section links and removes submenus duplicated by page tabs", () => {
   renderSidebar()
-  for (const [name, href] of [["Clinical Guidelines", "/guidelines"], ["Drug Index", "/drugs"], ["Decision Tools", "/decision-tools"], ["User Management", "/users"], ["Health Facilities", "/health-facilities"], ["Support", "/support"], ["Settings", "/settings"]]) {
+  for (const [name, href] of [["Clinical Guidelines", "/guidelines"], ["Drug Index", "/drugs"], ["Decision Tools", "/decision-tools"], ["User Management", "/users"], ["Health Facilities", "/health-facilities"], ["Support", "/support"], ["Outbreak Management", "/outbreaks"], ["Settings", "/settings"]]) {
     expect(screen.getByRole("link", { name })).toHaveAttribute("href", href)
     expect(screen.queryByRole("button", { name })).not.toBeInTheDocument()
   }
@@ -50,22 +50,21 @@ it("matches route boundaries without activating a similarly named section", () =
   expect(container.querySelectorAll('[data-sidebar="menu-button"][data-active="true"]')).toHaveLength(0)
 })
 
-it("retains and opens the untabbed Outbreak submenu with the most specific route active", () => {
-  access.pathname = "/outbreaks/resources/resource-1"
+it.each(["/outbreaks/outbreak-1", "/outbreaks/resources", "/situation-reports/report-1"])("highlights Outbreak Management on %s without sidebar submenus", pathname => {
+  access.pathname = pathname
   renderSidebar()
-  expect(screen.getByRole("button", { name: "Outbreak Management" })).toHaveAttribute("aria-expanded", "true")
-  expect(screen.getByRole("link", { name: "Outbreak Resources" })).toHaveAttribute("aria-current", "page")
-  expect(screen.getByRole("link", { name: "Outbreaks" })).not.toHaveAttribute("aria-current")
-  expect(screen.getByRole("link", { name: "Situation Reports" })).toBeInTheDocument()
+  expect(screen.getByRole("link", { name: "Outbreak Management" })).toHaveAttribute("aria-current", "page")
+  expect(screen.queryByRole("button", { name: "Outbreak Management" })).not.toBeInTheDocument()
+  expect(screen.queryByRole("link", { name: "Outbreak Resources" })).not.toBeInTheDocument()
+  expect(screen.queryByRole("link", { name: "Situation Reports" })).not.toBeInTheDocument()
 })
 
-it("retains only the permitted Outbreak destinations", () => {
+it("opens the permitted reports page for report-only readers", () => {
   access.all = false; access.pathname = "/situation-reports/report-1"
   access.backend = new Set(["situation_report.read"])
   renderSidebar()
-  expect(screen.getByRole("link", { name: "Situation Reports" })).toHaveAttribute("aria-current", "page")
-  expect(screen.queryByRole("link", { name: "Outbreaks" })).not.toBeInTheDocument()
-  expect(screen.queryByRole("link", { name: "Outbreak Resources" })).not.toBeInTheDocument()
+  expect(screen.getByRole("link", { name: "Outbreak Management" })).toHaveAttribute("href", "/situation-reports")
+  expect(screen.getByRole("link", { name: "Outbreak Management" })).toHaveAttribute("aria-current", "page")
 })
 
 it("keeps Diseases and Content Hubs accessible with their existing permission requirements", () => {

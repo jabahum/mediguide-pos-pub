@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
+import { OutbreakSectionNavigation } from "@/components/outbreaks/outbreak-section-navigation";
 import Link from "next/link";
-import { Activity, ChevronDown, FolderOpen, MapPin, Plus, Search, SlidersHorizontal, X } from "lucide-react";
+import { Activity, ChevronDown, MapPin, Plus, Search, SlidersHorizontal, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,9 +61,9 @@ export default function OutbreaksPage() {
 
   return <div className="w-full min-w-0 space-y-6 pb-6">
     <ListHeader title="Outbreaks" description="Follow the response, review updates, and keep verified outbreak information current." icon={Activity} loading={loading} onRefresh={refresh}>
-      <Button variant="outline" asChild><Link href="/outbreaks/resources"><FolderOpen className="mr-2 size-4" aria-hidden="true" />Resources</Link></Button>
       <Button asChild><Link href="/outbreaks/new"><Plus className="mr-2 size-4" aria-hidden="true" />New outbreak</Link></Button>
     </ListHeader>
+    <OutbreakSectionNavigation section="outbreaks" />
     <section aria-label="Filter outbreaks" className="rounded-xl border bg-card p-4 shadow-xs sm:p-5">
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <FilterField id="outbreak-search" label="Search outbreaks" className="md:col-span-2"><div className="relative"><Search className="pointer-events-none absolute left-3 top-3 size-4 text-muted-foreground" aria-hidden="true" /><Input id="outbreak-search" type="search" className="h-10 rounded-lg pl-9" value={search} onChange={change(setSearch)} placeholder="Search title, summary, or disease…" /></div></FilterField>

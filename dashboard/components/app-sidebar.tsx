@@ -17,14 +17,8 @@ import {
   HeadphonesIcon,
   Layers,
   Stethoscope,
-  ChevronRight,
 } from "lucide-react"
 
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
 import {
   Sidebar,
   SidebarContent,
@@ -33,12 +27,10 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { usePermissionContext } from "@/lib/permission-context"
+import { outbreakLandingPath } from "@/lib/outbreak-navigation"
 import { hasBackendPermission } from "@/lib/backend-client"
 import type { PermissionAction } from "@/types/permissions"
 
@@ -51,7 +43,7 @@ function findActiveMenuItem(pathname: string, navItems: NavItem[]) {
   let activeIndex = -1
   let longestMatch = -1
   navItems.forEach((item, index) => {
-    for (const url of [item.url, ...(item.activePaths || []), ...(item.items?.map(child => child.url) || [])]) {
+    for (const url of [item.url, ...(item.activePaths || [])]) {
       if (matchesNavigationPath(pathname, url) && url.length > longestMatch) {
         activeIndex = index
         longestMatch = url.length
@@ -61,13 +53,6 @@ function findActiveMenuItem(pathname: string, navItems: NavItem[]) {
   return activeIndex
 }
 
-type NavSubItem = {
-  title: string
-  url: string
-  permission?: { resource: string; action: PermissionAction }
-  backendPermissions?: string[]
-}
-
 type NavItem = {
   title: string
   url: string
@@ -75,7 +60,6 @@ type NavItem = {
   permission?: { resource: string; action: PermissionAction }
   backendPermissions?: string[]
   activePaths?: string[]
-  items?: NavSubItem[]
 }
 
 // MediGuide navigation data
@@ -116,14 +100,10 @@ const data: { navMain: NavItem[] } = {
     },
     {
       title: "Outbreak Management",
-      url: "#",
+      url: "/outbreaks",
+      activePaths: ["/outbreaks", "/situation-reports"],
       icon: Activity,
       backendPermissions: ["outbreak.read", "situation_report.read"],
-      items: [
-        { title: "Outbreaks", url: "/outbreaks", backendPermissions: ["outbreak.read"] },
-        { title: "Situation Reports", url: "/situation-reports", backendPermissions: ["situation_report.read"] },
-        { title: "Outbreak Resources", url: "/outbreaks/resources", backendPermissions: ["outbreak.read"] },
-      ],
     },
     {
       title: "Decision Tools",
@@ -169,14 +149,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         (!item.permission || hasPermission(item.permission.resource, item.permission.action)) &&
         (!item.backendPermissions || item.backendPermissions.some(hasBackendPermission)),
       )
-      .map(item => ({
-        ...item,
-        items: item.items?.filter(sub =>
-          (!sub.permission || hasPermission(sub.permission.resource, sub.permission.action)) &&
-          (!sub.backendPermissions || sub.backendPermissions.some(hasBackendPermission)),
-        ),
-      }))
-      .filter(item => item.url !== "#" || !item.items || item.items.length > 0)
+      .map(item => item.url === "/outbreaks" ? { ...item, url: outbreakLandingPath(hasBackendPermission) } : item)
   }, [loading, hasPermission])
 
   // Find which menu item should be active/open based on current pathname
@@ -211,59 +184,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <SidebarGroup>
           <SidebarMenu>
-            {visibleNav?.map((item, index) => {
-              // If item has no subitems and a direct URL, render as direct link
-              if (!item.items?.length && item.url !== "#") {
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={activeMenuIndex === index}>
-                      <Link href={item.url} aria-current={activeMenuIndex === index ? "page" : undefined}>
-                        <item.icon className="mr-2 size-4" />
-                        {item.title}
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )
-              }
-
-              const activeChild = item.items
-                ?.filter(child => matchesNavigationPath(pathname, child.url))
-                .sort((left, right) => right.url.length - left.url.length)[0]
-              // Keep untabbed destinations accessible through their submenu.
-              return (
-                <Collapsible
-                  key={`${item.title}-${pathname}`}
-                  defaultOpen={activeMenuIndex === index}
-                  className="group/collapsible"
-                >
-                  <SidebarMenuItem>
-                    <CollapsibleTrigger asChild>
-                      <SidebarMenuButton isActive={activeMenuIndex === index}>
-                        <item.icon className="mr-2 size-4" />
-                        {item.title}
-                        <ChevronRight aria-hidden="true" className="ml-auto size-4 transition-transform group-data-[state=open]/collapsible:rotate-90" />
-                      </SidebarMenuButton>
-                    </CollapsibleTrigger>
-                    {item.items?.length ? (
-                      <CollapsibleContent>
-                        <SidebarMenuSub>
-                          {item.items.map((subItem) => (
-                            <SidebarMenuSubItem key={subItem.title}>
-                              <SidebarMenuSubButton
-                                asChild
-                                isActive={activeChild?.url === subItem.url}
-                              >
-                                <Link href={subItem.url} aria-current={activeChild?.url === subItem.url ? "page" : undefined}>{subItem.title}</Link>
-                              </SidebarMenuSubButton>
-                            </SidebarMenuSubItem>
-                          ))}
-                        </SidebarMenuSub>
-                      </CollapsibleContent>
-                    ) : null}
-                  </SidebarMenuItem>
-                </Collapsible>
-              )
-            })}
+            {visibleNav.map((item, index) => (
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton asChild isActive={activeMenuIndex === index}>
+                  <Link href={item.url} aria-current={activeMenuIndex === index ? "page" : undefined}>
+                    <item.icon className="mr-2 size-4" />
+                    {item.title}
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>

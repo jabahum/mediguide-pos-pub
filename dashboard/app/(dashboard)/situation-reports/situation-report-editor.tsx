@@ -1,5 +1,6 @@
 "use client"
 
+import { OutbreakSectionNavigation } from "@/components/outbreaks/outbreak-section-navigation";
 import * as React from "react"
 import Link from "next/link"
 import { CheckCircle2, ExternalLink, Loader2, Save, ShieldCheck } from "lucide-react"
@@ -272,6 +273,8 @@ export function SituationReportEditor({ id }: { id?: string }) {
         <Button variant="outline" asChild><Link href="/situation-reports">Back to list</Link></Button>
       </div>
     </div>
+
+    <OutbreakSectionNavigation section="reports" />
 
     {item ? <Card>
       <CardHeader className="space-y-4">
