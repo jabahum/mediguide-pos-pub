@@ -104,7 +104,7 @@ export default function EditGuidelinePage() {
   const assignments = classificationQuery.data?.items || [];
   return (
     <div className="w-full min-w-0 space-y-6">
-      <GuidelineSectionHeader
+      <GuidelineSectionHeader showNavigation={false}
         title={`Edit ${document.title}`}
         description="Update v2 guideline document metadata."
       />

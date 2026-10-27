@@ -1,5 +1,6 @@
 "use client"
 
+import { useSectionNavigation } from "@/hooks/use-section-navigation"
 import Link from "next/link"
 import { ShieldCheck, Users, type LucideIcon } from "lucide-react"
 import { PageHeader, type PageHeaderProps } from "@/components/ui/page-header"
@@ -7,7 +8,8 @@ import { Badge } from "@/components/ui/badge"
 import { usePermissionContext } from "@/lib/permission-context"
 import { cn, formatStatus } from "@/lib/utils"
 
-export function UserSectionHeader({ section = "users", icon: Icon = Users, description, onNavigate, ...props }: PageHeaderProps & { section?: "users" | "roles"; icon?: LucideIcon; onNavigate?: (href: string) => void }) {
+export function UserSectionHeader({ showNavigation = true, section = "users", icon: Icon = Users, description, onNavigate, ...props }: PageHeaderProps & { showNavigation?: boolean; section?: "users" | "roles"; icon?: LucideIcon; onNavigate?: (href: string) => void }) {
+  const showSections = useSectionNavigation(showNavigation)
   const { hasPermission } = usePermissionContext()
   const sections = [
     { id: "users", href: "/users", label: "User directory", icon: Users, resource: "users" },
@@ -22,9 +24,9 @@ export function UserSectionHeader({ section = "users", icon: Icon = Users, descr
         {description && <p className="text-sm leading-6 text-muted-foreground">{description}</p>}
       </div>
     </div>
-    <nav aria-label="User management sections" className="flex flex-wrap gap-1 rounded-xl border bg-muted/30 p-1.5">
+    {showSections && <nav aria-label="User management sections" className="flex flex-wrap gap-1 rounded-xl border bg-muted/30 p-1.5">
       {sections.filter(item => hasPermission(item.resource, "read:any")).map(({ id, href, label, icon: SectionIcon }) => <Link key={id} href={href} onClick={onNavigate ? event => { event.preventDefault(); onNavigate(href) } : undefined} aria-current={section === id ? "page" : undefined} className={cn("flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-4", section === id ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:bg-background/70 hover:text-foreground")}><SectionIcon className="size-4" aria-hidden="true" />{label}</Link>)}
-    </nav>
+    </nav>}
   </div>
 }
 

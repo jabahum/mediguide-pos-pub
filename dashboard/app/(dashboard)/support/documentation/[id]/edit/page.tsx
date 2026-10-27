@@ -165,7 +165,7 @@ export default function EditDocumentationPage({ params }: EditDocumentationPageP
 
   return (
     <div className="w-full min-w-0 space-y-6">
-      <SupportSectionHeader section="documentation"
+      <SupportSectionHeader showNavigation={false} section="documentation"
         title="Edit Documentation"
         description={`Editing: ${documentationData.title}`}
         showBackButton={true}

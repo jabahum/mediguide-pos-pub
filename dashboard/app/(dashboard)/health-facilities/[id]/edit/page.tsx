@@ -47,7 +47,7 @@ export default function EditFacilityPage() {
   if (isLoading) {
     return (
       <div className="w-full min-w-0 space-y-6">
-        <FacilitySectionHeader section="directory"
+        <FacilitySectionHeader showNavigation={false} section="directory"
           title="Edit Health Facility"
           description="Loading facility data..."
           showBackButton={true}
@@ -63,7 +63,7 @@ export default function EditFacilityPage() {
   if (!facility) {
     return (
       <div className="w-full min-w-0 space-y-6">
-        <FacilitySectionHeader section="directory"
+        <FacilitySectionHeader showNavigation={false} section="directory"
           title="Edit Health Facility"
           description="Facility not found"
           showBackButton={true}
@@ -95,7 +95,7 @@ export default function EditFacilityPage() {
 
   return (
     <div className="w-full min-w-0 space-y-6">
-      <FacilitySectionHeader section="directory"
+      <FacilitySectionHeader showNavigation={false} section="directory"
         title="Edit Health Facility"
         description={`Update details for ${facility.name}`}
         showBackButton={true}

@@ -349,7 +349,7 @@ export default function EditUserPage() {
 
   return (
     <div className="w-full min-w-0 space-y-6">
-      <UserSectionHeader
+      <UserSectionHeader showNavigation={false}
         title={`Edit User: ${user.name}`}
         description="Update user information and settings"
         showBackButton={true}

@@ -1,6 +1,5 @@
 "use client";
 
-import { OutbreakSectionNavigation } from "@/components/outbreaks/outbreak-section-navigation";
 import * as React from "react";
 import { DashboardLink as Link } from "@/components/dialogs/create-dialog-context";
 import { useRouter } from "next/navigation";
@@ -742,7 +741,7 @@ export function OutbreakEditor({ id }: { id?: string }) {
           ) : null}
         </div>
       </div>
-      <OutbreakSectionNavigation section="outbreaks" />
+
 
       {item ? (
         <Card>

@@ -93,7 +93,7 @@ export default function DrugEditPage({ params, searchParams }: DrugEditPageProps
   if (loadingData) {
     return (
       <div className="space-y-6">
-        <DrugSectionHeader
+        <DrugSectionHeader showNavigation={false}
           title="Loading..."
           showBackButton={true}
           onBack={() => resolvedParams?.id && router.push(`/drugs/${resolvedParams.id}`)}
@@ -123,7 +123,7 @@ export default function DrugEditPage({ params, searchParams }: DrugEditPageProps
 
   return (
     <div className="w-full min-w-0 space-y-6">
-      <DrugSectionHeader
+      <DrugSectionHeader showNavigation={false}
         title={pageTitle}
         description={pageDescription}
         showBackButton={true}

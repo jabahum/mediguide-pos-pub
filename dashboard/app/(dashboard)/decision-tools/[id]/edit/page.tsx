@@ -109,7 +109,7 @@ export default function DecisionToolEditPage({ params, searchParams }: DecisionT
   if (loadingData) {
     return (
       <div className="w-full min-w-0 space-y-6">
-        <ToolSectionHeader
+        <ToolSectionHeader showNavigation={false}
           title="Loading..."
           showBackButton={true}
           onBack={() => router.push("/decision-tools")}
@@ -142,7 +142,7 @@ export default function DecisionToolEditPage({ params, searchParams }: DecisionT
 
   return (
     <div className="w-full min-w-0 space-y-6">
-      <ToolSectionHeader
+      <ToolSectionHeader showNavigation={false}
         title={pageTitle}
         description={pageDescription}
         showBackButton={true}

@@ -85,7 +85,7 @@ export default function ClinicalToolAuthorPage({ params }: { params: Promise<{ i
 
   return (
     <div className="w-full min-w-0 space-y-6">
-      <ToolSectionHeader
+      <ToolSectionHeader showNavigation={false}
         title={tool?.name ?? "Clinical tool"}
         description="Authoring workspace: write, test, review and publish this tool's definition."
         showBackButton

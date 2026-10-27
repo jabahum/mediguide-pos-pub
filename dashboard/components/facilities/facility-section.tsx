@@ -1,5 +1,6 @@
 "use client"
 
+import { useSectionNavigation } from "@/hooks/use-section-navigation"
 import Link from "next/link"
 import { Building2, Layers, MapPinned } from "lucide-react"
 import type { PageHeaderProps } from "@/components/ui/page-header"
@@ -22,12 +23,13 @@ const groups = [
   { id: "classification", href: "/health-facilities/facility-levels", label: "Classification", icon: Layers },
 ]
 
-export function FacilitySectionHeader({ section = "directory", ...props }: PageHeaderProps & { section?: string }) {
+export function FacilitySectionHeader({ section = "directory", showNavigation = true, ...props }: PageHeaderProps & { section?: string; showNavigation?: boolean }) {
+  const showSections = useSectionNavigation(showNavigation)
   const group = geography.some(item => item.id === section) ? "geography" : classification.some(item => item.id === section) ? "classification" : "directory"
   const children = group === "geography" ? geography : group === "classification" ? classification : []
   return <div className="space-y-4">
-    <WorkspaceSectionHeader {...props} eyebrow="HEALTH FACILITY NETWORK" section={group} icon={groups.find(item => item.id === group)!.icon} sections={groups} navigationLabel="Health facility sections" />
-    {children.length > 0 && <nav aria-label={`${group === "geography" ? "Geographic" : "Classification"} reference pages`} className="flex flex-wrap gap-2">{children.map(({ id, label }) => <Link key={id} href={`/health-facilities/${id}`} aria-current={section === id ? "page" : undefined} className={cn("rounded-full border px-3.5 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", section === id ? "border-primary bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:bg-muted hover:text-foreground")}>{label}</Link>)}</nav>}
+    <WorkspaceSectionHeader {...props} showNavigation={showSections} eyebrow="HEALTH FACILITY NETWORK" section={group} icon={groups.find(item => item.id === group)!.icon} sections={groups} navigationLabel="Health facility sections" />
+    {showSections && children.length > 0 && <nav aria-label={`${group === "geography" ? "Geographic" : "Classification"} reference pages`} className="flex flex-wrap gap-2">{children.map(({ id, label }) => <Link key={id} href={`/health-facilities/${id}`} aria-current={section === id ? "page" : undefined} className={cn("rounded-full border px-3.5 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", section === id ? "border-primary bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:bg-muted hover:text-foreground")}>{label}</Link>)}</nav>}
   </div>
 }
 

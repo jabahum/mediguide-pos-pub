@@ -58,7 +58,7 @@ it("keeps unsaved edits when navigation is declined", async () => {
   const confirm = vi.spyOn(window, "confirm").mockReturnValue(false)
   render(<RolePermissionsPage />)
   await userEvent.click(await screen.findByRole("button", { name: "Edit test permissions" }))
-  await userEvent.click(screen.getByRole("link", { name: "User directory" }))
+  await userEvent.click(screen.getByRole("button", { name: "Go back" }))
   expect(confirm).toHaveBeenCalled()
   expect(state.push).not.toHaveBeenCalled()
   expect(screen.getByLabelText("Builder permissions")).toHaveTextContent(JSON.stringify(changed))

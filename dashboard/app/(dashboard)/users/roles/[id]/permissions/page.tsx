@@ -141,7 +141,7 @@ export default function RolePermissionsPage() {
     }
   }, [rolePermissions])
 
-  // Keep the existing unsaved-change check for the section navigation as well.
+  // Preserve the unsaved-change check when leaving through the Back button.
   const handleNavigate = React.useCallback((href: string) => {
     if (!hasUnsavedChanges || window.confirm('You have unsaved changes. Are you sure you want to leave?')) router.push(href)
   }, [router, hasUnsavedChanges])
@@ -151,7 +151,7 @@ export default function RolePermissionsPage() {
   if (!roleError && !permissionError && (roleLoading || !initialized)) {
     return (
       <div className="w-full min-w-0 space-y-6">
-        <UserSectionHeader section="roles" icon={ShieldCheck} title="Role permissions" showBackButton onBack={handleBack} />
+        <UserSectionHeader showNavigation={false} section="roles" icon={ShieldCheck} title="Role permissions" showBackButton onBack={handleBack} />
         <div role="status" aria-label="Loading role permissions" className="flex justify-between items-start">
           <div className="space-y-2">
             <Skeleton className="h-8 w-64" />
@@ -182,7 +182,7 @@ export default function RolePermissionsPage() {
   if (roleError || permissionError) {
     return (
       <div className="w-full min-w-0 space-y-6">
-        <UserSectionHeader section="roles" icon={ShieldCheck} onNavigate={handleNavigate}
+        <UserSectionHeader showNavigation={false} section="roles" icon={ShieldCheck}
           title="Permission Management"
           description="Role permissions could not be loaded"
           showBackButton={true}
@@ -204,7 +204,7 @@ export default function RolePermissionsPage() {
   if (!role) {
     return (
       <div className="w-full min-w-0 space-y-6">
-        <UserSectionHeader section="roles" icon={ShieldCheck} onNavigate={handleNavigate}
+        <UserSectionHeader showNavigation={false} section="roles" icon={ShieldCheck}
           title="Permission Management"
           description="Role not found"
           showBackButton={true}
@@ -227,7 +227,7 @@ export default function RolePermissionsPage() {
   return (
     <div className="w-full min-w-0 space-y-6">
       {/* Page Header */}
-      <UserSectionHeader section="roles" icon={ShieldCheck} onNavigate={handleNavigate}
+      <UserSectionHeader showNavigation={false} section="roles" icon={ShieldCheck}
         title={role.name}
         description="Configure resource access, review the proposed permissions, and save your changes."
         showBackButton={true}

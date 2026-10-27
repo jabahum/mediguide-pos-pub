@@ -1,6 +1,5 @@
 "use client"
 
-import { OutbreakSectionNavigation } from "@/components/outbreaks/outbreak-section-navigation";
 import * as React from "react"
 import { DashboardLink as Link } from "@/components/dialogs/create-dialog-context"
 import { CheckCircle2, ExternalLink, Loader2, Save, ShieldCheck } from "lucide-react"
@@ -274,7 +273,6 @@ export function SituationReportEditor({ id }: { id?: string }) {
       </div>
     </div>
 
-    <OutbreakSectionNavigation section="reports" />
 
     {item ? <Card>
       <CardHeader className="space-y-4">

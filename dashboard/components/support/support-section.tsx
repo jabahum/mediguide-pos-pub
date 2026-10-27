@@ -14,7 +14,7 @@ const sections = [
   { id: "tags", href: "/support/faqs/tags", label: "FAQ tags", icon: Tags },
 ] as const
 
-export function SupportSectionHeader({ section = "tickets", icon, ...props }: PageHeaderProps & { section?: typeof sections[number]["id"]; icon?: LucideIcon }) {
+export function SupportSectionHeader({ section = "tickets", icon, ...props }: PageHeaderProps & { showNavigation?: boolean; section?: typeof sections[number]["id"]; icon?: LucideIcon }) {
   return <WorkspaceSectionHeader {...props} eyebrow="SUPPORT & KNOWLEDGE" icon={icon || sections.find(item => item.id === section)!.icon} section={section} sections={[...sections]} navigationLabel="Support sections" />
 }
 

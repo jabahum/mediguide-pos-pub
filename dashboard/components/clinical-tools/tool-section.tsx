@@ -1,5 +1,6 @@
 "use client"
 
+import { useSectionNavigation } from "@/hooks/use-section-navigation"
 import Link from "next/link"
 import { Calculator, FolderTree, Library, Play, ShieldCheck, type LucideIcon } from "lucide-react"
 import { PageHeader, type PageHeaderProps } from "@/components/ui/page-header"
@@ -16,7 +17,8 @@ const sections = [
 
 type ToolSection = typeof sections[number]["id"]
 
-export function ToolSectionHeader({ section = "library", icon: Icon = Calculator, description, ...props }: PageHeaderProps & { section?: ToolSection; icon?: LucideIcon }) {
+export function ToolSectionHeader({ showNavigation = true, section = "library", icon: Icon = Calculator, description, ...props }: PageHeaderProps & { showNavigation?: boolean; section?: ToolSection; icon?: LucideIcon }) {
+  const showSections = useSectionNavigation(showNavigation)
   return (
     <div className="space-y-5">
       <div className="flex items-start gap-3.5">
@@ -29,13 +31,13 @@ export function ToolSectionHeader({ section = "library", icon: Icon = Calculator
           {description && <p className="text-sm leading-6 text-muted-foreground">{description}</p>}
         </div>
       </div>
-      <nav aria-label="Decision tool sections" className="flex flex-wrap gap-1 rounded-xl border bg-muted/30 p-1.5">
+      {showSections && <nav aria-label="Decision tool sections" className="flex flex-wrap gap-1 rounded-xl border bg-muted/30 p-1.5">
         {sections.filter(item => item.id !== "review" || hasBackendPermission("calculator.review")).map(({ id, href, label, icon: SectionIcon }) => (
           <Link key={id} href={href} aria-current={section === id ? "page" : undefined} className={cn("flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-4", section === id ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:bg-background/70 hover:text-foreground")}>
             <SectionIcon className="size-4" aria-hidden="true" />{label}
           </Link>
         ))}
-      </nav>
+      </nav>}
     </div>
   )
 }

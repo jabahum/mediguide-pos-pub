@@ -171,7 +171,7 @@ export default function EditTagPage({ params }: EditTagPageProps) {
   if (!tag) {
     return (
       <div className="w-full min-w-0 space-y-6">
-        <SupportSectionHeader section="tags"
+        <SupportSectionHeader showNavigation={false} section="tags"
           title="Tag Not Found"
           description="The requested tag could not be found"
           showBackButton={true}
@@ -183,7 +183,7 @@ export default function EditTagPage({ params }: EditTagPageProps) {
 
   return (
     <div className="w-full min-w-0 space-y-6">
-      <SupportSectionHeader section="tags"
+      <SupportSectionHeader showNavigation={false} section="tags"
         title="Edit FAQ Tag"
         description={`Editing: ${tag.name}`}
         showBackButton={true}

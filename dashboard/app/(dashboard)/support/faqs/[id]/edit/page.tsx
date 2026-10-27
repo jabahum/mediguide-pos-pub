@@ -212,7 +212,7 @@ export default function EditFAQPage({ params }: EditFAQPageProps) {
   if (!faq) {
     return (
       <div className="w-full min-w-0 space-y-6">
-        <SupportSectionHeader section="faqs"
+        <SupportSectionHeader showNavigation={false} section="faqs"
           title="FAQ Not Found"
           description="The requested FAQ could not be found"
           showBackButton={true}
@@ -224,7 +224,7 @@ export default function EditFAQPage({ params }: EditFAQPageProps) {
 
   return (
     <div className="w-full min-w-0 space-y-6">
-      <SupportSectionHeader section="faqs"
+      <SupportSectionHeader showNavigation={false} section="faqs"
         title="Edit FAQ"
         description={`Editing: ${faq.question.slice(0, 80)}${faq.question.length > 80 ? '...' : ''}`}
         showBackButton={true}

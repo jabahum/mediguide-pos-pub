@@ -1,5 +1,6 @@
 "use client";
 
+import { useSectionNavigation } from "@/hooks/use-section-navigation"
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FolderTree, Pill, Shield, Tags, type LucideIcon } from "lucide-react";
@@ -14,7 +15,8 @@ const sections = [
   { href: "/drugs/interactions", label: "Interactions", icon: Shield },
 ];
 
-export function DrugSectionHeader({ icon: Icon = Pill, ...props }: PageHeaderProps & { icon?: LucideIcon }) {
+export function DrugSectionHeader({ showNavigation = true, icon: Icon = Pill, ...props }: PageHeaderProps & { showNavigation?: boolean; icon?: LucideIcon }) {
+  const showSections = useSectionNavigation(showNavigation)
   const pathname = usePathname();
   const active = sections.slice(1).find((section) => pathname === section.href)?.href || "/drugs";
   return <div className="space-y-5">
@@ -22,9 +24,9 @@ export function DrugSectionHeader({ icon: Icon = Pill, ...props }: PageHeaderPro
       <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl border border-primary/15 bg-primary/5 text-primary"><Icon className="size-6" aria-hidden="true" /></span>
       <div className="min-w-0 flex-1"><p className="mb-1 text-xs font-semibold tracking-widest text-muted-foreground">MEDICATION LIBRARY</p><PageHeader {...props} className={cn("pb-0 [&_h1]:break-words sm:[&_h1]:text-3xl", props.className)} /></div>
     </div>
-    <nav aria-label="Drug index sections" className="flex flex-wrap gap-1 rounded-xl border bg-muted/30 p-1.5">
+    {showSections && <nav aria-label="Drug index sections" className="flex flex-wrap gap-1 rounded-xl border bg-muted/30 p-1.5">
       {sections.map(({ href, label, icon: SectionIcon }) => <Link key={href} href={href} aria-current={active === href ? "page" : undefined} className={cn("flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-4", active === href ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:bg-background/70 hover:text-foreground")}><SectionIcon className="size-4" aria-hidden="true" />{label}</Link>)}
-    </nav>
+    </nav>}
   </div>;
 }
 
