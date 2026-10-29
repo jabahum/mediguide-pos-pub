@@ -100,6 +100,14 @@ Publication validation must be `valid: true`, and the report must show:
 - no missing embeddings for chunks belonging to reviewed blocks
   (`rag.ready: true`); before publication those chunks can still be `draft`.
 
+Chapter comparisons use explicit numbered chapter headings when available
+(for example, `Chapter One`, `Chapter 1`, or `Chapter IV`), regardless of their
+heading depth. This keeps front matter and formerly flat subsections from
+inflating the old chapter count after a Markdown hierarchy repair. Documents
+without named chapters use root sections, or the children of a single H1
+document title. A chapter has reviewed coverage only if it or a descendant
+contains a reviewed block. Section and block regression checks still apply.
+
 Preview representative introduction, diagnostic, treatment, dosage/table, and
 deeply nested leaf sections. Confirm total versus reviewed section labels are
 not confused.
