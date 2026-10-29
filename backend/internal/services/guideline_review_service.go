@@ -834,19 +834,7 @@ type guidelineStructureSummary struct {
 
 func guidelineStructureCounts(sections []models.GuidelineSection, blocks []models.GuidelineContentBlock) guidelineStructureSummary {
 	result := guidelineStructureSummary{sections: len(sections)}
-	roots := make([]models.GuidelineSection, 0)
-	childrenByParent := map[uuid.UUID]int{}
-	for _, section := range sections {
-		if section.ParentID == nil {
-			roots = append(roots, section)
-		} else {
-			childrenByParent[*section.ParentID]++
-		}
-	}
-	result.chapters = len(roots)
-	if len(roots) == 1 && roots[0].Level == 1 && childrenByParent[roots[0].ID] > 0 {
-		result.chapters = childrenByParent[roots[0].ID]
-	}
+	result.chapters = len(guidelineChapterSections(sections))
 	for _, block := range blocks {
 		if block.ReviewStatus == models.GuidelineBlockRejected {
 			continue
@@ -860,6 +848,35 @@ func guidelineStructureCounts(sections []models.GuidelineSection, blocks []model
 		}
 	}
 	return result
+}
+
+var guidelineChapterHeadingPattern = regexp.MustCompile(`(?i)^chapter\s+(?:[0-9]+|[ivxlcdm]+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred)\b`)
+
+// Prefer named chapters to inferred heading levels. PDF extraction can leave
+// front matter and subsections at the root; Markdown regeneration nests them
+// correctly. Counting those roots as chapters makes a hierarchy repair appear
+// to remove reviewed chapters. Unnamed publications retain the structural fallback.
+func guidelineChapterSections(sections []models.GuidelineSection) []models.GuidelineSection {
+	chapters := make([]models.GuidelineSection, 0)
+	roots := make([]models.GuidelineSection, 0)
+	childrenByParent := map[uuid.UUID][]models.GuidelineSection{}
+	for _, section := range sections {
+		if guidelineChapterHeadingPattern.MatchString(strings.TrimSpace(section.Title)) {
+			chapters = append(chapters, section)
+		}
+		if section.ParentID == nil {
+			roots = append(roots, section)
+		} else {
+			childrenByParent[*section.ParentID] = append(childrenByParent[*section.ParentID], section)
+		}
+	}
+	if len(chapters) > 0 {
+		return chapters
+	}
+	if len(roots) == 1 && roots[0].Level == 1 && len(childrenByParent[roots[0].ID]) > 0 {
+		return childrenByParent[roots[0].ID]
+	}
+	return roots
 }
 
 type guidelineReviewedSummary struct {
@@ -1024,23 +1041,12 @@ func guidelineReviewedContentSummary(sections []models.GuidelineSection, blocks 
 	}
 	result.reviewedSections = len(reviewedSections)
 	children := map[uuid.UUID][]uuid.UUID{}
-	roots := []models.GuidelineSection{}
-	byID := map[uuid.UUID]models.GuidelineSection{}
 	for _, section := range sections {
-		byID[section.ID] = section
-		if section.ParentID == nil {
-			roots = append(roots, section)
-		} else {
+		if section.ParentID != nil {
 			children[*section.ParentID] = append(children[*section.ParentID], section.ID)
 		}
 	}
-	chapters := roots
-	if len(roots) == 1 && roots[0].Level == 1 && len(children[roots[0].ID]) > 0 {
-		chapters = nil
-		for _, id := range children[roots[0].ID] {
-			chapters = append(chapters, byID[id])
-		}
-	}
+	chapters := guidelineChapterSections(sections)
 	memo, visiting := map[uuid.UUID]bool{}, map[uuid.UUID]bool{}
 	var subtreeReviewed func(uuid.UUID) bool
 	subtreeReviewed = func(id uuid.UUID) bool {
