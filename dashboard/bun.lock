@@ -55,7 +55,7 @@
         "sanitize-html": "^2.18.1",
         "sonner": "^2.0.6",
         "tailwind-merge": "^3.3.1",
-        "tinymce": "^8.8.2",
+        "tinymce": "^8.9.3",
         "world-countries": "^5.1.0",
         "zod": "^4.6.7",
       },
@@ -89,7 +89,7 @@
     "postcss": "^8.5.25",
     "sharp": "^0.35.5",
     "source-map-js": "1.2.2",
-    "tinymce": "^8.8.2",
+    "tinymce": "^8.9.3",
     "zod": "^4.6.7",
   },
   "packages": {
@@ -1611,7 +1611,7 @@
 
     "tinyglobby": ["tinyglobby@0.2.15", "", { "dependencies": { "fdir": "^6.5.0", "picomatch": "^4.0.3" } }, "sha512-j2Zq4NyQYG5XMST4cbs02Ak8iJUdxRM0XI5QyxXuZOzKOINmWurp3smXu3y5wDcJrptwpSjgXHzIQxR0omXljQ=="],
 
-    "tinymce": ["tinymce@8.8.2", "", {}, "sha512-wcUGaaAf4XFrQtbZtClbDN/QCqklXLlPt3+7UWliEoosuhnTOJUkXwf7Fzlq7agPnwkKKp1e4JGOhx3O1gWH3g=="],
+    "tinymce": ["tinymce@8.10.1", "", {}, "sha512-Mgdnx8HuEPRlLqKTyHcy7+JJn9reXH7b7L/1ywPCzKAyjaq8fzEPE+CYBLW42GgBlaaoIOd0dTOcYHUlPZyV2A=="],
 
     "tinyrainbow": ["tinyrainbow@3.1.1", "", {}, "sha512-yau8yJdTt989Mm0Bd/236QnzEiPf2xLLTqUZRUJOo/3CB078LSwzei343DgtJVmfJKJE3TMINY1u42SQsP6mXw=="],
 
