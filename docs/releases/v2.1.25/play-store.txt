@@ -1,0 +1,2 @@
+- Platform maintenance release.
+- No mobile feature changes; version synchronized to 2.1.25.

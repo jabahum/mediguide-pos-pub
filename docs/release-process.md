@@ -1,5 +1,17 @@
 # MediGuide platform release process
 
+## v2.1.25 guideline maintenance release — 30 October 2026
+
+- Synchronizes all service versions to 2.1.25 and mobile to 2.1.25+78.
+- Counts named chapters consistently when comparing reviewed coverage across
+  PDF and Markdown hierarchies, while retaining content-loss checks.
+- Updates TinyMCE to resolve the dashboard production dependency audit.
+- Includes cleaned EBS, AMR action plan and IDSR Markdown packages, available
+  figures and source-review notes. The IDSR package retains version-bound
+  managed image references whose image bytes are not in the package.
+- Introduces no database migrations. Source OCR, clinical values and tables
+  retain the normal editorial review and publication requirements.
+
 ## v2.1.24 dashboard usability release — 27 October 2026
 
 - Synchronizes all service versions to 2.1.24 and mobile to 2.1.24+77.
